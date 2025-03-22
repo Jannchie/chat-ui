@@ -15,7 +15,7 @@ watchEffect(() => {
   if (currentChat.value) {
     conversation.value = currentChat.value.conversation
   }
-  else {``
+  else {
     conversation.value = []
   }
 })
@@ -145,7 +145,6 @@ async function onSubmit() {
     })
   }
 
-
   try {
     const content = `${input.value.trim()}\n`
     inputHistory.commit()
@@ -153,7 +152,7 @@ async function onSubmit() {
 
     conversation.value = [...conversation.value, { role: 'user', content }, { role: 'assistant', content: '', reasoning: '' }]
     setChat(toRaw({ ...chat, conversation: conversation.value }))
-  nextTick(() => {
+    nextTick(() => {
       const el = scrollArea.value
       if (el) {
         scrollToBottomSmoothly(el, 1000)
@@ -324,10 +323,10 @@ watchEffect(() => {
         class="m-auto h-full max-w-830px w-full overflow-x-hidden overflow-y-auto px-4 text-3.5rem font-medium leading-4rem"
       >
         <div class="sm:mb-12 sm:mt-8">
-          <div class="gradient-text text-3xl md:text-4xl lg:text-5xl">
+          <div class="gradient-text text-3xl lg:text-5xl md:text-4xl">
             Hi there!
           </div>
-          <div class="animate-fade-delay text-2xl md:text-3xl lg:text-4xl">
+          <div class="animate-fade-delay text-2xl lg:text-4xl md:text-3xl">
             <div class="op-25">
               What can I help you today?
             </div>
@@ -336,7 +335,7 @@ watchEffect(() => {
         <div class="mb-10 mt-20 flex gap-4">
           <div class="animate-fade-delay">
             <button
-              class="w-full sm:h-200px sm:w-200px flex flex-row sm:flex-col justify-between rounded-xl bg-neutral-8 p-4 sm:p-5 leading-0 shadow-sm transition-colors hover:bg-neutral-7"
+              class="w-full flex flex-row justify-between rounded-xl bg-neutral-8 p-4 leading-0 shadow-sm transition-colors sm:h-200px sm:w-200px sm:flex-col hover:bg-neutral-7 sm:p-5"
               @click="router.push({ name: 'translate' })"
             >
               <div class="flex items-center gap-2">
@@ -347,7 +346,7 @@ watchEffect(() => {
                   Translate
                 </div>
               </div>
-              <div class="ml-auto hidden sm:ml-0 sm:mt-4 text-xs text-neutral-5 sm:flex items-center">
+              <div class="ml-auto hidden items-center text-xs text-neutral-5 sm:ml-0 sm:mt-4 sm:flex">
                 Easily translate between multiple languages
               </div>
             </button>

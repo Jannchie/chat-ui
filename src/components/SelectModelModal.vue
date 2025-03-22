@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Btn } from '@roku-ui/vue'
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useModels } from '../composables'
 import { platform } from '../shared'
 
@@ -16,30 +16,39 @@ const highlightedIndex = ref(-1)
 const modalRef = ref<HTMLElement | null>(null)
 const searchInputRef = ref<HTMLInputElement | null>(null)
 
-watch([searchQuery],()=>{
+const filteredModels = computed(() => {
+  if (!searchQuery.value) {
+    return models.value
+  }
+  const query = searchQuery.value.toLowerCase()
+  return models.value.filter(model =>
+    model.toLowerCase().includes(query),
+  )
+})
+watch([searchQuery], () => {
   highlightedIndex.value = -1
 })
 
 function handleKeyDown(event: KeyboardEvent) {
   switch (event.key) {
     case 'Escape':
-      closeModal();
-      break;
+      closeModal()
+      break
     case 'ArrowDown':
-      highlightedIndex.value = (highlightedIndex.value + 1) % filteredModels.value.length;
-      break;
+      highlightedIndex.value = (highlightedIndex.value + 1) % filteredModels.value.length
+      break
     case 'ArrowUp':
-      highlightedIndex.value = (highlightedIndex.value - 1 + filteredModels.value.length) % filteredModels.value.length;
-      break;
+      highlightedIndex.value = (highlightedIndex.value - 1 + filteredModels.value.length) % filteredModels.value.length
+      break
     case 'Enter':
       if (highlightedIndex.value >= 0) {
-        updateModel(filteredModels.value[highlightedIndex.value]);
-        event.stopPropagation();
+        updateModel(filteredModels.value[highlightedIndex.value])
+        event.stopPropagation()
       }
-      break;
+      break
     default:
-      searchInputRef.value?.focus();
-      break;
+      searchInputRef.value?.focus()
+      break
   }
 }
 
@@ -49,16 +58,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeyDown)
-})
-
-const filteredModels = computed(() => {
-  if (!searchQuery.value) {
-    return models.value
-  }
-  const query = searchQuery.value.toLowerCase()
-  return models.value.filter(model =>
-    model.toLowerCase().includes(query),
-  )
 })
 
 // Update model function

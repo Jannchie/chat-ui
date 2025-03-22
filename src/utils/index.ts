@@ -93,7 +93,6 @@ export function setChat(chat: ChatData) {
   const index = chatHistoryIDB.data.value.findIndex(c => c.id === chat.id)
   if (index === -1) {
     chatHistoryIDB.data.value.unshift(toRaw(chat))
-    
   }
   else {
     chatHistoryIDB.data.value[index] = toRaw(chat)

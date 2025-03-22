@@ -41,7 +41,7 @@ function onClick() {
     >
       <i class="i-tabler-message m-2 flex-shrink-0" />
       <span class="flex-grow overflow-x-hidden text-ellipsis text-left text-nowrap">
-        {{ chatData.title ?? 'Untitled Chat'}}
+        {{ chatData.title ?? 'Untitled Chat' }}
       </span>
       <button
         v-if="hover || showMenu"
