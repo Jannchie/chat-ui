@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatMessage } from '../composables/useHelloWorld'
+import type { SentableChatMessage } from '../composables/useHelloWorld'
 import { Paper, Tag } from '@roku-ui/vue'
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
@@ -14,7 +14,7 @@ const content = computed(() => props.content)
 const prompt = computed(() => {
   return `Based on the content I provide, analyze and extract key difficult words that help in understanding the content, and explain them. Your explanation should be in the form of a JSON array of objects, including the following fields: word, part of speech, explanation in ${targetLang.value}, synonyms (if any) in the target language (${targetLang.value}). The content I provide is: "${props.content}"`
 })
-const conversation = computed<ChatMessage[]>(() => {
+const conversation = computed<SentableChatMessage[]>(() => {
   return [{
     role: 'user',
     content: prompt.value,

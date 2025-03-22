@@ -160,7 +160,7 @@ async function onSubmit() {
     })
     const lastMessage = conversation.value[conversation.value.length - 1]
 
-    const filteredConversition = conversation.value.slice(0, -1).map((d) => {
+    const filteredConversition = conversation.value.slice(0, -1).filter(d => d.role !== 'error').map((d) => {
       if (d.role === 'assistant') {
         delete d.reasoning
       }
@@ -177,6 +177,7 @@ async function onSubmit() {
       // max_tokens: 8196,
     }).catch((err) => {
       if (err instanceof OpenAI.APIError) {
+        lastMessage.role = 'error'
         switch (err.status) {
           case 401:
             lastMessage.content = 'Invalid API Key.'

@@ -1,4 +1,4 @@
-export type ChatMessage = {
+export type SentableChatMessage = {
   content: string
   role: 'user'
 } | {
@@ -8,6 +8,10 @@ export type ChatMessage = {
 } | {
   content: string
   role: 'system'
+}
+export type ChatMessage = SentableChatMessage | {
+  role: 'error'
+  content: string
 }
 
 export interface ChatData {

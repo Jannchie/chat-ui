@@ -33,11 +33,11 @@ const message = computed(() => props.message)
           />
         </div>
         <div class="text-xs text-neutral-4 font-medium">
-          <span v-if="props.message.role === 'user'">用户</span>
+          <span v-if="props.message.role === 'user'">User</span>
           <span
             v-else
             :class="{ 'animate-pulse': props.loading && props.message.role === 'assistant' }"
-          >AI助手</span>
+          >AI Assistant</span>
         </div>
       </div>
       <div class="w-full">
@@ -63,9 +63,13 @@ const message = computed(() => props.message)
           class="i-fluent-person-28-filled h-full w-full"
         />
         <i
-          v-else
+          v-else-if="props.message.role === 'assistant'"
           class="i-fluent-bot-48-filled h-full w-full"
           :class="{ 'animate-pulse': loading && message.role === 'assistant' }"
+        />
+        <i
+          v-else
+          class="i-fluent-error-circle-24-filled h-full w-full"
         />
       </div>
 
@@ -77,7 +81,11 @@ const message = computed(() => props.message)
           :loading="loading"
         />
         <UserChatMessage
-          v-else
+          v-else-if="message.role === 'user'"
+          :content="message.content"
+        />
+        <ErrorChatMessage
+          v-else-if="message.role === 'error'"
           :content="message.content"
         />
       </div>
