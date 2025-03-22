@@ -55,6 +55,8 @@ const defaultHeaders = computed(() => {
   }
   if (platform.value === 'anthropic') {
     headers['anthropic-dangerous-direct-browser-access'] = 'true'
+    headers['x-api-key'] = apiKey.value
+    headers['anthropic-version'] = '2023-06-01'
   }
   return headers
 })
