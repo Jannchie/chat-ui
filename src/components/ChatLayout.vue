@@ -322,7 +322,7 @@ watchEffect(() => {
         v-if="conversation.length <= 1"
         class="m-auto h-full max-w-830px w-full overflow-x-hidden overflow-y-auto px-4 text-3.5rem font-medium leading-4rem"
       >
-        <div class="sm:mb-12 sm:mt-8">
+        <div class="md:mb-12 md:mt-8">
           <div class="gradient-text text-3xl lg:text-5xl md:text-4xl">
             Hi there!
           </div>
@@ -335,7 +335,7 @@ watchEffect(() => {
         <div class="mb-10 mt-20 flex gap-4">
           <div class="animate-fade-delay">
             <button
-              class="w-full flex flex-row justify-between rounded-xl bg-neutral-8 p-4 leading-0 shadow-sm transition-colors sm:h-200px sm:w-200px sm:flex-col hover:bg-neutral-7 sm:p-5"
+              class="w-full flex flex-row justify-between rounded-xl bg-neutral-8 p-4 leading-0 shadow-sm transition-colors md:h-200px md:w-200px md:flex-col hover:bg-neutral-7 md:p-5"
               @click="router.push({ name: 'translate' })"
             >
               <div class="flex items-center gap-2">
@@ -346,7 +346,7 @@ watchEffect(() => {
                   Translate
                 </div>
               </div>
-              <div class="ml-auto hidden items-center text-xs text-neutral-5 sm:ml-0 sm:mt-4 sm:flex">
+              <div class="ml-auto hidden items-center text-xs text-neutral-5 md:ml-0 md:mt-4 md:flex">
                 Easily translate between multiple languages
               </div>
             </button>

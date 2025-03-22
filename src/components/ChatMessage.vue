@@ -10,7 +10,7 @@ const message = computed(() => props.message)
 
 <template>
   <div
-    class="m-auto w-full flex-grow-1 px-3 py-4 sm:max-w-712px sm:px-4 sm:py-6"
+    class="m-auto w-full flex-grow-1 px-3 py-4 md:max-w-712px md:px-4 md:py-6"
     :class="{
       'bg-neutral-8 rounded-t-xl': message.role === 'user',
       'bg-neutral-9 rounded-b-xl mb-2': message.role === 'assistant',
@@ -18,7 +18,7 @@ const message = computed(() => props.message)
   >
     <!-- 移动端上下结构布局（图标+文字在上，内容在下） -->
     <div
-      class="block sm:hidden"
+      class="block md:hidden"
     >
       <div class="mb-1 flex items-center">
         <div class="mr-1 flex-shrink-0 leading-0">
@@ -55,7 +55,7 @@ const message = computed(() => props.message)
     </div>
     <!-- 桌面端保持原有的左右结构 -->
     <div
-      class="hidden sm:flex sm:gap-4"
+      class="hidden md:flex md:gap-4"
     >
       <div class="sticky top-4 z-10 h-8 w-8 flex-shrink-0">
         <i

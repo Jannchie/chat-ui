@@ -10,17 +10,17 @@ const showSelectPresetModal = ref(false)
 </script>
 
 <template>
-  <header class="flex flex-shrink-0 items-center justify-between gap-4 px-4 py-3 text-lg md:h-72px md:px-6">
+  <header class="flex flex-shrink-0 items-center justify-between gap-4 px-4 py-3 text-lg lg:h-72px lg:px-6">
     <!-- New Conversation Button for small screens -->
     <button
-      class="flex items-center justify-center rounded-full p-2 text-lg md:hidden hover:bg-neutral-8"
+      class="flex items-center justify-center rounded-full p-2 text-lg lg:hidden hover:bg-neutral-8"
       @click="$router.push('/')"
     >
       <i class="i-tabler-plus text-neutral-400" />
     </button>
     <!-- Model selection - visible on all devices -->
     <button
-      class="flex cursor-pointer items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors hover:bg-neutral-8 md:px-4 md:py-2.5"
+      class="flex cursor-pointer items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors hover:bg-neutral-8 lg:px-4 lg:py-2.5"
       @click="showSelectPresetModal = true"
     >
       <div class="text-lg leading-0">
@@ -41,7 +41,7 @@ const showSelectPresetModal = ref(false)
       v-model:selected-model="model"
     />
     <!-- Desktop view - row of inputs -->
-    <div class="hidden md:flex md:gap-3">
+    <div class="hidden lg:flex lg:gap-3">
       <div
         v-if="platform === 'custom'"
         class="flex items-center gap-2"
@@ -89,7 +89,7 @@ const showSelectPresetModal = ref(false)
 
     <!-- Mobile view - menu toggle -->
     <button
-      class="flex items-center justify-center rounded-full p-2 text-lg md:hidden hover:bg-neutral-8"
+      class="flex items-center justify-center rounded-full p-2 text-lg lg:hidden hover:bg-neutral-8"
       @click="showMobileMenu = !showMobileMenu"
     >
       <i class="i-tabler-settings text-neutral-400" />
@@ -98,7 +98,7 @@ const showSelectPresetModal = ref(false)
     <!-- Mobile menu drawer -->
     <div
       v-if="showMobileMenu"
-      class="fixed inset-0 z-50 bg-black/50 md:hidden"
+      class="fixed inset-0 z-50 bg-black/50 lg:hidden"
       @click.self="showMobileMenu = false"
     >
       <div class="absolute right-0 top-0 h-full w-64 bg-[#121212] p-4 shadow-lg">
