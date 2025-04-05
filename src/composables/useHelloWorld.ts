@@ -5,6 +5,7 @@ export type SentableChatMessage = {
   content: string
   role: 'assistant'
   reasoning?: string
+  model?: string
 } | {
   content: string
   role: 'system'
@@ -17,5 +18,9 @@ export type ChatMessage = SentableChatMessage | {
 export interface ChatData {
   id: string
   title: string | null
+  token: {
+    inTokens: number
+    outTokens: number
+  }
   conversation: ChatMessage[]
 }

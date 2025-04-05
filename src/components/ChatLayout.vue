@@ -8,8 +8,15 @@ import { generateId, isMobile, setChat } from '../utils'
 const router = useRouter()
 
 const lastUsage = ref<OpenAI.Completions.CompletionUsage | null>(null)
+
 const conversation = shallowRef<ChatMessage[]>([])
 const currentChat = useCurrentChat()
+
+watch([currentChat.value], () => {
+  if (currentChat.value) {
+    lastUsage.value = null
+  }
+})
 
 watchEffect(() => {
   if (currentChat.value) {
@@ -135,6 +142,10 @@ async function onSubmit() {
       id,
       title: null,
       conversation: conversation.value,
+      token: {
+        inTokens: 0,
+        outTokens: 0,
+      },
     }
     setChat(chat)
     router.push({
@@ -212,6 +223,10 @@ async function onSubmit() {
       if (usage) {
         lastEndedAtMS.value = Date.now()
         lastUsage.value = usage
+        if (chat) {
+          chat.token.inTokens += usage.prompt_tokens
+          chat.token.outTokens += usage.completion_tokens
+        }
       }
 
       const lastMessage = conversation.value[conversation.value.length - 1]
@@ -373,19 +388,33 @@ watchEffect(() => {
       </div>
       <div class="input-section relative min-h-120px flex shrink-0 flex-col items-center justify-end gap-1 px-4">
         <div
-          v-if="lastUsage"
-          class="z-10 flex items-center rounded-md text-sm op50 shadow-sm"
+          v-if="currentChat?.token"
+          class="z-10 flex flex-col items-center rounded-md text-sm op50 shadow-sm"
         >
-          <!-- 合并的输入/输出统计 -->
-          <div class="mr-6 flex items-center">
-            <span class="mr-1 font-medium">Input/Output:</span>
-            <span>{{ lastUsage.prompt_tokens }} / {{ lastUsage.completion_tokens }} Token</span>
-          </div>
-
           <!-- 性能指标 -->
-          <div class="flex items-center">
-            <span class="mr-1 font-medium">Speed:</span>
-            <span>{{ (lastUsage.completion_tokens / lastTimeUsageMS * 1000).toFixed(2) }} Token/s</span>
+          <div
+            v-if="lastUsage && lastTimeUsageMS > 0"
+            class="flex items-center gap-1"
+          >
+            <div>
+              <span class="mr-1 font-medium">Current:</span>
+              <span>{{ lastUsage.prompt_tokens }} / {{ lastUsage.completion_tokens }} Token</span>
+            </div>
+            ·
+            <div>
+              <span class="mr-1 font-medium">Speed:</span>
+              <span>{{ (lastUsage.completion_tokens / lastTimeUsageMS * 1000).toFixed(2) }} Token/s</span>
+            </div>
+          </div>
+          <!-- 合并的输入/输出统计 -->
+          <div
+            v-if="currentChat.token.inTokens > 0 && currentChat.token.outTokens > 0"
+            class="mr-6 flex items-center"
+          >
+            <span class="mr-1 font-medium">Total Input/Output:</span>
+            <span>
+              {{ currentChat.token.inTokens }} / {{ currentChat.token.outTokens }} Token
+            </span>
           </div>
         </div>
         <div class="relative z-10 max-w-830px w-full overflow-hidden leading-0">
