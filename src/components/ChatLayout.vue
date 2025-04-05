@@ -12,7 +12,7 @@ const lastUsage = ref<OpenAI.Completions.CompletionUsage | null>(null)
 const conversation = shallowRef<ChatMessage[]>([])
 const currentChat = useCurrentChat()
 
-watch([currentChat.value], () => {
+watch([currentChat], () => {
   if (currentChat.value) {
     lastUsage.value = null
   }
