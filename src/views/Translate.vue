@@ -55,11 +55,17 @@ watchEffect(async () => {
     translateContent.value = ''
 
     const currentRequestId = ++requestId
+    const filteredConversition = conversation.value.slice(0, -1).filter(d => d.role !== 'error').map((d) => {
+      if (d.role === 'assistant') {
+        delete d.reasoning
+      }
+      return d
+    })
 
     const stream = await client.value.chat.completions.create({
       model: model.value,
       stream: true,
-      messages: conversation.value,
+      messages: filteredConversition,
     })
 
     for await (const chunk of stream) {
