@@ -54,8 +54,8 @@ function processToken(token: Token, env?: Record<string, any>) {
     token.meta = {}
   }
 
-  if (env?.safeMode) {
-    token.attrs?.forEach(([name, val]) => {
+  if (env?.safeMode && token.attrs) {
+    for (let [name, val] of token.attrs) {
       name = name.toLowerCase()
       if (sensitiveAttrReg.test(name) && sensitiveUrlReg.test(val)) {
         token.attrSet(name, '')
@@ -64,7 +64,7 @@ function processToken(token: Token, env?: Record<string, any>) {
       if (name === 'href' && val.toLowerCase().startsWith('data:')) {
         token.attrSet(name, '')
       }
-    })
+    }
   }
 
   if (token.block) {
@@ -77,9 +77,11 @@ function processToken(token: Token, env?: Record<string, any>) {
       }
 
       // transform array to object
-      token.attrs?.forEach(([name, val]) => {
-        token.meta.attrs[name] = val
-      })
+      if (token.attrs) {
+        for (const [name, val] of token.attrs) {
+          token.meta.attrs[name] = val
+        }
+      }
     }
   }
 }
@@ -166,7 +168,6 @@ defaultRules.fence = function (tokens: Token[], idx: number, options: any, _: an
   const info = token.info ? unescapeAll(token.info).trim() : ''
   let langName = ''
   let langAttrs = ''
-  let highlighted: any
   let i
   let arr
   let tmpAttrs
@@ -177,12 +178,7 @@ defaultRules.fence = function (tokens: Token[], idx: number, options: any, _: an
     langName = arr[0]
     langAttrs = arr.slice(2).join('')
   }
-  if (options.highlight) {
-    highlighted = options.highlight(token.content, langName, langAttrs) || escapeHtml(token.content)
-  }
-  else {
-    highlighted = escapeHtml(token.content)
-  }
+  const highlighted = options.highlight ? options.highlight(token.content, langName, langAttrs) || escapeHtml(token.content) : escapeHtml(token.content)
 
   const buildVNode = (attrs: any) => {
     const preAttrs = {
@@ -209,13 +205,13 @@ defaultRules.fence = function (tokens: Token[], idx: number, options: any, _: an
   // If language exists, inject class gently, without modifying original token.
   if (info) {
     i = token.attrIndex('class')
-    tmpAttrs = token.attrs ? token.attrs.slice() : []
+    tmpAttrs = token.attrs ? [...token.attrs] : []
 
     if (i < 0) {
       tmpAttrs.push(['class', options.langPrefix + langName])
     }
     else {
-      tmpAttrs[i] = tmpAttrs[i].slice() as any
+      tmpAttrs[i] = [...tmpAttrs[i]] as any
       tmpAttrs[i][1] += ` ${options.langPrefix}${langName}`
     }
 
@@ -297,8 +293,7 @@ function createHtmlVNode(html: string) {
   div.innerHTML = html
   const elements = div.content.children
   const children = []
-  for (let i = 0; i < elements.length; i++) {
-    const element = elements[i]
+  for (const element of elements) {
     const tagName = element.tagName.toLowerCase()
     const attrs: Record<string, any> = {
       key: element.outerHTML,
@@ -341,6 +336,7 @@ function renderAttrs(this: Renderer, token: Token) {
 
   const result: any = {}
 
+  // eslint-disable-next-line unicorn/no-array-for-each
   token.attrs.forEach((token) => {
     if (validateAttrName(token[0])) {
       result[token[0]] = token[1]
@@ -386,11 +382,11 @@ function render(this: Renderer, tokens: Token[], options: any, env: any) {
     }
 
     let isChild = false
-    const parentNode = vNodeParents.length > 0 ? vNodeParents[vNodeParents.length - 1] : null
+    const parentNode = vNodeParents.length > 0 ? vNodeParents.at(-1) : null
     if (vnode && parentNode) {
       if (typeof parentNode.type === 'string' || parentNode.type === Fragment) {
         const children = Array.isArray(parentNode.children) ? parentNode.children : []
-        parentNode.children = children.concat([vnode])
+        parentNode.children = [...children, vnode]
       }
       isChild = true
     }
@@ -411,10 +407,11 @@ function render(this: Renderer, tokens: Token[], options: any, env: any) {
   }).filter(node => !!node) as any
 }
 
-export default (md: any) => {
+function render_(md: any) {
   md.renderer.rules = { ...md.renderer.rules, ...defaultRules }
   md.renderer.render = render
   md.renderer.renderInline = render
   md.renderer.renderAttrs = renderAttrs
   md.renderer.renderToken = renderToken
 }
+export default render_

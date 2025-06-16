@@ -42,14 +42,8 @@ export function useScrollToBottom(containerRef: Ref<HTMLElement | null>, scrollT
       return
     }
 
-    // 如果用户手动滚动到底部，重新激活吸附
-    if (isNearBottom()) {
-      isStickToBottom.value = true
-    }
-    else {
-      // 用户向上滚动，取消吸附
-      isStickToBottom.value = false
-    }
+    // 如果用户手动滚动到底部，重新激活吸附；否则用户向上滚动，取消吸附
+    isStickToBottom.value = isNearBottom()
   }
 
   /**

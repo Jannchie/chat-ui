@@ -19,18 +19,24 @@ const textDebounced = useDebounce(text, 1000)
 const tone = useLocalStorage<'neutral' | 'formal' | 'informal' | 'professional' | 'friendly'>('translate.tone', 'neutral')
 const tonePrompt = computed(() => {
   switch (tone.value) {
-    case 'neutral':
+    case 'neutral': {
       return 'The tone should be neutral, neither too formal nor too informal, maintaining a balanced and straightforward style'
-    case 'formal':
+    }
+    case 'formal': {
       return 'The tone should be formal, suitable for official documents, academic papers, or professional communications, with a respectful and polished style'
-    case 'informal':
+    }
+    case 'informal': {
       return 'The tone should be informal, conversational, and relaxed, as if you were talking to a friend or family member in a casual setting'
-    case 'professional':
+    }
+    case 'professional': {
       return 'The tone should be professional, appropriate for business communications, reports, or interactions in a corporate environment, with a clear, precise, and respectful style'
-    case 'friendly':
+    }
+    case 'friendly': {
       return 'The tone should be friendly, warm, and approachable, creating a sense of familiarity and comfort as if speaking to a close acquaintance'
-    default:
+    }
+    default: {
       return ''
+    }
   }
 })
 const conversation = computed<ChatMessage[]>(() => [{

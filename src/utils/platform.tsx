@@ -33,31 +33,42 @@ function PreferredNetworksSVG() {
 
 export function getPlatformName(name: string) {
   switch (name) {
-    case 'openai':
+    case 'openai': {
       return 'OpenAI'
-    case 'openrouter':
+    }
+    case 'openrouter': {
       return 'Open Router'
-    case 'custom':
+    }
+    case 'custom': {
       return 'Custom'
-    case 'anthropic':
+    }
+    case 'anthropic': {
       return 'Anthropic'
-    case 'pfn':
+    }
+    case 'pfn': {
       return 'Preferred Networks'
-    default:
+    }
+    default: {
       return name
+    }
   }
 }
 export function getPlatformIcon(name: string) {
   switch (name) {
-    case 'openrouter':
+    case 'openrouter': {
       return <OpenRouterSVG />
-    case 'custom':
+    }
+    case 'custom': {
       return <i class="i-tabler-brain"></i>
-    case 'openai':
+    }
+    case 'openai': {
       return <i class="i-ri-openai-fill"></i>
-    case 'anthropic':
+    }
+    case 'anthropic': {
       return <i class="i-ri-anthropic-fill"></i>
-    case 'pfn':
+    }
+    case 'pfn': {
       return <PreferredNetworksSVG />
+    }
   }
 }

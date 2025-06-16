@@ -31,33 +31,38 @@ watch([searchQuery], () => {
 
 function handleKeyDown(event: KeyboardEvent) {
   switch (event.key) {
-    case 'Escape':
+    case 'Escape': {
       closeModal()
       break
-    case 'ArrowDown':
+    }
+    case 'ArrowDown': {
       highlightedIndex.value = (highlightedIndex.value + 1) % filteredModels.value.length
       break
-    case 'ArrowUp':
+    }
+    case 'ArrowUp': {
       highlightedIndex.value = (highlightedIndex.value - 1 + filteredModels.value.length) % filteredModels.value.length
       break
-    case 'Enter':
+    }
+    case 'Enter': {
       if (highlightedIndex.value >= 0) {
         updateModel(filteredModels.value[highlightedIndex.value])
         event.stopPropagation()
       }
       break
-    default:
+    }
+    default: {
       searchInputRef.value?.focus()
       break
+    }
   }
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown)
+  globalThis.addEventListener('keydown', handleKeyDown)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeyDown)
+  globalThis.removeEventListener('keydown', handleKeyDown)
 })
 
 // Update model function

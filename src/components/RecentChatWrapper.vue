@@ -8,12 +8,7 @@ const displayLimit = ref(5)
 const showAll = ref(false)
 
 const displayedChats = computed(() => {
-  if (showAll.value) {
-    return chatHistory.value
-  }
-  else {
-    return chatHistory.value.slice(0, displayLimit.value)
-  }
+  return showAll.value ? chatHistory.value : chatHistory.value.slice(0, displayLimit.value)
 })
 
 function toggleShowMore() {

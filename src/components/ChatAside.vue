@@ -15,12 +15,7 @@ const displayLimit = ref(5)
 const showAll = ref(false)
 
 const displayedChats = computed(() => {
-  if (showAll.value) {
-    return chatHistory.value
-  }
-  else {
-    return chatHistory.value.slice(0, displayLimit.value)
-  }
+  return showAll.value ? chatHistory.value : chatHistory.value.slice(0, displayLimit.value)
 })
 
 function toggleShowMore() {
@@ -28,7 +23,7 @@ function toggleShowMore() {
 }
 const openedMenuChat = ref<ChatData | null>(null)
 const mouse = useMouse({
-  target: window,
+  target: globalThis,
 })
 provide('openedMenuChat', openedMenuChat)
 const menuRef = ref<HTMLElement | null>(null)

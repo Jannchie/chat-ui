@@ -18,9 +18,9 @@ const debouncedLoading = refDebounced(loading, 1000)
 const showCopyTooltip = ref(false)
 
 function editResult(childrenRaw: VNode[]): VNode[] {
+  // eslint-disable-next-line unicorn/no-magic-array-flat-depth
   const children = childrenRaw.flat(20)
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i]
+  for (const child of children) {
     if (typeof child.children === 'string') {
       child.props = {
         ...child.props,
@@ -39,11 +39,11 @@ function editResult(childrenRaw: VNode[]): VNode[] {
 function splitContent(msg: string) {
   const sentences = msg.split(/(?<=[。？！；、，\n])|(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=[.?!`])/g)
 
-  if (sentences.length > 0 && !/[.?!。？！；，、`\n]$/.test(sentences[sentences.length - 1])) {
+  if (sentences.length > 0 && !/[.?!。？！；，、`\n]$/.test(sentences.at(-1)!)) {
     sentences.pop()
   }
 
-  if (sentences.length > 0 && /^\d+\./.test(sentences[sentences.length - 1])) {
+  if (sentences.length > 0 && /^\d+\./.test(sentences.at(-1)!)) {
     sentences.pop()
   }
 
@@ -58,12 +58,7 @@ const formatedContent = computed(() => {
 
 const contentFinal = computed(() => {
   const msg = content.value
-  if (props.loading) {
-    return formatedContent.value
-  }
-  else {
-    return msg
-  }
+  return props.loading ? formatedContent.value : msg
 })
 
 const contentVNodes = computedWithControl([contentFinal], () => {
@@ -119,8 +114,8 @@ function copyContentToClipboard() {
     setTimeout(() => {
       showCopyTooltip.value = false
     }, 2000)
-  }).catch((err) => {
-    console.error(`Failed to copy content: ${err}`)
+  }).catch((error) => {
+    console.error(`Failed to copy content: ${error}`)
   })
 }
 </script>

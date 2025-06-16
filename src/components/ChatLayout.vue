@@ -19,12 +19,7 @@ watch([currentChat], () => {
 })
 
 watchEffect(() => {
-  if (currentChat.value) {
-    conversation.value = currentChat.value.conversation
-  }
-  else {
-    conversation.value = []
-  }
+  conversation.value = currentChat.value ? currentChat.value.conversation : []
 })
 
 const aiClient = useClient()
@@ -63,25 +58,25 @@ const groupedConversation = computed(() => {
       group.push(c)
     }
   }
-  if (group.length) {
+  if (group.length > 0) {
     result.push(group)
   }
   return result
 })
 const enableAutoScroll = ref(false)
+function easeInOutQuad(time: number, start: number, change: number, duration: number) {
+  time /= duration / 2
+  if (time < 1) {
+    return change / 2 * time * time + start
+  }
+  time--
+  return -change / 2 * (time * (time - 2) - 1) + start
+}
 function scrollToBottomSmoothly(element: { scrollTop: number, scrollHeight: number, clientHeight: number }, duration: number) {
   const start = element.scrollTop
   const end = element.scrollHeight - element.clientHeight
   const distance = end - start
   const startTime = performance.now()
-  function easeInOutQuad(time: number, start: number, change: number, duration: number) {
-    time /= duration / 2
-    if (time < 1) {
-      return change / 2 * time * time + start
-    }
-    time--
-    return -change / 2 * (time * (time - 2) - 1) + start
-  }
 
   function scroll() {
     const currentTime = performance.now()
@@ -116,7 +111,7 @@ watch([input, textareaRef], () => {
 function getNumberOfLines(textarea: HTMLTextAreaElement) {
   // 收缩，获取行数，然后展开
   textarea.style.height = '0px'
-  const style = window.getComputedStyle(textarea)
+  const style = globalThis.getComputedStyle(textarea)
   const lineHeight = Number.parseInt(style.lineHeight)
   const padding = Number.parseInt(style.paddingTop) + Number.parseInt(style.paddingBottom)
   const textareaHeight = textarea.scrollHeight - padding
@@ -169,7 +164,7 @@ async function onSubmit() {
         scrollToBottomSmoothly(el, 1000)
       }
     })
-    const lastMessage = conversation.value[conversation.value.length - 1]
+    const lastMessage = conversation.value.at(-1)
 
     const filteredConversition = conversation.value.slice(0, -1).filter(d => d.role !== 'error').map((d) => {
       if (d.role === 'assistant') {
@@ -186,30 +181,32 @@ async function onSubmit() {
         include_usage: true,
       },
       // max_tokens: 8196,
-    }).catch((err) => {
-      if (err instanceof OpenAI.APIError) {
+    }).catch((error) => {
+      if (error instanceof OpenAI.APIError) {
+        if (!lastMessage) {
+          return
+        }
         lastMessage.role = 'error'
-        switch (err.status) {
-          case 401:
+        switch (error.status) {
+          case 401: {
             lastMessage.content = 'Invalid API Key.'
             break
-          case 403:
+          }
+          case 403: {
             lastMessage.content = 'API Key has no permission.'
             break
-          case 429:
+          }
+          case 429: {
             lastMessage.content = 'Rate limit exceeded.'
             break
-          default:
-            if ((err?.status ?? 0) >= 500) {
-              lastMessage.content = 'Server Error.'
-            }
-            else {
-              lastMessage.content = 'Error.'
-            }
+          }
+          default: {
+            lastMessage.content = (error?.status ?? 0) >= 500 ? 'Server Error.' : 'Error.'
+          }
         }
       }
       else {
-        throw err
+        throw error
       }
     })
     if (!stream) {
@@ -229,7 +226,7 @@ async function onSubmit() {
         }
       }
 
-      const lastMessage = conversation.value[conversation.value.length - 1]
+      const lastMessage = conversation.value.at(-1)
       if (chunk.choices.length === 0) {
         continue
       }
@@ -242,7 +239,9 @@ async function onSubmit() {
       if (laststartedAtMS.value === 0) {
         laststartedAtMS.value = Date.now()
       }
-
+      if (!lastMessage) {
+        return
+      }
       if (delta.content) {
         lastMessage.content += delta.content
       }
@@ -299,7 +298,7 @@ async function onEnter(e: KeyboardEvent) {
         rows.value = targetRows
         target.selectionStart = selectStart + 1
         target.selectionEnd = selectStart + 1
-        const lineHeight = Number.parseInt(window.getComputedStyle(target).lineHeight)
+        const lineHeight = Number.parseInt(globalThis.getComputedStyle(target).lineHeight)
         target.scroll({
           top: lineHeight * totalRows,
         })

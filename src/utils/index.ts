@@ -12,7 +12,7 @@ export const isMobile = computed(() => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 })
 export function generateId() {
-  return window.crypto.randomUUID()
+  return globalThis.crypto.randomUUID()
 }
 
 export const md = markdownit({

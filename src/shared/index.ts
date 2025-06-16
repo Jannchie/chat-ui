@@ -19,16 +19,21 @@ export const serviceUrl = computed(() => {
     return customServiceUrl.value
   }
   switch (platform.value) {
-    case 'openai':
+    case 'openai': {
       return 'https://api.openai.com/v1/'
-    case 'anthropic':
+    }
+    case 'anthropic': {
       return 'https://api.anthropic.com/v1/'
-    case 'openrouter':
+    }
+    case 'openrouter': {
       return 'https://openrouter.ai/api/v1/'
-    case 'deepseek':
+    }
+    case 'deepseek': {
       return 'https://api.deepseek.com'
-    case 'pfn':
+    }
+    case 'pfn': {
       return 'https://api.platform.preferredai.jp/v1'
+    }
   }
 })
 const apiKeyKey = computed(() => {
