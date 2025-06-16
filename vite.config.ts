@@ -36,7 +36,7 @@ export default defineConfig({
       manifest: {
         name: 'Jannchie\'s Chat UI',
         short_name: 'Chat UI',
-        description: 'A chat application built with Gemini UI Style',
+        description: 'A chat application built with modern styles and technologies.',
         theme_color: '#131314',
         icons: [
           {
