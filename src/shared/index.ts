@@ -41,7 +41,7 @@ const apiKeyKey = computed(() => {
 })
 
 const modelKeyKey = computed(() => {
-  return `model-${serviceUrl.value}`
+  return `model-${platform.value}`
 })
 export const model = useLocalStorage(modelKeyKey, '')
 export const apiKey = useLocalStorage(apiKeyKey, '')

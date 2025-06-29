@@ -24,9 +24,10 @@ watchEffect(() => {
 
 const aiClient = useClient()
 
-async function generateSummary(text: string) {
+async function generateSummary(text: string, lockedModel?: string) {
+  const modelToUse = lockedModel || model.value
   const resp = await (aiClient.value.chat.completions as OpenAI.Chat.Completions).create({
-    model: model.value,
+    model: modelToUse,
     messages: [
       {
         role: 'system',
@@ -128,6 +129,15 @@ async function onSubmit() {
   if (input.value.trim() === '' || streaming.value) {
     return
   }
+  
+  // Lock the current model to prevent accidental switching during message sending
+  const currentModel = model.value
+  if (!currentModel) {
+    // Show error if no model is selected
+    console.error('Please select a model first')
+    return
+  }
+  
   streaming.value = true
   let chat = currentChat.value
   if (!chat) {
@@ -175,7 +185,7 @@ async function onSubmit() {
 
     const stream = await aiClient.value.chat.completions.create({
       messages: filteredConversition,
-      model: model.value,
+      model: currentModel, // Use the locked model instead of reactive model.value
       stream: true,
       stream_options: {
         include_usage: true,
@@ -261,7 +271,7 @@ async function onSubmit() {
       setChat(chat)
       if (!chat.title) {
         const aiMessage = conversation.value.filter(d => d.role === 'assistant').map(d => d.content).join('\n')
-        const summary = await generateSummary(aiMessage)
+        const summary = await generateSummary(aiMessage, currentModel)
         setChat({
           ...chat,
           title: summary,
