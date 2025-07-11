@@ -129,7 +129,7 @@ async function onSubmit() {
   if (input.value.trim() === '' || streaming.value) {
     return
   }
-  
+
   // Lock the current model to prevent accidental switching during message sending
   const currentModel = model.value
   if (!currentModel) {
@@ -137,7 +137,7 @@ async function onSubmit() {
     console.error('Please select a model first')
     return
   }
-  
+
   streaming.value = true
   let chat = currentChat.value
   if (!chat) {

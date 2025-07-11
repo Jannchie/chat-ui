@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Btn } from '@roku-ui/vue'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useModels } from '../composables'
 import { platform } from '../shared'
 
@@ -30,35 +30,52 @@ watch([searchQuery], () => {
 })
 
 function handleKeyDown(event: KeyboardEvent) {
+  // Only handle keyboard events when modal is actually open
+  if (!modelValue.value) {
+    return
+  }
+
   switch (event.key) {
     case 'Escape': {
       closeModal()
       break
     }
     case 'ArrowDown': {
+      event.preventDefault()
       highlightedIndex.value = (highlightedIndex.value + 1) % filteredModels.value.length
       break
     }
     case 'ArrowUp': {
+      event.preventDefault()
       highlightedIndex.value = (highlightedIndex.value - 1 + filteredModels.value.length) % filteredModels.value.length
       break
     }
     case 'Enter': {
       if (highlightedIndex.value >= 0) {
-        updateModel(filteredModels.value[highlightedIndex.value])
+        event.preventDefault()
         event.stopPropagation()
+        updateModel(filteredModels.value[highlightedIndex.value])
       }
       break
     }
     default: {
-      searchInputRef.value?.focus()
+      // Only focus search input if the event is not from it
+      if (event.target !== searchInputRef.value) {
+        searchInputRef.value?.focus()
+      }
       break
     }
   }
 }
 
-onMounted(() => {
-  globalThis.addEventListener('keydown', handleKeyDown)
+// Only listen to keyboard events when modal is open
+watch(modelValue, (isOpen) => {
+  if (isOpen) {
+    globalThis.addEventListener('keydown', handleKeyDown)
+  }
+  else {
+    globalThis.removeEventListener('keydown', handleKeyDown)
+  }
 })
 
 onBeforeUnmount(() => {
@@ -75,6 +92,7 @@ function updateModel(modelName: string | null | undefined) {
 function closeModal() {
   modelValue.value = false
   searchQuery.value = ''
+  highlightedIndex.value = -1
 }
 </script>
 
