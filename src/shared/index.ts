@@ -1,5 +1,6 @@
 import type { ChatData } from '../composables/useHelloWorld'
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval'
+import { useDexieStorage, useDexieRef } from '../composables/useDexieStorage'
 import OpenAI from 'openai'
 
 export const chatHistoryIDB = useIDBKeyval<ChatData[]>('chatHistory', [], {
@@ -11,9 +12,9 @@ export const chatHistory = computed({
     chatHistoryIDB.data.value = value
   },
 })
-export const customServiceUrl = useLocalStorage('serviceUrl', 'https://api.openai.com/v1')
+export const customServiceUrl = useDexieStorage('serviceUrl', 'https://api.openai.com/v1')
 
-export const platform = useLocalStorage('platform', 'openai')
+export const platform = useDexieStorage('platform', 'openai')
 export const serviceUrl = computed(() => {
   if (platform.value === 'custom') {
     return customServiceUrl.value
@@ -46,8 +47,8 @@ const apiKeyKey = computed(() => {
 const modelKeyKey = computed(() => {
   return `model-${platform.value}`
 })
-export const model = useLocalStorage(modelKeyKey, '')
-export const apiKey = useLocalStorage(apiKeyKey, '')
+export const model = useDexieRef(modelKeyKey, '')
+export const apiKey = useDexieRef(apiKeyKey, '')
 
 const defaultHeaders = computed(() => {
   const headers: Record<string, string | null> = {

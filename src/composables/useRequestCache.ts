@@ -1,4 +1,4 @@
-import Dexie, { type Table } from 'dexie'
+import { db, type RequestCacheEntry } from './useDatabase'
 
 export interface RequestCacheKey {
   preset: string
@@ -6,29 +6,6 @@ export interface RequestCacheKey {
   model: string
   apiKey: string
 }
-
-export interface RequestCacheEntry {
-  id?: number
-  cacheKey: string
-  key: RequestCacheKey
-  timestamp: number
-  success: boolean
-  accessCount: number
-  lastAccessed: number
-}
-
-class RequestCacheDB extends Dexie {
-  requestCache!: Table<RequestCacheEntry>
-
-  constructor() {
-    super('RequestCacheDB')
-    this.version(1).stores({
-      requestCache: '++id, cacheKey, timestamp, lastAccessed, accessCount',
-    })
-  }
-}
-
-const db = new RequestCacheDB()
 
 const MAX_CACHE_SIZE = 100
 const TTL = 1000 * 60 * 30 // 30 minutes

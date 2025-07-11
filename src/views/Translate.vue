@@ -3,6 +3,7 @@ import type { ChatMessage } from '../composables/useHelloWorld'
 import { BtnGroup, Paper, ScrollArea } from '@roku-ui/vue'
 import StreamContent from '../components/StreamContent.vue'
 import { useRequestCache } from '../composables/useRequestCache'
+import { useDexieStorage } from '../composables/useDexieStorage'
 import { apiKey, model, platform, serviceUrl } from '../shared'
 
 const router = useRouter()
@@ -12,12 +13,12 @@ function onHomeClick() {
   })
 }
 const text = ref('')
-const targetLang = useLocalStorage('translate.targetLang', 'chinese')
+const targetLang = useDexieStorage('translate.targetLang', 'chinese')
 const targetLangDebounced = useDebounce(targetLang, 1000)
 const textDebounced = useDebounce(text, 1000)
 
 // 可以指定翻译的语气，可选项为：neutral, formal, informal, professional, friendly
-const tone = useLocalStorage<'neutral' | 'formal' | 'informal' | 'professional' | 'friendly'>('translate.tone', 'neutral')
+const tone = useDexieStorage<'neutral' | 'formal' | 'informal' | 'professional' | 'friendly'>('translate.tone', 'neutral')
 const tonePrompt = computed(() => {
   switch (tone.value) {
     case 'neutral': {
