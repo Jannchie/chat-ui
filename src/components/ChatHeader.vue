@@ -2,11 +2,13 @@
 import { ref } from 'vue'
 import { apiKey, customServiceUrl, model, platform } from '../shared'
 import { getPlatformIcon, getPlatformName } from '../utils'
+import CacheHistoryModal from './CacheHistoryModal.vue'
 import SelectModelModal from './SelectModelModal.vue'
 
 const showSelectModelModal = ref(false)
 const showMobileMenu = ref(false)
 const showSelectPresetModal = ref(false)
+const showCacheHistoryModal = ref(false)
 </script>
 
 <template>
@@ -39,6 +41,11 @@ const showSelectPresetModal = ref(false)
     <SelectModelModal
       v-model="showSelectModelModal"
       v-model:selected-model="model"
+    />
+
+    <!-- Cache History Modal -->
+    <CacheHistoryModal
+      v-model="showCacheHistoryModal"
     />
     <!-- Desktop view - row of inputs -->
     <div class="hidden lg:flex lg:gap-3">
@@ -84,6 +91,17 @@ const showSelectPresetModal = ref(false)
           class="w-36 rounded-full bg-[#1e1e1f] px-6 py-2 text-sm text-[#e3e3e3] outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
           type="password"
         >
+      </div>
+
+      <!-- Cache History Button -->
+      <div class="flex items-center">
+        <button
+          class="flex items-center justify-center rounded-full p-2 text-lg transition-colors hover:bg-neutral-8"
+          title="Cache History"
+          @click="showCacheHistoryModal = true"
+        >
+          <i class="i-tabler-history text-neutral-400" />
+        </button>
       </div>
     </div>
 
@@ -156,6 +174,17 @@ const showSelectPresetModal = ref(false)
             >
               <span class="truncate">{{ model || 'Select Model' }}</span>
               <i class="i-tabler-chevron-down text-xs opacity-60" />
+            </button>
+          </div>
+
+          <!-- Cache History Button -->
+          <div class="flex justify-center">
+            <button
+              class="flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:bg-neutral-7"
+              @click="showCacheHistoryModal = true; showMobileMenu = false"
+            >
+              <i class="i-tabler-history text-neutral-400" />
+              Cache History
             </button>
           </div>
         </div>

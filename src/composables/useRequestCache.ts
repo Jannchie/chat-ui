@@ -144,6 +144,23 @@ async function getRecentSuccessfulRequests(limit = 10): Promise<RequestCacheEntr
   }
 }
 
+async function getTopSuccessfulRequests(limit = 10): Promise<RequestCacheEntry[]> {
+  try {
+    await cleanupExpiredEntries()
+
+    return await db.requestCache
+      .orderBy('accessCount')
+      .reverse()
+      .filter(entry => entry.success)
+      .limit(limit)
+      .toArray()
+  }
+  catch (error) {
+    console.error('Error getting top requests:', error)
+    return []
+  }
+}
+
 async function clearCache() {
   try {
     await db.requestCache.clear()
@@ -169,6 +186,7 @@ export function useRequestCache() {
     cacheSuccessfulRequest,
     getCachedRequest,
     getRecentSuccessfulRequests,
+    getTopSuccessfulRequests,
     clearCache,
     getCacheSize,
   }

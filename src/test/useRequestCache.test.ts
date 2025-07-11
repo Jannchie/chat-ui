@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { useRequestCache } from '../composables/useRequestCache'
 
 describe('userequestcache', () => {
-  const { cacheSuccessfulRequest, getCachedRequest, getRecentSuccessfulRequests, clearCache, getCacheSize } = useRequestCache()
+  const { cacheSuccessfulRequest, getCachedRequest, getRecentSuccessfulRequests, getTopSuccessfulRequests, clearCache, getCacheSize } = useRequestCache()
 
   beforeEach(async () => {
     await clearCache()
@@ -107,5 +107,35 @@ describe('userequestcache', () => {
 
     const cached = await getCachedRequest(requestKey)
     expect(cached?.accessCount).toBe(3) // 1 + 1 (update) + 1 (get)
+  })
+
+  it('should get top successful requests by access count', async () => {
+    const requestKey1 = {
+      preset: 'openai',
+      serviceUrl: 'https://api.openai.com/v1',
+      model: 'gpt-4',
+      apiKey: 'sk-test123',
+    }
+
+    const requestKey2 = {
+      preset: 'anthropic',
+      serviceUrl: 'https://api.anthropic.com/v1',
+      model: 'claude-3',
+      apiKey: 'sk-test456',
+    }
+
+    // Cache first request multiple times to increase access count
+    await cacheSuccessfulRequest(requestKey1)
+    await cacheSuccessfulRequest(requestKey1)
+    await cacheSuccessfulRequest(requestKey1)
+    
+    // Cache second request only once
+    await cacheSuccessfulRequest(requestKey2)
+
+    const topRequests = await getTopSuccessfulRequests()
+    expect(topRequests).toHaveLength(2)
+    expect(topRequests[0].key).toEqual(requestKey1) // Most accessed first
+    expect(topRequests[1].key).toEqual(requestKey2)
+    expect(topRequests[0].accessCount).toBeGreaterThan(topRequests[1].accessCount)
   })
 })
