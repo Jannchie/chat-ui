@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../composables/useHelloWorld'
 import OpenAI from 'openai'
+import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
-import { model, useCurrentChat } from '../shared'
+import { apiKey, model, platform, serviceUrl, useCurrentChat } from '../shared'
 import { generateId, isMobile, setChat } from '../utils'
 
 const router = useRouter()
@@ -23,6 +24,7 @@ watchEffect(() => {
 })
 
 const aiClient = useClient()
+const { cacheSuccessfulRequest } = useRequestCache()
 
 async function generateSummary(text: string, lockedModel?: string) {
   const modelToUse = lockedModel || model.value
@@ -39,6 +41,15 @@ async function generateSummary(text: string, lockedModel?: string) {
       },
     ],
   })
+
+  // Cache successful summary request
+  cacheSuccessfulRequest({
+    preset: platform.value || 'openai',
+    serviceUrl: serviceUrl.value!,
+    model: modelToUse,
+    apiKey: apiKey.value,
+  })
+
   return resp.choices[0].message.content
 }
 
@@ -224,6 +235,7 @@ async function onSubmit() {
     }
     laststartedAtMS.value = 0
     lastEndedAtMS.value = 0
+    let streamCompleted = false
     for await (const chunk of stream) {
       // get token usage
       const usage = chunk.usage
@@ -234,6 +246,7 @@ async function onSubmit() {
           chat.token.inTokens += usage.prompt_tokens
           chat.token.outTokens += usage.completion_tokens
         }
+        streamCompleted = true
       }
 
       const lastMessage = conversation.value.at(-1)
@@ -260,6 +273,16 @@ async function onSubmit() {
       }
 
       conversation.value = conversation.value.map(d => ({ ...d }))
+    }
+
+    // Cache successful request
+    if (streamCompleted) {
+      cacheSuccessfulRequest({
+        preset: platform.value || 'openai',
+        serviceUrl: serviceUrl.value!,
+        model: currentModel,
+        apiKey: apiKey.value,
+      })
     }
   }
   finally {

@@ -229,6 +229,7 @@ declare global {
   const usePrevious: typeof import('@vueuse/core')['usePrevious']
   const useRafFn: typeof import('@vueuse/core')['useRafFn']
   const useRefHistory: typeof import('@vueuse/core')['useRefHistory']
+  const useRequestCache: typeof import('./composables/useRequestCache')['useRequestCache']
   const useResizeObserver: typeof import('@vueuse/core')['useResizeObserver']
   const useRoute: typeof import('vue-router')['useRoute']
   const useRouter: typeof import('vue-router')['useRouter']
@@ -308,4 +309,7 @@ declare global {
   // @ts-ignore
   export type { SentableChatMessage, ChatMessage, ChatData } from './composables/useHelloWorld'
   import('./composables/useHelloWorld')
+  // @ts-ignore
+  export type { RequestCacheKey, RequestCacheEntry } from './composables/useRequestCache'
+  import('./composables/useRequestCache')
 }

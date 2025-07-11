@@ -34,6 +34,9 @@ export const serviceUrl = computed(() => {
     case 'pfn': {
       return 'https://api.platform.preferredai.jp/v1'
     }
+    default: {
+      return 'https://api.openai.com/v1/'
+    }
   }
 })
 const apiKeyKey = computed(() => {

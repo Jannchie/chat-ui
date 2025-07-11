@@ -2,7 +2,8 @@
 import type { ChatMessage } from '../composables/useHelloWorld'
 import { BtnGroup, Paper, ScrollArea } from '@roku-ui/vue'
 import StreamContent from '../components/StreamContent.vue'
-import { model } from '../shared'
+import { useRequestCache } from '../composables/useRequestCache'
+import { apiKey, model, platform, serviceUrl } from '../shared'
 
 const router = useRouter()
 function onHomeClick() {
@@ -48,6 +49,7 @@ const conversation = computed<ChatMessage[]>(() => [{
 }])
 
 const client = useClient()
+const { cacheSuccessfulRequest } = useRequestCache()
 const translateContent = ref('')
 const loading = ref(false)
 let requestId = 0
@@ -74,6 +76,7 @@ watchEffect(async () => {
       messages: filteredConversition,
     })
 
+    let streamCompleted = false
     for await (const chunk of stream) {
       // 检查是否是最新的请求
       if (currentRequestId !== requestId) {
@@ -82,11 +85,25 @@ watchEffect(async () => {
       if (chunk.choices[0].delta.content) {
         translateContent.value += chunk.choices[0].delta.content
       }
+      // Check if chunk has usage to indicate completion
+      if (chunk.usage) {
+        streamCompleted = true
+      }
     }
 
     // 请求未被中断
     if (currentRequestId === requestId) {
       loading.value = false
+
+      // Cache successful translation request
+      if (streamCompleted || translateContent.value.trim()) {
+        cacheSuccessfulRequest({
+          preset: platform.value || 'openai',
+          serviceUrl: serviceUrl.value,
+          model: model.value,
+          apiKey: apiKey.value,
+        })
+      }
     }
   }
   catch (error) {

@@ -3,7 +3,8 @@ import type { SentableChatMessage } from '../composables/useHelloWorld'
 import { Paper, Tag } from '@roku-ui/vue'
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
-import { model } from '../shared'
+import { useRequestCache } from '../composables/useRequestCache'
+import { apiKey, model, platform, serviceUrl } from '../shared'
 
 const props = withDefaults(defineProps<{
   content?: string
@@ -21,6 +22,7 @@ const conversation = computed<SentableChatMessage[]>(() => {
   }]
 })
 const client = useClient()
+const { cacheSuccessfulRequest } = useRequestCache()
 
 const Explains = z.array(z.object({
   word: z.string(),
@@ -38,17 +40,30 @@ watchEffect(async () => {
     return
   }
   loading.value = true
-  const resp = await client.value.chat.completions.create({
-    model: model.value,
-    messages: conversation.value,
-    response_format: zodResponseFormat(WordExplainsResp, 'explains'),
-  })
-  const jsonStr = resp.choices[0].message.content
-  if (!jsonStr) {
-    return
+  try {
+    const resp = await client.value.chat.completions.create({
+      model: model.value,
+      messages: conversation.value,
+      response_format: zodResponseFormat(WordExplainsResp, 'explains'),
+    })
+    const jsonStr = resp.choices[0].message.content
+    if (!jsonStr) {
+      return
+    }
+    const e = WordExplainsResp.parse(JSON.parse(jsonStr))
+    explains.value = e.explains
+
+    // Cache successful word explanation request
+    cacheSuccessfulRequest({
+      preset: platform.value || 'openai',
+      serviceUrl: serviceUrl.value,
+      model: model.value,
+      apiKey: apiKey.value,
+    })
   }
-  const e = WordExplainsResp.parse(JSON.parse(jsonStr))
-  explains.value = e.explains
+  catch (error) {
+    console.error('WordExplainPaper error:', error)
+  }
   loading.value = false
 })
 </script>
