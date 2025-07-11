@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RequestCacheEntry } from '../composables/useRequestCache'
+import type { RequestCacheEntry } from '../composables/useDatabase'
 import { useRequestCache } from '../composables/useRequestCache'
 import { apiKey, customServiceUrl, model, platform } from '../shared'
 

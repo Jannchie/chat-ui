@@ -1,7 +1,7 @@
 import type { ChatData } from '../composables/useHelloWorld'
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval'
-import { useDexieStorage, useDexieRef } from '../composables/useDexieStorage'
 import OpenAI from 'openai'
+import { useDexieRef, useDexieStorage } from '../composables/useDexieStorage'
 
 export const chatHistoryIDB = useIDBKeyval<ChatData[]>('chatHistory', [], {
   shallow: true,
