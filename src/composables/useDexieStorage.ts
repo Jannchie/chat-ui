@@ -62,6 +62,9 @@ export function useDexieRef<T = string>(
       const value = await getSetting(key, String(defaultValue))
       if (value !== undefined && value !== String(defaultValue)) {
         storedValue.value = value as T
+      } else {
+        // If no cached value found, reset to default value
+        storedValue.value = defaultValue
       }
       isLoading = false
     } catch (error) {

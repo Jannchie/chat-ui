@@ -10,7 +10,7 @@ const selectedModel = defineModel<string | null | undefined>('selectedModel')
 
 // Search functionality
 const searchQuery = ref('')
-const models = useModels()
+const { models, isLoading, error } = useModels()
 
 const highlightedIndex = ref(-1)
 const modalRef = ref<HTMLElement | null>(null)
@@ -21,7 +21,7 @@ const filteredModels = computed(() => {
     return models.value
   }
   const query = searchQuery.value.toLowerCase()
-  return models.value.filter(model =>
+  return models.value.filter((model: string) =>
     model.toLowerCase().includes(query),
   )
 })
@@ -151,7 +151,33 @@ function closeModal() {
           </div>
 
           <div class="max-h-96 overflow-y-auto p-2">
-            <div v-if="filteredModels.length > 0">
+            <!-- Loading State -->
+            <div
+              v-if="isLoading"
+              class="p-8 text-center text-neutral-400"
+            >
+              <i class="i-tabler-loader-2 animate-spin text-2xl" />
+              <p class="mt-2">
+                Loading models...
+              </p>
+            </div>
+            
+            <!-- Error State -->
+            <div
+              v-else-if="error"
+              class="p-4 text-center text-neutral-400"
+            >
+              <i class="i-tabler-alert-circle text-xl text-red-400" />
+              <p class="mt-2 text-red-400">
+                {{ error }}
+              </p>
+              <p class="mt-2 text-sm text-neutral-500">
+                Please configure your API key in the header to fetch available models.
+              </p>
+            </div>
+            
+            <!-- Models List -->
+            <div v-else-if="filteredModels.length > 0">
               <div
                 v-for="(modelOption, index) in filteredModels"
                 :key="index"
@@ -174,6 +200,8 @@ function closeModal() {
                 </div>
               </div>
             </div>
+            
+            <!-- No Models Found -->
             <div
               v-else
               class="p-4 text-center text-neutral-400"
