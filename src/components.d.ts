@@ -19,6 +19,7 @@ declare module 'vue' {
     ChatLayout: typeof import('./components/ChatLayout.vue')['default']
     ChatMessage: typeof import('./components/ChatMessage.vue')['default']
     ErrorChatMessage: typeof import('./components/ErrorChatMessage.vue')['default']
+    ImageUpload: typeof import('./components/ImageUpload.vue')['default']
     MainContainer: typeof import('./components/MainContainer.vue')['default']
     RecentChatWrapper: typeof import('./components/RecentChatWrapper.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

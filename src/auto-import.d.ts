@@ -323,7 +323,7 @@ declare global {
   export type { Setting, RequestCacheEntry } from './composables/useDatabase'
   import('./composables/useDatabase')
   // @ts-ignore
-  export type { SentableChatMessage, ChatMessage, ChatData } from './composables/useHelloWorld'
+  export type { ImageContent, TextContent, MessageContent, SentableChatMessage, ChatMessage, ImageFile, ChatData } from './composables/useHelloWorld'
   import('./composables/useHelloWorld')
   // @ts-ignore
   export type { RequestCacheKey } from './composables/useRequestCache'

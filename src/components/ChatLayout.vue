@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatMessage } from '../composables/useHelloWorld'
+import type { ChatMessage, ImageContent, ImageFile, MessageContent, TextContent } from '../composables/useHelloWorld'
 import OpenAI from 'openai'
 import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
@@ -110,6 +110,7 @@ const scrollArea = ref<HTMLElement | null>(null)
 const input = ref('')
 const inputHistory = useManualRefHistory(input)
 const streaming = ref(false)
+const uploadedImages = ref<ImageFile[]>([])
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const rows = ref(1)
 watch([input, textareaRef], () => {
@@ -137,7 +138,7 @@ watch(currentChat, () => {
 const laststartedAtMS = ref(0)
 const lastEndedAtMS = ref(0)
 async function onSubmit() {
-  if (input.value.trim() === '' || streaming.value) {
+  if ((input.value.trim() === '' && uploadedImages.value.length === 0) || streaming.value) {
     return
   }
 
@@ -173,11 +174,40 @@ async function onSubmit() {
   }
 
   try {
-    const content = `${input.value.trim()}\n`
+    // Create message content based on whether images are uploaded
+    let messageContent: MessageContent
+    if (uploadedImages.value.length > 0) {
+      const contentArray: Array<TextContent | ImageContent> = []
+
+      // Add text content if exists
+      if (input.value.trim()) {
+        contentArray.push({
+          type: 'text',
+          text: input.value.trim(),
+        })
+      }
+
+      // Add image content
+      for (const image of uploadedImages.value) {
+        contentArray.push({
+          type: 'image_url',
+          image_url: {
+            url: image.dataUrl,
+          },
+        })
+      }
+
+      messageContent = contentArray
+    }
+    else {
+      messageContent = `${input.value.trim()}\n`
+    }
+
     inputHistory.commit()
     input.value = ''
+    uploadedImages.value = []
 
-    conversation.value = [...conversation.value, { role: 'user', content }, { role: 'assistant', content: '', reasoning: '' }]
+    conversation.value = [...conversation.value, { role: 'user', content: messageContent }, { role: 'assistant', content: '', reasoning: '' }]
     setChat(toRaw({ ...chat, conversation: conversation.value }))
     nextTick(() => {
       const el = scrollArea.value
@@ -189,7 +219,8 @@ async function onSubmit() {
 
     const filteredConversition = conversation.value.slice(0, -1).filter(d => d.role !== 'error').map((d) => {
       if (d.role === 'assistant') {
-        delete d.reasoning
+        const { reasoning, ...rest } = d
+        return rest
       }
       return d
     })
@@ -317,7 +348,7 @@ async function onEnter(e: KeyboardEvent) {
   if (streaming.value) {
     return
   }
-  if (!input.value.trim()) {
+  if (!input.value.trim() && uploadedImages.value.length === 0) {
     return
   }
   const target = e.target as HTMLTextAreaElement
@@ -449,58 +480,77 @@ watchEffect(() => {
             </span>
           </div>
         </div>
-        <div class="relative z-10 max-w-830px w-full overflow-hidden leading-0">
-          <div
-            :class="{
-              'right-[-48px]': !input.trim(),
-              'right-0': input.trim(),
-            }"
-            class="pointer-events-none absolute h-full w-full flex items-center justify-end p-2 transition-right"
-          >
-            <!-- <button
-              :disabled="streaming"
-              class="pointer-events-auto z-20 h-12 w-12 flex items-center justify-center rounded-full color-[#c4c7c5] transition-all hover:bg-neutral-7"
+        <div class="relative z-10 max-w-830px w-full leading-0">
+          <!-- Image preview area above input panel -->
+          <div v-if="uploadedImages.length > 0" class="mb-3 pt-3 flex flex-wrap gap-3">
+            <div
+              v-for="image in uploadedImages"
+              :key="image.id"
+              class="group relative"
             >
-              <i class="i-tabler-photo h-6 w-6" />
-            </button> -->
-            <button
-              :disabled="streaming"
-              :class="{
-                'opacity-0': !input.trim(),
-              }"
-              class="pointer-events-auto z-20 h-12 w-12 flex items-center justify-center rounded-full color-[#c4c7c5] transition-all hover:bg-neutral-7"
-              @click="onSubmit"
-            >
-              <i class="i-tabler-send h-6 w-6" />
-            </button>
+              <img
+                :src="image.dataUrl"
+                :alt="image.file.name"
+                class="h-16 w-16 border border-neutral-6 rounded-lg object-cover"
+              >
+              <button
+                class="absolute -right-2 -top-2 h-6 w-6 flex items-center justify-center rounded-full bg-neutral-8 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-neutral-7"
+                @click="uploadedImages = uploadedImages.filter(img => img.id !== image.id)"
+              >
+                <i class="i-tabler-x h-4 w-4 text-neutral-3" />
+              </button>
+            </div>
           </div>
-          <textarea
-            ref="textareaRef"
-            v-model="input"
-            type="text"
-            style="resize: none; scrollbar-width: none; max-height: 300px; height: auto;"
-            :rows="rows"
-            :class="{
-              'rounded-[3rem]': rows === 1,
-              'rounded-[1rem]': rows !== 1,
-            }"
-            class="input-enter-animate z-10 w-full flex-grow-0 bg-[#1e1e1f] px-6 py-4 pr-14 text-lg text-[#e3e3e3] outline-1 outline-none transition-all focus:bg-neutral-8 hover:bg-neutral-8 focus-visible:outline-1 focus-visible:outline-transparent focus-visible:outline-offset-0"
-            placeholder="Input your question here"
-            @keydown.stop.up="async (e) => {
-              if (!(input === '')) return
-              const target = e.target as HTMLTextAreaElement
-              if (target.selectionStart === 0) {
-                const currentIdx = inputHistory.history.value.map(d => d.snapshot).indexOf(input)
-                if (currentIdx === -1) {
-                  input = inputHistory.history.value[0].snapshot
+
+          <!-- Unified input panel -->
+          <div
+            class="relative rounded-xl bg-[#1e1e1f] transition-all focus-within:bg-neutral-8 hover:bg-neutral-8"
+          >
+            <!-- Textarea without border -->
+            <textarea
+              ref="textareaRef"
+              v-model="input"
+              type="text"
+              style="resize: none; scrollbar-width: none; max-height: 300px; height: auto;"
+              :rows="rows"
+              class="input-enter-animate w-full flex-grow-0 border-none bg-transparent px-4 py-4 pb-12 text-lg text-[#e3e3e3] outline-none"
+              placeholder="Input your question here"
+              @keydown.stop.up="async (e) => {
+                if (!(input === '')) return
+                const target = e.target as HTMLTextAreaElement
+                if (target.selectionStart === 0) {
+                  const currentIdx = inputHistory.history.value.map(d => d.snapshot).indexOf(input)
+                  if (currentIdx === -1) {
+                    input = inputHistory.history.value[0].snapshot
+                  }
+                  else {
+                    input = inputHistory.history.value[(currentIdx + 1) % inputHistory.history.value.length].snapshot
+                  }
                 }
-                else {
-                  input = inputHistory.history.value[(currentIdx + 1) % inputHistory.history.value.length].snapshot
-                }
-              }
-            }"
-            @keypress.stop.prevent.enter="onEnter"
-          />
+              }"
+              @keypress.stop.prevent.enter="onEnter"
+            />
+
+            <!-- Bottom buttons -->
+            <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+              <!-- Image upload button - bottom left -->
+              <div>
+                <ImageUpload v-model="uploadedImages" />
+              </div>
+
+              <!-- Send button - bottom right -->
+              <button
+                :disabled="streaming"
+                :class="{
+                  'opacity-0': !input.trim() && uploadedImages.length === 0,
+                }"
+                class="h-8 w-8 flex items-center justify-center rounded-lg color-[#c4c7c5] transition-all hover:bg-neutral-7"
+                @click="onSubmit"
+              >
+                <i class="i-tabler-send h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
         <div class="animate-fade-delay flex animate-delay-500 gap-2 pb-3 pt-1 text-xs color-[#c4c7c5]">
           <span>
