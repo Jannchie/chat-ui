@@ -11,6 +11,48 @@ const emit = defineEmits<{
 
 const fileInput = ref<HTMLInputElement>()
 
+// Handle paste events
+onMounted(() => {
+  globalThis.addEventListener('paste', handlePaste)
+})
+
+onUnmounted(() => {
+  globalThis.removeEventListener('paste', handlePaste)
+})
+
+async function handlePaste(event: ClipboardEvent) {
+  const clipboardItems = event.clipboardData?.items
+  if (!clipboardItems) {
+    return
+  }
+
+  const imageFiles: File[] = []
+
+  for (const item of clipboardItems) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile()
+      if (file) {
+        imageFiles.push(file)
+      }
+    }
+  }
+
+  if (imageFiles.length > 0) {
+    // Create FileList-like object
+    const fileList = {
+      length: imageFiles.length,
+      item: (index: number) => imageFiles[index] || null,
+      * [Symbol.iterator]() {
+        for (const file of imageFiles) {
+          yield file
+        }
+      },
+    } as FileList
+
+    await handleFiles(fileList)
+  }
+}
+
 function generateId() {
   return Math.random().toString(36).slice(2, 11)
 }

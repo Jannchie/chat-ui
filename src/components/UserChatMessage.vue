@@ -9,6 +9,8 @@ const props = defineProps<{
 const collapsed = ref<boolean>(true)
 const contentRef = ref<HTMLElement | null>(null)
 const needsCollapse = ref<boolean>(true)
+const showImagePreview = ref<boolean>(false)
+const previewImageUrl = ref<string>('')
 
 const textContent = computed(() => {
   if (typeof props.content === 'string') {
@@ -24,6 +26,11 @@ const imageItems = computed(() => {
   }
   return props.content.filter((item): item is { type: 'image_url', image_url: { url: string } } => item.type === 'image_url')
 })
+
+function openImagePreview(imageUrl: string) {
+  previewImageUrl.value = imageUrl
+  showImagePreview.value = true
+}
 
 // Check if content needs to be collapsed
 onMounted(() => {
@@ -55,7 +62,8 @@ onMounted(() => {
         <img
           :src="item.image_url.url"
           alt="Uploaded image"
-          class="max-h-48 max-w-xs border border-neutral-6 rounded-lg object-cover"
+          class="max-h-48 max-w-xs cursor-pointer border border-neutral-6 rounded-lg object-cover"
+          @click="openImagePreview(item.image_url.url)"
         >
       </div>
     </div>
@@ -80,4 +88,10 @@ onMounted(() => {
       />
     </button>
   </div>
+
+  <!-- Image Preview Modal -->
+  <ImagePreviewModal
+    v-model:visible="showImagePreview"
+    :image-url="previewImageUrl"
+  />
 </template>
