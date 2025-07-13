@@ -62,10 +62,10 @@ export async function cleanupOldDatabases(): Promise<void> {
       const hasOldDb = databases.some(dbInfo => dbInfo.name === oldDbName)
 
       if (hasOldDb) {
-        console.log('Cleaning up old RequestCacheDB...')
         // 首先尝试迁移旧的缓存数据
         try {
-          const Dexie = (await import('dexie')).default
+          const dexieModule = await import('dexie')
+          const Dexie = dexieModule.default
           const oldDb = new Dexie(oldDbName)
           oldDb.version(1).stores({
             requestCache: '++id, cacheKey, timestamp, lastAccessed, accessCount',
@@ -74,7 +74,6 @@ export async function cleanupOldDatabases(): Promise<void> {
           const oldData = await oldDb.table('requestCache').toArray()
           if (oldData.length > 0) {
             await db.requestCache.bulkAdd(oldData)
-            console.log(`Migrated ${oldData.length} request cache entries`)
           }
 
           oldDb.close()
@@ -136,10 +135,11 @@ export async function removeSetting(key: string): Promise<void> {
 export async function getAllSettings(): Promise<Record<string, string>> {
   try {
     const settings = await db.settings.toArray()
-    return settings.reduce((acc, setting) => {
-      acc[setting.key] = setting.value
-      return acc
-    }, {} as Record<string, string>)
+    const result: Record<string, string> = {}
+    for (const setting of settings) {
+      result[setting.key] = setting.value
+    }
+    return result
   }
   catch (error) {
     console.error('Error getting all settings:', error)
@@ -165,7 +165,6 @@ export async function migrateFromLocalStorage(): Promise<void> {
   }
 
   const allKeys = [...localStorageKeys, ...dynamicKeys]
-  let migratedCount = 0
 
   for (const key of allKeys) {
     const value = localStorage.getItem(key)
@@ -174,20 +173,8 @@ export async function migrateFromLocalStorage(): Promise<void> {
       const existingSetting = await getSetting(key)
       if (existingSetting === undefined) {
         await setSetting(key, value)
-        console.log(`Migrated ${key}: ${value}`)
-        migratedCount++
-      }
-      else {
-        console.log(`Skipped ${key} (already exists in Dexie)`)
       }
     }
-  }
-
-  if (migratedCount > 0) {
-    console.log(`Migration completed. Migrated ${migratedCount} settings.`)
-  }
-  else {
-    console.log('No new settings to migrate.')
   }
 }
 
