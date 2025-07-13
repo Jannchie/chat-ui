@@ -10,8 +10,6 @@ const emit = defineEmits<{
 }>()
 
 const fileInput = ref<HTMLInputElement>()
-const isDragging = ref(false)
-const dragCounter = ref(0)
 
 function generateId() {
   return Math.random().toString(36).slice(2, 11)
@@ -56,7 +54,7 @@ function readFileAsDataURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.addEventListener('load', () => resolve(reader.result as string))
-    reader.onerror = reject
+    reader.addEventListener('error', () => reject(reader.error))
     reader.readAsDataURL(file)
   })
 }
