@@ -7,14 +7,15 @@ export function useTheme() {
 
   const applyTheme = (themeScheme: ThemeScheme = scheme.value) => {
     let finalScheme: 'dark' | 'light'
-    
+
     if (themeScheme === 'auto') {
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      const prefersDark = globalThis.matchMedia && globalThis.matchMedia('(prefers-color-scheme: dark)').matches
       finalScheme = prefersDark ? 'dark' : 'light'
-    } else {
+    }
+    else {
       finalScheme = themeScheme
     }
-    
+
     document.documentElement.dataset.scheme = finalScheme
     document.body.dataset.scheme = finalScheme
   }

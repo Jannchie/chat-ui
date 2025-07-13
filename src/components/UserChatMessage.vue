@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import type { MessageContent } from '../composables/useHelloWorld'
+import { onMounted, ref } from 'vue'
 
 const props = defineProps<{
   content: MessageContent
@@ -19,7 +19,9 @@ const textContent = computed(() => {
 })
 
 const imageItems = computed(() => {
-  if (!Array.isArray(props.content)) return []
+  if (!Array.isArray(props.content)) {
+    return []
+  }
   return props.content.filter((item): item is { type: 'image_url', image_url: { url: string } } => item.type === 'image_url')
 })
 
@@ -53,11 +55,11 @@ onMounted(() => {
         <img
           :src="item.image_url.url"
           alt="Uploaded image"
-          class="max-w-xs max-h-48 object-cover rounded-lg border border-neutral-6"
+          class="max-h-48 max-w-xs border border-neutral-6 rounded-lg object-cover"
         >
       </div>
     </div>
-    
+
     <!-- Display text content if any -->
     <pre
       v-if="textContent"

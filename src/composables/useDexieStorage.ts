@@ -1,4 +1,4 @@
-import { ref, watch, nextTick, type Ref } from 'vue'
+import { nextTick, ref, type Ref, watch } from 'vue'
 import { getSetting, setSetting } from './useDatabase'
 
 export function useDexieStorage<T = string>(
@@ -15,7 +15,8 @@ export function useDexieStorage<T = string>(
         storedValue.value = value as T
       }
       isLoading = false
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`Error loading setting ${key}:`, error)
       storedValue.value = defaultValue
       isLoading = false
@@ -23,11 +24,14 @@ export function useDexieStorage<T = string>(
   }
 
   const save = async (value: T) => {
-    if (isLoading) return // 避免在加载期间保存默认值
-    
+    if (isLoading) {
+      return
+    } // 避免在加载期间保存默认值
+
     try {
       await setSetting(key, String(value))
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`Error saving setting ${key}:`, error)
     }
   }
@@ -60,14 +64,10 @@ export function useDexieRef<T = string>(
   const load = async (key: string) => {
     try {
       const value = await getSetting(key, String(defaultValue))
-      if (value !== undefined && value !== String(defaultValue)) {
-        storedValue.value = value as T
-      } else {
-        // If no cached value found, reset to default value
-        storedValue.value = defaultValue
-      }
+      storedValue.value = value !== undefined && value !== String(defaultValue) ? value as T : defaultValue
       isLoading = false
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`Error loading setting ${key}:`, error)
       storedValue.value = defaultValue
       isLoading = false
@@ -75,11 +75,14 @@ export function useDexieRef<T = string>(
   }
 
   const save = async (key: string, value: T) => {
-    if (isLoading) return
-    
+    if (isLoading) {
+      return
+    }
+
     try {
       await setSetting(key, String(value))
-    } catch (error) {
+    }
+    catch (error) {
       console.error(`Error saving setting ${key}:`, error)
     }
   }

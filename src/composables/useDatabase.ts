@@ -60,7 +60,7 @@ export async function cleanupOldDatabases(): Promise<void> {
     if (typeof indexedDB !== 'undefined') {
       const databases = await indexedDB.databases?.() || []
       const hasOldDb = databases.some(dbInfo => dbInfo.name === oldDbName)
-      
+
       if (hasOldDb) {
         console.log('Cleaning up old RequestCacheDB...')
         // 首先尝试迁移旧的缓存数据
@@ -70,21 +70,23 @@ export async function cleanupOldDatabases(): Promise<void> {
           oldDb.version(1).stores({
             requestCache: '++id, cacheKey, timestamp, lastAccessed, accessCount',
           })
-          
+
           const oldData = await oldDb.table('requestCache').toArray()
           if (oldData.length > 0) {
             await db.requestCache.bulkAdd(oldData)
             console.log(`Migrated ${oldData.length} request cache entries`)
           }
-          
+
           oldDb.close()
           oldDb.delete()
-        } catch (error) {
+        }
+        catch (error) {
           console.warn('Could not migrate old cache data:', error)
         }
       }
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.warn('Error during database cleanup:', error)
   }
 }
@@ -93,7 +95,8 @@ export async function getSetting(key: string, defaultValue?: string): Promise<st
   try {
     const setting = await db.settings.where('key').equals(key).first()
     return setting?.value ?? defaultValue
-  } catch (error) {
+  }
+  catch (error) {
     console.error(`Error getting setting ${key}:`, error)
     return defaultValue
   }
@@ -103,21 +106,20 @@ export async function setSetting(key: string, value: string): Promise<void> {
   try {
     const now = Date.now()
     const existingSetting = await db.settings.where('key').equals(key).first()
-    
-    if (existingSetting) {
-      await db.settings.update(existingSetting.id!, {
-        value,
-        updatedAt: now,
-      })
-    } else {
-      await db.settings.add({
-        key,
-        value,
-        createdAt: now,
-        updatedAt: now,
-      })
-    }
-  } catch (error) {
+
+    await (existingSetting
+      ? db.settings.update(existingSetting.id!, {
+          value,
+          updatedAt: now,
+        })
+      : db.settings.add({
+          key,
+          value,
+          createdAt: now,
+          updatedAt: now,
+        }))
+  }
+  catch (error) {
     console.error(`Error setting ${key}:`, error)
   }
 }
@@ -125,7 +127,8 @@ export async function setSetting(key: string, value: string): Promise<void> {
 export async function removeSetting(key: string): Promise<void> {
   try {
     await db.settings.where('key').equals(key).delete()
-  } catch (error) {
+  }
+  catch (error) {
     console.error(`Error removing setting ${key}:`, error)
   }
 }
@@ -137,7 +140,8 @@ export async function getAllSettings(): Promise<Record<string, string>> {
       acc[setting.key] = setting.value
       return acc
     }, {} as Record<string, string>)
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error getting all settings:', error)
     return {}
   }
@@ -172,7 +176,8 @@ export async function migrateFromLocalStorage(): Promise<void> {
         await setSetting(key, value)
         console.log(`Migrated ${key}: ${value}`)
         migratedCount++
-      } else {
+      }
+      else {
         console.log(`Skipped ${key} (already exists in Dexie)`)
       }
     }
@@ -180,7 +185,8 @@ export async function migrateFromLocalStorage(): Promise<void> {
 
   if (migratedCount > 0) {
     console.log(`Migration completed. Migrated ${migratedCount} settings.`)
-  } else {
+  }
+  else {
     console.log('No new settings to migrate.')
   }
 }

@@ -1,4 +1,4 @@
-import { client, platform, apiKey } from '../shared'
+import { apiKey, client, platform } from '../shared'
 
 export function useClient() {
   return client
@@ -15,15 +15,15 @@ export function useModels() {
       error.value = 'API Key is required to fetch models'
       return
     }
-    
+
     isLoading.value = true
     error.value = null
     try {
       const response = await client.value.models.list()
       models.value = response.data.map(d => d.id)
     }
-    catch (err) {
-      console.error(err)
+    catch (error_) {
+      console.error(error_)
       error.value = 'Failed to fetch models'
       models.value = []
     }
@@ -52,6 +52,6 @@ export function useModels() {
     models: readonly(models),
     isLoading: readonly(isLoading),
     error: readonly(error),
-    fetchModels
+    fetchModels,
   }
 }

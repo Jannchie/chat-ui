@@ -128,7 +128,7 @@ describe('userequestcache', () => {
     await cacheSuccessfulRequest(requestKey1)
     await cacheSuccessfulRequest(requestKey1)
     await cacheSuccessfulRequest(requestKey1)
-    
+
     // Cache second request only once
     await cacheSuccessfulRequest(requestKey2)
 

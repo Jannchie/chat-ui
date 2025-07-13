@@ -2,8 +2,8 @@
 import type { ChatMessage } from '../composables/useHelloWorld'
 import { BtnGroup, Paper, ScrollArea } from '@roku-ui/vue'
 import StreamContent from '../components/StreamContent.vue'
-import { useRequestCache } from '../composables/useRequestCache'
 import { useDexieStorage } from '../composables/useDexieStorage'
+import { useRequestCache } from '../composables/useRequestCache'
 import { apiKey, model, platform, serviceUrl } from '../shared'
 
 const router = useRouter()

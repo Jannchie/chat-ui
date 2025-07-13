@@ -161,7 +161,7 @@ function closeModal() {
                 Loading models...
               </p>
             </div>
-            
+
             <!-- Error State -->
             <div
               v-else-if="error"
@@ -175,7 +175,7 @@ function closeModal() {
                 Please configure your API key in the header to fetch available models.
               </p>
             </div>
-            
+
             <!-- Models List -->
             <div v-else-if="filteredModels.length > 0">
               <div
@@ -200,7 +200,7 @@ function closeModal() {
                 </div>
               </div>
             </div>
-            
+
             <!-- No Models Found -->
             <div
               v-else

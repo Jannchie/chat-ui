@@ -73,6 +73,21 @@ watch(displayMode, () => {
     loadCacheEntries()
   }
 })
+
+// Handle ESC key to close modal
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && showModal.value) {
+    showModal.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <template>
@@ -104,7 +119,7 @@ watch(displayMode, () => {
             </button>
           </div>
           <button
-            class="rounded-full p-2 hover:bg-neutral-700"
+            class="h-9 w-9 rounded-full leading-0 hover:bg-neutral-700"
             @click="showModal = false"
           >
             <i class="i-tabler-x text-white" />

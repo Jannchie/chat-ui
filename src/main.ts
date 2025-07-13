@@ -1,8 +1,8 @@
 import { primaryColor } from '@roku-ui/vue'
 import { createApp } from 'vue'
 import App from './App.vue'
-import { router } from './router/router'
 import { useMigration } from './composables/useMigration'
+import { router } from './router/router'
 import './composables/useDatabaseReset'
 
 import '@unocss/reset/tailwind.css'

@@ -14,17 +14,17 @@ const isDragging = ref(false)
 const dragCounter = ref(0)
 
 function generateId() {
-  return Math.random().toString(36).substr(2, 9)
+  return Math.random().toString(36).slice(2, 11)
 }
 
 async function handleFiles(files: FileList | null) {
-  if (!files) return
+  if (!files) {
+    return
+  }
 
   const imageFiles: ImageFile[] = []
-  
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i]
-    
+
+  for (const file of files) {
     if (!file.type.startsWith('image/')) {
       continue
     }
@@ -41,7 +41,8 @@ async function handleFiles(files: FileList | null) {
         dataUrl,
         id: generateId(),
       })
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error reading file:', error)
     }
   }
@@ -54,36 +55,10 @@ async function handleFiles(files: FileList | null) {
 function readFileAsDataURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
+    reader.addEventListener('load', () => resolve(reader.result as string))
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
-}
-
-
-function onDragEnter(e: DragEvent) {
-  e.preventDefault()
-  dragCounter.value++
-  isDragging.value = true
-}
-
-function onDragLeave(e: DragEvent) {
-  e.preventDefault()
-  dragCounter.value--
-  if (dragCounter.value === 0) {
-    isDragging.value = false
-  }
-}
-
-function onDragOver(e: DragEvent) {
-  e.preventDefault()
-}
-
-function onDrop(e: DragEvent) {
-  e.preventDefault()
-  isDragging.value = false
-  dragCounter.value = 0
-  handleFiles(e.dataTransfer?.files || null)
 }
 
 function openFileDialog() {
@@ -104,9 +79,9 @@ function openFileDialog() {
 
     <!-- Upload button -->
     <button
-      @click="openFileDialog"
-      class="h-8 w-8 flex items-center justify-center rounded-lg text-neutral-4 hover:bg-neutral-7 transition-colors"
+      class="h-8 w-8 flex items-center justify-center rounded-lg text-neutral-4 transition-colors hover:bg-neutral-7"
       title="Upload images"
+      @click="openFileDialog"
     >
       <i class="i-tabler-photo h-5 w-5" />
     </button>

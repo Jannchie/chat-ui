@@ -482,7 +482,7 @@ watchEffect(() => {
         </div>
         <div class="relative z-10 max-w-830px w-full leading-0">
           <!-- Image preview area above input panel -->
-          <div v-if="uploadedImages.length > 0" class="mb-3 pt-3 flex flex-wrap gap-3">
+          <div v-if="uploadedImages.length > 0" class="mb-3 flex flex-wrap gap-3 pt-3">
             <div
               v-for="image in uploadedImages"
               :key="image.id"
@@ -494,7 +494,7 @@ watchEffect(() => {
                 class="h-16 w-16 border border-neutral-6 rounded-lg object-cover"
               >
               <button
-                class="absolute -right-2 -top-2 h-6 w-6 flex items-center justify-center rounded-full bg-neutral-8 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-neutral-7"
+                class="absolute h-6 w-6 flex items-center justify-center rounded-full bg-neutral-8 opacity-0 transition-opacity -right-2 -top-2 hover:bg-neutral-7 group-hover:opacity-100"
                 @click="uploadedImages = uploadedImages.filter(img => img.id !== image.id)"
               >
                 <i class="i-tabler-x h-4 w-4 text-neutral-3" />
@@ -513,7 +513,7 @@ watchEffect(() => {
               type="text"
               style="resize: none; scrollbar-width: none; max-height: 300px; height: auto;"
               :rows="rows"
-              class="input-enter-animate w-full flex-grow-0 border-none bg-transparent px-4 py-4 pb-12 text-lg text-[#e3e3e3] outline-none"
+              class="w-full flex-grow-0 border-none bg-transparent px-4 py-4 pb-12 text-lg text-[#e3e3e3] outline-none"
               placeholder="Input your question here"
               @keydown.stop.up="async (e) => {
                 if (!(input === '')) return
