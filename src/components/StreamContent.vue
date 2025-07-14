@@ -6,8 +6,10 @@ const props = withDefaults(defineProps<{
   content: string
   reasoning?: string
   loading: boolean
+  model?: string
 }>(), {
   reasoning: '',
+  model: '',
 })
 
 const content = computed(() => props.content)

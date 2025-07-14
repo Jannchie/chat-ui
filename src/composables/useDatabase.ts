@@ -1,4 +1,5 @@
-import Dexie, { type Table } from 'dexie'
+import type { Table } from 'dexie'
+import Dexie from 'dexie'
 
 export interface Setting {
   id?: number

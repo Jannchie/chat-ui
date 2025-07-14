@@ -1,4 +1,5 @@
-import { db, type RequestCacheEntry } from './useDatabase'
+import type { RequestCacheEntry } from './useDatabase'
+import { db } from './useDatabase'
 
 export interface RequestCacheKey {
   preset: string

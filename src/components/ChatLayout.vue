@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { ChatMessage, ImageContent, ImageFile, MessageContent, TextContent } from '../composables/useHelloWorld'
+import type { TransformOptions } from '../types/message'
 import OpenAI from 'openai'
 import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
-import { apiKey, model, platform, serviceUrl, useCurrentChat } from '../shared'
+import { apiKey, client, model, platform, serviceUrl, useCurrentChat, useResponsesAPI } from '../shared'
 import { generateId, isMobile, setChat } from '../utils'
+import { createUIMessage, transformMessages, updateMessageContent, updateMessageReasoning } from '../utils/messageTransform'
 
 const router = useRouter()
 
@@ -23,24 +25,47 @@ watchEffect(() => {
   conversation.value = currentChat.value ? currentChat.value.conversation : []
 })
 
-const aiClient = useClient()
 const { cacheSuccessfulRequest } = useRequestCache()
 
 async function generateSummary(text: string, lockedModel?: string) {
   const modelToUse = lockedModel || model.value
-  const resp = await (aiClient.value.chat.completions as OpenAI.Chat.Completions).create({
-    model: modelToUse,
-    messages: [
-      {
-        role: 'system',
-        content: 'Please summarize the user\'s text and return the title of the text without adding any additional information. The title MUST in less than 4 words. Use the text language to summarize the text. Do not add any punctuation.',
-      },
-      {
-        role: 'user',
-        content: `Summarize the following text in less than 4 words: ${text}`,
-      },
-    ],
-  })
+
+  let content: string | null = null
+
+  if (useResponsesAPI.value) {
+    // Use Responses API for summary
+    const resp = await client.value.responses.create({
+      model: modelToUse,
+      input: [
+        {
+          role: 'system',
+          content: 'Please summarize the user\'s text and return the title of the text without adding any additional information. The title MUST in less than 4 words. Use the text language to summarize the text. Do not add any punctuation. Add "📝" emoji prefix to the summary.',
+        },
+        {
+          role: 'user',
+          content: `Summarize the following text in less than 4 words: ${text}`,
+        },
+      ],
+    })
+    content = resp.output_text
+  }
+  else {
+    // Use Chat Completions API for summary (original implementation)
+    const resp = await client.value.chat.completions.create({
+      model: modelToUse,
+      messages: [
+        {
+          role: 'system',
+          content: 'Please summarize the user\'s text and return the title of the text without adding any additional information. The title MUST in less than 4 words. Use the text language to summarize the text. Do not add any punctuation.',
+        },
+        {
+          role: 'user',
+          content: `Summarize the following text in less than 4 words: ${text}`,
+        },
+      ],
+    })
+    content = resp.choices[0].message.content
+  }
 
   // Cache successful summary request
   cacheSuccessfulRequest({
@@ -50,7 +75,7 @@ async function generateSummary(text: string, lockedModel?: string) {
     apiKey: apiKey.value,
   })
 
-  return resp.choices[0].message.content
+  return content
 }
 
 const groupedConversation = computed(() => {
@@ -207,7 +232,21 @@ async function onSubmit() {
     input.value = ''
     uploadedImages.value = []
 
-    conversation.value = [...conversation.value, { role: 'user', content: messageContent }, { role: 'assistant', content: '', reasoning: '' }]
+    // 创建用户消息和助手消息（带时间戳）
+    const userMessage = createUIMessage('user', messageContent, {
+      timestamp: Date.now(),
+      metadata: { sentAt: Date.now() },
+    })
+    const assistantMessage = createUIMessage('assistant', '', {
+      timestamp: Date.now(),
+      reasoning: '',
+      metadata: { 
+        sentAt: Date.now(),
+        model: currentModel,
+      },
+    })
+
+    conversation.value = [...conversation.value, userMessage, assistantMessage]
     setChat(toRaw({ ...chat, conversation: conversation.value }))
     nextTick(() => {
       const el = scrollArea.value
@@ -217,26 +256,24 @@ async function onSubmit() {
     })
     const lastMessage = conversation.value.at(-1)
 
-    const filteredConversition = conversation.value.slice(0, -1).filter(d => d.role !== 'error').map((d) => {
-      if (d.role === 'assistant') {
-        const { reasoning, ...rest } = d
-        return rest
-      }
-      return d
-    })
+    // 使用新的转换系统
+    const transformOptions: TransformOptions = {
+      apiType: useResponsesAPI.value ? 'responses' : 'completion',
+      includeSystemMessages: true,
+      maxMessages: 50, // 限制上下文长度
+    }
 
-    const stream = await aiClient.value.chat.completions.create({
-      messages: filteredConversition,
-      model: currentModel, // Use the locked model instead of reactive model.value
-      stream: true,
-      stream_options: {
-        include_usage: true,
-      },
-      // max_tokens: 8196,
-    }).catch((error) => {
+    const apiMessages = transformMessages(
+      conversation.value.slice(0, -1), // 排除最后一条空的助手消息
+      transformOptions,
+    )
+
+    let stream: AsyncIterable<any> | null = null
+
+    const handleStreamError = (error: any) => {
       if (error instanceof OpenAI.APIError) {
         if (!lastMessage) {
-          return
+          return null
         }
         lastMessage.role = 'error'
         switch (error.status) {
@@ -256,11 +293,39 @@ async function onSubmit() {
             lastMessage.content = (error?.status ?? 0) >= 500 ? 'Server Error.' : 'Error.'
           }
         }
+        return null
       }
       else {
         throw error
       }
-    })
+    }
+
+    if (useResponsesAPI.value) {
+      // 添加 Responses API 系统消息
+      const responsesMessages = [
+        {
+          role: 'system' as const,
+          content: '🔄 [Responses API Mode] Please answer the user\'s question. If the input text is already in the target language, just rewrite with the specified tone.',
+        },
+        ...apiMessages,
+      ]
+
+      stream = await (client.value as any).responses.create({
+        input: responsesMessages,
+        model: currentModel,
+        stream: true,
+      }).catch(handleStreamError)
+    }
+    else {
+      stream = await client.value.chat.completions.create({
+        messages: apiMessages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+        model: currentModel,
+        stream: true,
+        stream_options: {
+          include_usage: true,
+        },
+      }).catch(handleStreamError)
+    }
     if (!stream) {
       return
     }
@@ -268,42 +333,131 @@ async function onSubmit() {
     lastEndedAtMS.value = 0
     let streamCompleted = false
     for await (const chunk of stream) {
-      // get token usage
-      const usage = chunk.usage
-      if (usage) {
-        lastEndedAtMS.value = Date.now()
-        lastUsage.value = usage
-        if (chat) {
-          chat.token.inTokens += usage.prompt_tokens
-          chat.token.outTokens += usage.completion_tokens
+      if (useResponsesAPI.value) {
+        // Handle Responses API format
+        if (chunk.type === 'response.done') {
+          lastEndedAtMS.value = Date.now()
+          if (chunk.response?.usage) {
+            lastUsage.value = {
+              prompt_tokens: chunk.response.usage.input_tokens || 0,
+              completion_tokens: chunk.response.usage.output_tokens || 0,
+              total_tokens: (chunk.response.usage.input_tokens || 0) + (chunk.response.usage.output_tokens || 0),
+            }
+            if (chat) {
+              chat.token.inTokens += chunk.response.usage.input_tokens || 0
+              chat.token.outTokens += chunk.response.usage.output_tokens || 0
+            }
+          }
+          streamCompleted = true
+          
+          // 更新最后一条消息的 receivedAt 时间戳 (Responses API)
+          const lastMessage = conversation.value.at(-1)
+          if (lastMessage && lastMessage.role === 'assistant') {
+            const updatedMessage = {
+              ...lastMessage,
+              metadata: {
+                ...lastMessage.metadata,
+                receivedAt: Date.now(),
+              },
+            }
+            conversation.value[conversation.value.length - 1] = updatedMessage
+          }
         }
-        streamCompleted = true
-      }
 
-      const lastMessage = conversation.value.at(-1)
-      if (chunk.choices.length === 0) {
-        continue
-      }
+        if (chunk.type === 'response.content_part.added' || chunk.type === 'response.text.delta') {
+          if (!lastMessage) {
+            return
+          }
 
-      const delta = chunk.choices[0].delta as any
-      if (!delta) {
-        continue
-      }
+          if (laststartedAtMS.value === 0) {
+            laststartedAtMS.value = Date.now()
+            if (lastMessage.metadata) {
+              lastMessage.metadata.receivedAt = Date.now()
+            }
+          }
 
-      if (laststartedAtMS.value === 0) {
-        laststartedAtMS.value = Date.now()
-      }
-      if (!lastMessage) {
-        return
-      }
-      if (delta.content) {
-        lastMessage.content += delta.content
-      }
-      if (delta.reasoning && lastMessage.role === 'assistant') {
-        lastMessage.reasoning += delta.reasoning
-      }
+          let deltaContent = ''
+          if (chunk.type === 'response.content_part.added' && chunk.part?.type === 'text') {
+            deltaContent = chunk.part.text || ''
+          }
 
-      conversation.value = conversation.value.map(d => ({ ...d }))
+          if (chunk.type === 'response.text.delta') {
+            deltaContent = chunk.delta || ''
+          }
+
+          if (deltaContent) {
+            // 使用新的消息更新函数
+            const updatedMessage = updateMessageContent(lastMessage, deltaContent, { appendMode: true })
+            // 更新最后一个消息
+            conversation.value[conversation.value.length - 1] = updatedMessage
+          }
+        }
+      }
+      else {
+        // Handle Chat Completions API format (original)
+        const usage = chunk.usage
+        if (usage) {
+          lastEndedAtMS.value = Date.now()
+          lastUsage.value = usage
+          if (chat) {
+            chat.token.inTokens += usage.prompt_tokens
+            chat.token.outTokens += usage.completion_tokens
+          }
+          streamCompleted = true
+          
+          // 更新最后一条消息的 receivedAt 时间戳 (Chat Completions API)
+          const lastMessage = conversation.value.at(-1)
+          if (lastMessage && lastMessage.role === 'assistant') {
+            const updatedMessage = {
+              ...lastMessage,
+              metadata: {
+                ...lastMessage.metadata,
+                receivedAt: Date.now(),
+              },
+            }
+            conversation.value[conversation.value.length - 1] = updatedMessage
+          }
+        }
+
+        const lastMessage = conversation.value.at(-1)
+        if (chunk.choices.length === 0) {
+          continue
+        }
+
+        const delta = chunk.choices[0].delta as any
+        if (!delta) {
+          continue
+        }
+
+        if (laststartedAtMS.value === 0) {
+          laststartedAtMS.value = Date.now()
+        }
+        if (!lastMessage) {
+          return
+        }
+
+        let messageUpdated = false
+
+        if (delta.content) {
+          // 使用新的消息更新函数更新内容
+          const updatedMessage = updateMessageContent(lastMessage, delta.content, { appendMode: true })
+          conversation.value[conversation.value.length - 1] = updatedMessage
+          messageUpdated = true
+        }
+
+        if (delta.reasoning && lastMessage.role === 'assistant') {
+          // 使用新的消息更新函数更新 reasoning
+          const currentMessage = conversation.value.at(-1)!
+          const updatedMessage = updateMessageReasoning(currentMessage, delta.reasoning, true)
+          conversation.value[conversation.value.length - 1] = updatedMessage
+          messageUpdated = true
+        }
+
+        // 如果消息有更新，触发响应式更新
+        if (messageUpdated) {
+          conversation.value = [...conversation.value]
+        }
+      }
     }
 
     // Cache successful request
@@ -435,7 +589,7 @@ watchEffect(() => {
       <div
         v-else
         ref="scrollArea"
-        class="overflow-x-hidden overflow-y-auto last-children:min-h-[calc(100dvh-120px-72px)]"
+        class="overflow-x-hidden overflow-y-auto last-children:min-h-[calc(100dvh-152px-72px)]"
       >
         <template
           v-for="g, i in groupedConversation"

@@ -50,6 +50,9 @@ const modelKeyKey = computed(() => {
 export const model = useDexieRef(modelKeyKey, '')
 export const apiKey = useDexieRef(apiKeyKey, '')
 
+// New setting for Responses API
+export const useResponsesAPI = useDexieStorage('useResponsesAPI', false)
+
 const defaultHeaders = computed(() => {
   const headers: Record<string, string | null> = {
     'x-stainless-timeout': null,

@@ -22,6 +22,7 @@ declare module 'vue' {
     ImagePreviewModal: typeof import('./components/ImagePreviewModal.vue')['default']
     ImageUpload: typeof import('./components/ImageUpload.vue')['default']
     MainContainer: typeof import('./components/MainContainer.vue')['default']
+    MessageMetadata: typeof import('./components/MessageMetadata.vue')['default']
     RecentChatWrapper: typeof import('./components/RecentChatWrapper.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../composables/useHelloWorld'
+import MessageMetadata from './MessageMetadata.vue'
+import { messageContentToString } from '../utils/messageTransform'
 
 const props = defineProps<{
   message: ChatMessage
   loading: boolean
 }>()
 const message = computed(() => props.message)
+
+const contentAsString = computed(() => messageContentToString(message.value.content))
 </script>
 
 <template>
@@ -39,17 +43,22 @@ const message = computed(() => props.message)
             :class="{ 'animate-pulse': props.loading && props.message.role === 'assistant' }"
           >AI Assistant</span>
         </div>
+        <!-- 移动端元数据 -->
+        <div class="mt-1">
+          <MessageMetadata :message="message" />
+        </div>
       </div>
       <div class="w-full">
         <StreamContent
           v-if="props.message.role === 'assistant'"
-          :content="props.message.content"
+          :content="contentAsString"
           :reasoning="props.message.reasoning"
           :loading="loading"
+          :model="props.message.metadata?.model"
         />
         <UserChatMessage
           v-else
-          :content="message.content"
+          :content="contentAsString"
         />
       </div>
     </div>
@@ -76,18 +85,24 @@ const message = computed(() => props.message)
       <div class="flex-grow overflow-hidden">
         <StreamContent
           v-if="message.role === 'assistant'"
-          :content="message.content"
+          :content="contentAsString"
           :reasoning="message.reasoning"
           :loading="loading"
+          :model="message.metadata?.model"
         />
         <UserChatMessage
           v-else-if="message.role === 'user'"
-          :content="message.content"
+          :content="contentAsString"
         />
         <ErrorChatMessage
           v-else-if="message.role === 'error'"
-          :content="message.content"
+          :content="contentAsString"
         />
+        
+        <!-- 桌面端元数据 -->
+        <div class="mt-2">
+          <MessageMetadata :message="message" />
+        </div>
       </div>
     </div>
   </div>

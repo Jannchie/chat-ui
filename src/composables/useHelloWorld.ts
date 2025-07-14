@@ -1,32 +1,28 @@
-export interface ImageContent {
-  type: 'image_url'
-  image_url: {
-    url: string
-  }
+import type { MessageContent, UIMessage } from '../types/message'
+
+// 向后兼容的类型别名
+export type { ImageContent, MessageContent, TextContent } from '../types/message'
+
+// 扩展 UIMessage 以提供向后兼容性
+export interface ChatMessage extends UIMessage {
+  // 所有必要的字段都已在 UIMessage 中定义
 }
 
-export interface TextContent {
-  type: 'text'
-  text: string
-}
-
-export type MessageContent = string | Array<TextContent | ImageContent>
-
+// 保持向后兼容的类型
 export type SentableChatMessage = {
   content: MessageContent
   role: 'user'
+  timestamp?: number
 } | {
   content: string
   role: 'assistant'
   reasoning?: string
   model?: string
+  timestamp?: number
 } | {
   content: string
   role: 'system'
-}
-export type ChatMessage = SentableChatMessage | {
-  role: 'error'
-  content: string
+  timestamp?: number
 }
 
 export interface ImageFile {

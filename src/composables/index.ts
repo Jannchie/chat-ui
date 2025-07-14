@@ -1,9 +1,5 @@
 import { apiKey, client, platform } from '../shared'
 
-export function useClient() {
-  return client
-}
-
 export function useModels() {
   const models = ref<string[]>([])
   const isLoading = ref(false)

@@ -1,4 +1,5 @@
-import { nextTick, ref, type Ref, watch } from 'vue'
+import type { Ref } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import { getSetting, setSetting } from './useDatabase'
 
 export function useDexieStorage<T = string>(
