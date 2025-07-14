@@ -55,27 +55,11 @@ export function isValidMessageContent(content: any): content is MessageContent {
 }
 
 /**
- * 预处理消息列表 - 应用通用过滤规则
+ * 预处理消息列表 - 过滤错误消息
  */
-function preprocessMessages(messages: UIMessage[], options: TransformOptions): UIMessage[] {
-  let filteredMessages = messages
-
+function preprocessMessages(messages: UIMessage[]): UIMessage[] {
   // 过滤错误消息
-  if (options.filterErrors !== false) {
-    filteredMessages = filteredMessages.filter(msg => msg.role !== 'error')
-  }
-
-  // 处理系统消息
-  if (options.includeSystemMessages === false) {
-    filteredMessages = filteredMessages.filter(msg => msg.role !== 'system')
-  }
-
-  // 限制消息数量
-  if (options.maxMessages && filteredMessages.length > options.maxMessages) {
-    filteredMessages = filteredMessages.slice(-options.maxMessages)
-  }
-
-  return filteredMessages
+  return messages.filter(msg => msg.role !== 'error')
 }
 
 // Helper to convert MessageContent to ChatCompletionMessageParam content
@@ -118,11 +102,8 @@ function convertContent(content: MessageContent): string | ChatCompletionContent
  */
 export function transformToChatCompletions(
   messages: UIMessage[],
-  options?: TransformOptions,
 ): ChatCompletionMessageParam[] {
-  const defaultOptions: TransformOptions = { apiType: 'completion' }
-  const finalOptions = { ...defaultOptions, ...options }
-  const preprocessed = preprocessMessages(messages, finalOptions)
+  const preprocessed = preprocessMessages(messages)
 
   return preprocessed
     .filter((msg): msg is UIMessage & { role: Exclude<UIMessage['role'], 'error'> } => msg.role !== 'error')
@@ -203,11 +184,8 @@ export function transformToChatCompletions(
  */
 export function transformToResponsesAPI(
   messages: UIMessage[],
-  options?: TransformOptions,
 ): ResponseInput {
-  const defaultOptions: TransformOptions = { apiType: 'responses' }
-  const finalOptions = { ...defaultOptions, ...options }
-  const preprocessed = preprocessMessages(messages, finalOptions)
+  const preprocessed = preprocessMessages(messages)
 
   return preprocessed.map((msg) => {
     // 转换内容为 ResponseInputMessageContentList 格式
@@ -284,10 +262,10 @@ export function transformMessages(
 
   switch (options.apiType) {
     case 'completion': {
-      return transformToChatCompletions(messages, options)
+      return transformToChatCompletions(messages)
     }
     case 'responses': {
-      return transformToResponsesAPI(messages, options)
+      return transformToResponsesAPI(messages)
     }
     case 'custom': {
       throw new Error('Custom API type requires a customTransformer')

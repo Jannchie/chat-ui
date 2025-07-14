@@ -240,7 +240,7 @@ async function onSubmit() {
     const assistantMessage = createUIMessage('assistant', '', {
       timestamp: Date.now(),
       reasoning: '',
-      metadata: { 
+      metadata: {
         sentAt: Date.now(),
         model: currentModel,
       },
@@ -259,8 +259,6 @@ async function onSubmit() {
     // 使用新的转换系统
     const transformOptions: TransformOptions = {
       apiType: useResponsesAPI.value ? 'responses' : 'completion',
-      includeSystemMessages: true,
-      maxMessages: 50, // 限制上下文长度
     }
 
     const apiMessages = transformMessages(
@@ -305,7 +303,7 @@ async function onSubmit() {
       const responsesMessages = [
         {
           role: 'system' as const,
-          content: '🔄 [Responses API Mode] Please answer the user\'s question. If the input text is already in the target language, just rewrite with the specified tone.',
+          content: 'Please answer the user\'s question. If the input text is already in the target language, just rewrite with the specified tone.',
         },
         ...apiMessages,
       ]
@@ -349,7 +347,7 @@ async function onSubmit() {
             }
           }
           streamCompleted = true
-          
+
           // 更新最后一条消息的 receivedAt 时间戳 (Responses API)
           const lastMessage = conversation.value.at(-1)
           if (lastMessage && lastMessage.role === 'assistant') {
@@ -404,7 +402,7 @@ async function onSubmit() {
             chat.token.outTokens += usage.completion_tokens
           }
           streamCompleted = true
-          
+
           // 更新最后一条消息的 receivedAt 时间戳 (Chat Completions API)
           const lastMessage = conversation.value.at(-1)
           if (lastMessage && lastMessage.role === 'assistant') {

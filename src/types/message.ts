@@ -60,11 +60,6 @@ export interface UIMessage {
 // Transform 参数类型
 export interface TransformOptions {
   apiType: 'completion' | 'responses' | 'custom'
-  includeSystemMessages?: boolean
-  includeTimestamps?: boolean
-  maxMessages?: number
-  filterErrors?: boolean // 是否过滤错误消息
-  preserveReasoning?: boolean // 是否保留 reasoning 字段
   customTransformer?: MessageTransformer // 自定义转换器
 }
 
