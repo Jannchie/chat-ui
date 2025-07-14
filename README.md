@@ -23,6 +23,7 @@ A generic frontend-only page for accessing various LLM APIs.
 - [x] Replica of Gemini-style chat UI.
 - [x] Renders mathematical formulas, optimized for outputs from models like ChatGPT.
 - [x] Supports code block copying and Markdown-formatted text copying.
+- [x] Image Upload.
 
 ## Usage
 
