@@ -42,11 +42,15 @@ const tonePrompt = computed(() => {
   }
 })
 const conversation = computed<ChatMessage[]>(() => [{
+  id: 'system-1',
   role: 'system',
   content: `Translate user\'s input to ${targetLangDebounced.value}. ${tonePrompt.value}. If the input text is already in ${targetLang.value}, just rewrite with ${tone.value} tone.`,
+  timestamp: Date.now(),
 }, {
+  id: 'user-1',
   role: 'user',
   content: `${textDebounced.value}`,
+  timestamp: Date.now(),
 }])
 
 const client = useClient()

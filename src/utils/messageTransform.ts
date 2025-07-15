@@ -350,7 +350,7 @@ export function messageContentToString(content: MessageContent): string {
   if (typeof content === 'string') {
     return content
   }
-  
+
   if (Array.isArray(content)) {
     return content
       .map((item) => {
@@ -371,6 +371,6 @@ export function messageContentToString(content: MessageContent): string {
       .filter(text => text.length > 0)
       .join(' ')
   }
-  
+
   return ''
 }

@@ -10,7 +10,6 @@ export function testModelDisplay() {
     },
   })
 
-  console.log('Test message with model:', testMessage)
   return testMessage
 }
 
@@ -24,7 +23,7 @@ export function createMessagesWithDifferentModels() {
         model: 'gpt-4',
       },
     }),
-    
+
     createUIMessage('assistant', 'Response from Claude', {
       metadata: {
         sentAt: Date.now() - 3000,
@@ -32,7 +31,7 @@ export function createMessagesWithDifferentModels() {
         model: 'claude-3-sonnet',
       },
     }),
-    
+
     createUIMessage('assistant', 'Response from Gemini', {
       metadata: {
         sentAt: Date.now() - 1000,

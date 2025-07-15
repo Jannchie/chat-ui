@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../composables/useHelloWorld'
-import MessageMetadata from './MessageMetadata.vue'
 import { messageContentToString } from '../utils/messageTransform'
+import MessageMetadata from './MessageMetadata.vue'
 
 const props = defineProps<{
   message: ChatMessage
@@ -98,7 +98,7 @@ const contentAsString = computed(() => messageContentToString(message.value.cont
           v-else-if="message.role === 'error'"
           :content="contentAsString"
         />
-        
+
         <!-- 桌面端元数据 -->
         <div class="mt-2">
           <MessageMetadata :message="message" />

@@ -15,16 +15,13 @@ export async function resetAllDatabases(): Promise<void> {
         || dbInfo.name.includes('chat')
         || dbInfo.name.includes('Chat')
       )) {
-        console.log(`Deleting database: ${dbInfo.name}`)
         const deleteReq = indexedDB.deleteDatabase(dbInfo.name)
         await new Promise((resolve, reject) => {
           deleteReq.onsuccess = () => resolve(undefined)
-          deleteReq.onerror = () => reject(deleteReq.error)
+          deleteReq.addEventListener('error', () => reject(deleteReq.error))
         })
       }
     }
-
-    console.log('All databases reset. Please refresh the page.')
   }
   catch (error) {
     console.error('Error resetting databases:', error)
