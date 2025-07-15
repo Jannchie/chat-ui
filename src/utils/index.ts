@@ -1,7 +1,4 @@
-import Shiki from '@shikijs/markdown-it'
-import katex from 'katex'
 import markdownit from 'markdown-it'
-import texmath from 'markdown-it-texmath'
 import todo from 'markdown-it-todo'
 import { chatHistoryIDB } from '../shared'
 import VNodePlugin from './render'
@@ -22,67 +19,61 @@ export const md = markdownit({
   html: true,
 } as any)
 md.use(VNodePlugin)
-const tm = texmath.use(katex)
-md.use(tm, { delimiters: ['brackets', 'dollars'] })
 md.use(todo)
+
+// Lazy load katex and shiki to reduce initial bundle size
+let isKatexLoaded = false
+let isShikiLoaded = false
+
+export async function loadKatex() {
+  if (isKatexLoaded) {
+    return
+  }
+
+  const [katex, texmath] = await Promise.all([
+    import('katex'),
+    import('markdown-it-texmath'),
+    import('katex/dist/katex.min.css'), // Lazy load CSS
+  ])
+
+  const tm = texmath.default.use(katex.default)
+  md.use(tm, { delimiters: ['brackets', 'dollars'] })
+  isKatexLoaded = true
+}
+
 export async function loadShiki() {
-  const shiki = await Shiki({
+  if (isShikiLoaded) {
+    return
+  }
+
+  const Shiki = await import('@shikijs/markdown-it')
+
+  const shiki = await Shiki.default({
     themes: {
       light: 'vitesse-light',
       dark: 'vitesse-dark',
     },
+    // Only load most commonly used languages to reduce bundle size
     langs: [
-      'python',
       'javascript',
       'typescript',
+      'python',
       'bash',
       'json',
-      'yaml',
       'html',
       'css',
       'markdown',
-      'rust',
       'vue',
-      'c',
-      'c#',
-      'c++',
-      'java',
+      'rust',
       'go',
-      'php',
-      'ruby',
-      'swift',
-      'kotlin',
-      'scala',
+      'java',
       'sql',
-      'perl',
-      'lua',
-      'r',
-      'dart',
-      'haskell',
-      'clojure',
-      'elixir',
-      'f#',
-      'groovy',
-      'powershell',
-      'racket',
-      'scheme',
-      'shell',
-      'ocaml',
-      'asm',
-      'matlab',
-      'hcl',
-      'objective-c',
-      'sas',
-      'pascal',
-      'vb',
-      'cobol',
-      'erlang',
-      'wiki',
     ],
     defaultColor: 'dark',
-    fallbackLanguage: 'wiki',
+    fallbackLanguage: 'markdown',
   })
   md.use(shiki)
+  isShikiLoaded = true
 }
 
 export function getChat(id: string) {

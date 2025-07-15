@@ -60,8 +60,34 @@ export default defineConfig({
       },
     }),
   ],
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
+  build: {
+    target: 'es2022',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-vue': ['vue', 'vue-router'],
+          'vendor-ui': ['@vueuse/core', '@vueuse/integrations'],
+          'vendor-openai': ['openai'],
+          'vendor-db': ['dexie', 'idb-keyval'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
+  optimizeDeps: {
+    include: [
+      'vue',
+      'vue-router',
+      '@vueuse/core',
+      'openai',
+    ],
+    exclude: ['shiki'],
   },
 })

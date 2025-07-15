@@ -9,19 +9,6 @@ export interface Setting {
   updatedAt: number
 }
 
-export interface ChatData {
-  id: string
-  title: string
-  messages: Array<{
-    id: string
-    role: 'user' | 'assistant' | 'system'
-    content: string
-    timestamp: number
-  }>
-  createdAt: number
-  updatedAt: number
-}
-
 export interface RequestCacheEntry {
   id?: number
   cacheKey: string

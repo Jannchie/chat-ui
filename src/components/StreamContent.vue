@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { md } from '../utils'
+import { loadKatex, loadShiki, md } from '../utils'
 
 const props = withDefaults(defineProps<{
   content: string
@@ -64,7 +64,19 @@ const contentFinal = computed(() => {
 })
 
 const contentVNodes = computedWithControl([contentFinal], () => {
-  const r = md.render(contentFinal.value ?? '', {
+  const content = contentFinal.value ?? ''
+
+  // Check if content contains code blocks and load Shiki if needed
+  if (content.includes('```') || content.includes('`')) {
+    loadShiki()
+  }
+
+  // Check if content contains math expressions and load KaTeX if needed
+  if (content.includes('$') || content.includes(String.raw`\(`) || content.includes(String.raw`\[`)) {
+    loadKatex()
+  }
+
+  const r = md.render(content, {
     sanitize: true,
   }) as unknown as VNode[]
   return editResult(r)
@@ -73,7 +85,19 @@ const contentVNodes = computedWithControl([contentFinal], () => {
 const reasoningVNodes = computedWithControl([
   reasoning,
 ], () => {
-  return md.render(reasoning.value ?? '', {
+  const reasoningContent = reasoning.value ?? ''
+
+  // Check if reasoning contains code blocks and load Shiki if needed
+  if (reasoningContent.includes('```') || reasoningContent.includes('`')) {
+    loadShiki()
+  }
+
+  // Check if reasoning contains math expressions and load KaTeX if needed
+  if (reasoningContent.includes('$') || reasoningContent.includes(String.raw`\(`) || reasoningContent.includes(String.raw`\[`)) {
+    loadKatex()
+  }
+
+  return md.render(reasoningContent, {
     sanitize: true,
   }) as unknown as VNode[]
 })
