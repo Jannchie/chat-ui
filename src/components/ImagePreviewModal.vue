@@ -33,7 +33,7 @@ onUnmounted(() => {
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
     @click="close"
   >
-    <div class="relative flex h-full w-full items-center justify-center p-4">
+    <div class="relative h-full w-full flex items-center justify-center p-4">
       <img
         :src="imageUrl"
         alt="Preview"

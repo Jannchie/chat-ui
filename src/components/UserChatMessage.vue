@@ -27,12 +27,10 @@ const imageItems = computed(() => {
   return props.content.filter((item): item is { type: 'image_url', image_url: { url: string } } => item.type === 'image_url')
 })
 
-
 function openImagePreview(imageUrl: string) {
   previewImageUrl.value = imageUrl
   showImagePreview.value = true
 }
-
 
 // Check if content needs to be collapsed
 onMounted(() => {
@@ -69,7 +67,6 @@ onMounted(() => {
         >
       </div>
     </div>
-
 
     <!-- Display text content if any -->
     <pre
