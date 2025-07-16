@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { md, loadKatex, loadShiki } from '../utils'
+import { loadKatex, loadShiki, md } from '../utils'
 
 const { content } = defineProps<{
   content: string
@@ -10,12 +10,12 @@ const result = computed(() => {
   if (content.includes('```') || content.includes('`')) {
     loadShiki()
   }
-  
+
   // Check if content contains math expressions and load KaTeX if needed
-  if (content.includes('$') || content.includes('\\(') || content.includes('\\[')) {
+  if (content.includes('$') || content.includes(String.raw`\(`) || content.includes(String.raw`\[`)) {
     loadKatex()
   }
-  
+
   return md.render(content)
 })
 </script>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { apiKey, customServiceUrl, model, platform, useResponsesAPI } from '../shared'
+import { apiKey, customServiceUrl, model, platform } from '../shared'
 import { getPlatformIcon, getPlatformName } from '../utils'
 import CacheHistoryModal from './CacheHistoryModal.vue'
 import SelectModelModal from './SelectModelModal.vue'
@@ -93,22 +93,6 @@ const showCacheHistoryModal = ref(false)
         >
       </div>
 
-      <!-- Responses API Toggle -->
-      <div class="flex items-center gap-2">
-        <div class="flex items-center pr-2 text-lg">
-          <i class="i-tabler-api text-orange-400" />
-          <span class="pl-2 text-sm font-medium">{{ useResponsesAPI ? '🔄 Responses API' : '💬 Chat Completions' }}</span>
-        </div>
-        <label class="relative inline-flex cursor-pointer items-center">
-          <input
-            v-model="useResponsesAPI"
-            type="checkbox"
-            class="peer sr-only"
-          >
-          <div class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:border after:border-gray-300 dark:border-gray-600 after:rounded-full after:bg-white dark:bg-gray-700 peer-checked:bg-orange-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:peer-focus:ring-orange-800" />
-        </label>
-      </div>
-
       <!-- Cache History Button -->
       <div class="flex items-center">
         <button
@@ -191,23 +175,6 @@ const showCacheHistoryModal = ref(false)
               <span class="truncate">{{ model || 'Select Model' }}</span>
               <i class="i-tabler-chevron-down text-xs opacity-60" />
             </button>
-          </div>
-
-          <!-- Responses API Toggle -->
-          <div class="flex flex-col gap-2">
-            <label class="flex items-center gap-2 text-sm font-medium">
-              <i class="i-tabler-api text-orange-400" />
-              Use Responses API
-            </label>
-            <label class="relative inline-flex cursor-pointer items-center">
-              <input
-                v-model="useResponsesAPI"
-                type="checkbox"
-                class="peer sr-only"
-              >
-              <div class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:border after:border-gray-300 dark:border-gray-600 after:rounded-full after:bg-white dark:bg-gray-700 peer-checked:bg-orange-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:peer-focus:ring-orange-800" />
-              <span class="ml-3 text-sm text-gray-400">{{ useResponsesAPI ? 'Enabled' : 'Disabled' }}</span>
-            </label>
           </div>
 
           <!-- Cache History Button -->

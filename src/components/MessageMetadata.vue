@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
+import { serviceUrl } from '../shared'
+import { getPlatformIcon } from '../utils'
 
 defineProps<{
   message: ChatMessage
@@ -7,25 +9,22 @@ defineProps<{
 }>()
 
 function formatTime(timestamp: number) {
-  const date = new Date(timestamp)
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return new Intl.DateTimeFormat('en-UK', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(timestamp))
 }
 
 function formatDate(timestamp: number) {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-
-  if (messageDate.getTime() === today.getTime()) {
-    return formatTime(timestamp)
-  }
-  else if (messageDate.getTime() === today.getTime() - 24 * 60 * 60 * 1000) {
-    return `昨天 ${formatTime(timestamp)}`
-  }
-  else {
-    return date.toLocaleDateString()
-  }
+  return new Intl.DateTimeFormat('sv-SE', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(timestamp))
 }
 
 function getResponseTime(message: ChatMessage) {
@@ -35,6 +34,23 @@ function getResponseTime(message: ChatMessage) {
   }
   return null
 }
+
+const currentPlatform = computed(() => {
+  const url = serviceUrl.value
+  if (url?.includes('openai.com')) {
+    return 'openai'
+  }
+  if (url?.includes('anthropic.com')) {
+    return 'anthropic'
+  }
+  if (url?.includes('openrouter.ai')) {
+    return 'openrouter'
+  }
+  if (url?.includes('deepseek.com')) {
+    return 'deepseek'
+  }
+  return 'custom'
+})
 </script>
 
 <template>
@@ -47,9 +63,11 @@ function getResponseTime(message: ChatMessage) {
     <!-- 助手消息的模型信息 - 显示在时间旁边 -->
     <span
       v-if="message.role === 'assistant' && message.metadata?.model"
-      class="text-neutral-5 opacity-60 dark:text-neutral-4"
+      class="flex items-center gap-1 text-neutral-5 opacity-60 dark:text-neutral-4"
     >
-      · {{ message.metadata.model }}
+      <span>·</span>
+      <component :is="() => getPlatformIcon(currentPlatform)" class="text-xs" />
+      <span>{{ message.metadata.model }}</span>
     </span>
 
     <!-- 响应时间 -->

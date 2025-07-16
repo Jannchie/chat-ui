@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ImageContent, ImageFile, MessageContent, TextContent } from '../composables/useHelloWorld'
-import type { TransformOptions } from '../types/message'
+import type { ChatMessage, TransformOptions } from '../types/message'
 import OpenAI from 'openai'
 import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'

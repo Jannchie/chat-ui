@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { ChatMessage } from '../composables/useHelloWorld'
+import type { ChatMessage } from '../types/message'
 import { BtnGroup, Paper, ScrollArea } from '@roku-ui/vue'
 import StreamContent from '../components/StreamContent.vue'
 import { useDexieStorage } from '../composables/useDexieStorage'
 import { useRequestCache } from '../composables/useRequestCache'
-import { apiKey, model, platform, serviceUrl } from '../shared'
+import { apiKey, currentPreset, model, serviceUrl } from '../shared'
 
 const router = useRouter()
 function onHomeClick() {
@@ -103,7 +103,7 @@ watchEffect(async () => {
       // Cache successful translation request
       if (streamCompleted || translateContent.value.trim()) {
         cacheSuccessfulRequest({
-          preset: platform.value || 'openai',
+          preset: currentPreset.value || 'openai',
           serviceUrl: serviceUrl.value,
           model: model.value,
           apiKey: apiKey.value,

@@ -1,9 +1,9 @@
 import type { ChatCompletionContentPart, ChatCompletionMessageParam } from 'openai/resources/chat/completions/completions.js'
 import type { ResponseInput } from 'openai/resources/responses/responses.js'
 import type {
+  ChatMessage,
   MessageContent,
   TransformOptions,
-  ChatMessage,
 } from '../types/message'
 
 /**
@@ -189,7 +189,7 @@ export function transformToResponsesAPI(
 
   return preprocessed.map((msg) => {
     // 转换内容为 ResponseInputMessageContentList 格式
-    const content = convertContentToResponseInput(msg.content)
+    const content = convertContentToResponseInput(msg.content, msg.role)
 
     return {
       role: msg.role as 'user' | 'assistant' | 'system' | 'developer',
@@ -202,10 +202,13 @@ export function transformToResponsesAPI(
 /**
  * 将 MessageContent 转换为 ResponseInputMessageContentList 格式
  */
-function convertContentToResponseInput(content: MessageContent): Array<any> {
+function convertContentToResponseInput(content: MessageContent, role: ChatMessage['role']): Array<any> {
+  // 根据角色确定文本类型：assistant 使用 output_text，其他使用 input_text
+  const textType = role === 'assistant' ? 'output_text' : 'input_text'
+
   if (typeof content === 'string') {
     return [{
-      type: 'input_text',
+      type: textType,
       text: content,
     }]
   }
@@ -214,7 +217,7 @@ function convertContentToResponseInput(content: MessageContent): Array<any> {
     return content.map((item) => {
       if (item.type === 'text') {
         return {
-          type: 'input_text',
+          type: textType,
           text: item.text,
         }
       }
@@ -229,13 +232,13 @@ function convertContentToResponseInput(content: MessageContent): Array<any> {
       // 这里暂时转换为文本描述
       if (item.type === 'function_call') {
         return {
-          type: 'input_text',
+          type: textType,
           text: `Function call: ${item.function_call.name}(${item.function_call.arguments})`,
         }
       }
       if (item.type === 'tool_call') {
         return {
-          type: 'input_text',
+          type: textType,
           text: `Tool call: ${item.tool_call.id} - ${item.tool_call.type}`,
         }
       }
@@ -244,7 +247,7 @@ function convertContentToResponseInput(content: MessageContent): Array<any> {
   }
 
   return [{
-    type: 'input_text',
+    type: textType,
     text: '',
   }]
 }
