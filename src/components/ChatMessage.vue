@@ -24,7 +24,7 @@ const contentAsString = computed(() => messageContentToString(message.value.cont
     <div
       class="block md:hidden"
     >
-      <div class="mb-1 flex items-center">
+      <div class="mb-3 flex items-center">
         <div class="mr-1 flex-shrink-0 leading-0">
           <i
             v-if="props.message.role === 'user'"
@@ -43,10 +43,10 @@ const contentAsString = computed(() => messageContentToString(message.value.cont
             :class="{ 'animate-pulse': props.loading && props.message.role === 'assistant' }"
           >AI Assistant</span>
         </div>
-        <!-- 移动端元数据 -->
-        <div class="mt-1">
-          <MessageMetadata :message="message" />
-        </div>
+      </div>
+      <!-- 移动端元数据 - 移到消息内容上方 -->
+      <div class="mb-3">
+        <MessageMetadata :message="message" />
       </div>
       <div class="w-full">
         <StreamContent
@@ -83,6 +83,11 @@ const contentAsString = computed(() => messageContentToString(message.value.cont
       </div>
 
       <div class="flex-grow overflow-hidden">
+        <!-- 桌面端元数据 - 移到消息内容上方 -->
+        <div class="mb-3">
+          <MessageMetadata :message="message" />
+        </div>
+
         <StreamContent
           v-if="message.role === 'assistant'"
           :content="contentAsString"
@@ -98,11 +103,6 @@ const contentAsString = computed(() => messageContentToString(message.value.cont
           v-else-if="message.role === 'error'"
           :content="contentAsString"
         />
-
-        <!-- 桌面端元数据 -->
-        <div class="mt-2">
-          <MessageMetadata :message="message" />
-        </div>
       </div>
     </div>
   </div>

@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { platform } from '../shared'
+import { currentPreset, platform } from '../shared'
 import { getPlatformIcon, getPlatformName } from '../utils'
 
 const presets = [
@@ -47,7 +47,7 @@ onClickOutside(modalRef, () => {
               :class="{
                 'bg-neutral-8': platform === p,
               }"
-              @click="platform = p; show = false"
+              @click="platform = p; currentPreset = p; show = false"
             >
               <component :is="() => getPlatformIcon(p)" />
               <span>

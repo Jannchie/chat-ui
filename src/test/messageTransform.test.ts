@@ -11,6 +11,7 @@ import {
   updateMessageContent,
   updateMessageReasoning,
 } from '../utils/messageTransform'
+import { createResponsesApiParser } from '../utils/responsesApiParser'
 
 describe('messagetransform', () => {
   describe('createuimessage', () => {
@@ -452,6 +453,130 @@ describe('messagetransform', () => {
     it('should return empty string for empty arrays', () => {
       const result = messageContentToString([])
       expect(result).toBe('')
+    })
+  })
+
+  describe('responsesapiparser', () => {
+    it('should create parser with callbacks', () => {
+      const onMessageUpdate = vi.fn()
+      const onMessageComplete = vi.fn()
+      const onUsageUpdate = vi.fn()
+
+      const parser = createResponsesApiParser(
+        onMessageUpdate,
+        onMessageComplete,
+        onUsageUpdate,
+      )
+
+      expect(parser).toBeDefined()
+      expect(typeof parser.parseEvent).toBe('function')
+      expect(typeof parser.reset).toBe('function')
+    })
+
+    it('should handle output_item.added event', () => {
+      const onMessageUpdate = vi.fn()
+      const onMessageComplete = vi.fn()
+      const onUsageUpdate = vi.fn()
+
+      const parser = createResponsesApiParser(
+        onMessageUpdate,
+        onMessageComplete,
+        onUsageUpdate,
+      )
+
+      const event = {
+        type: 'response.output_item.added',
+      }
+
+      parser.parseEvent(event)
+
+      // Should create a new message and call onMessageUpdate
+      expect(onMessageUpdate).toHaveBeenCalledTimes(1)
+      const calledMessage = onMessageUpdate.mock.calls[0][0]
+      expect(calledMessage.role).toBe('assistant')
+      expect(calledMessage.content).toBe('')
+    })
+
+    it('should handle text delta events', () => {
+      const onMessageUpdate = vi.fn()
+      const onMessageComplete = vi.fn()
+      const onUsageUpdate = vi.fn()
+
+      const parser = createResponsesApiParser(
+        onMessageUpdate,
+        onMessageComplete,
+        onUsageUpdate,
+      )
+
+      // First create a message
+      parser.parseEvent({ type: 'response.output_item.added' })
+
+      // Then send delta
+      parser.parseEvent({
+        type: 'response.output_text.delta',
+        delta: 'Hello',
+      })
+
+      expect(onMessageUpdate).toHaveBeenCalledTimes(2)
+      const updatedMessage = onMessageUpdate.mock.calls[1][0]
+      expect(updatedMessage.content).toBe('Hello')
+    })
+
+    it('should handle response completed with usage', () => {
+      const onMessageUpdate = vi.fn()
+      const onMessageComplete = vi.fn()
+      const onUsageUpdate = vi.fn()
+
+      const parser = createResponsesApiParser(
+        onMessageUpdate,
+        onMessageComplete,
+        onUsageUpdate,
+      )
+
+      const event = {
+        type: 'response.completed',
+        response: {
+          usage: {
+            input_tokens: 10,
+            output_tokens: 20,
+          },
+        },
+      }
+
+      parser.parseEvent(event)
+
+      expect(onUsageUpdate).toHaveBeenCalledTimes(1)
+      expect(onUsageUpdate).toHaveBeenCalledWith({
+        input_tokens: 10,
+        output_tokens: 20,
+      })
+    })
+
+    it('should reset parser state', () => {
+      const onMessageUpdate = vi.fn()
+      const onMessageComplete = vi.fn()
+      const onUsageUpdate = vi.fn()
+
+      const parser = createResponsesApiParser(
+        onMessageUpdate,
+        onMessageComplete,
+        onUsageUpdate,
+      )
+
+      // Create a message
+      parser.parseEvent({ type: 'response.output_item.added' })
+      parser.parseEvent({
+        type: 'response.output_text.delta',
+        delta: 'Hello',
+      })
+
+      // Reset
+      parser.reset()
+
+      // Should start fresh
+      parser.parseEvent({ type: 'response.output_item.added' })
+      const newMessage = onMessageUpdate.mock.calls.at(-1)![0]
+      expect(newMessage.content).toBe('')
     })
   })
 })

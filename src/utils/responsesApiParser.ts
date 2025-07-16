@@ -65,6 +65,9 @@ export class ResponsesApiParser {
       },
     })
     this.textAccumulator = ''
+
+    // 通知消息创建
+    this.onMessageUpdate(this.currentMessage)
   }
 
   private handleContentPartAdded(event: any): void {

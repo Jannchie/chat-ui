@@ -7,6 +7,7 @@ import { useScrollToBottom } from '../composables/useScrollToBottom'
 import { apiKey, client, model, platform, serviceUrl, useCurrentChat, useResponsesAPI } from '../shared'
 import { generateId, isMobile, setChat } from '../utils'
 import { createUIMessage, transformMessages, updateMessageContent, updateMessageReasoning } from '../utils/messageTransform'
+import { createResponsesApiParser } from '../utils/responsesApiParser'
 
 const router = useRouter()
 
@@ -330,69 +331,55 @@ async function onSubmit() {
     laststartedAtMS.value = 0
     lastEndedAtMS.value = 0
     let streamCompleted = false
-    for await (const chunk of stream) {
-      if (useResponsesAPI.value) {
-        // Handle Responses API format
-        if (chunk.type === 'response.done') {
-          lastEndedAtMS.value = Date.now()
-          if (chunk.response?.usage) {
-            lastUsage.value = {
-              prompt_tokens: chunk.response.usage.input_tokens || 0,
-              completion_tokens: chunk.response.usage.output_tokens || 0,
-              total_tokens: (chunk.response.usage.input_tokens || 0) + (chunk.response.usage.output_tokens || 0),
-            }
-            if (chat) {
-              chat.token.inTokens += chunk.response.usage.input_tokens || 0
-              chat.token.outTokens += chunk.response.usage.output_tokens || 0
-            }
-          }
-          streamCompleted = true
 
-          // 更新最后一条消息的 receivedAt 时间戳 (Responses API)
-          const lastMessage = conversation.value.at(-1)
-          if (lastMessage && lastMessage.role === 'assistant') {
-            const updatedMessage = {
-              ...lastMessage,
-              metadata: {
-                ...lastMessage.metadata,
-                receivedAt: Date.now(),
-              },
-            }
-            conversation.value[conversation.value.length - 1] = updatedMessage
-          }
-        }
-
-        if (chunk.type === 'response.content_part.added' || chunk.type === 'response.text.delta') {
-          if (!lastMessage) {
-            return
-          }
-
+    if (useResponsesAPI.value) {
+      // 使用 responsesApiParser 处理 Responses API
+      const parser = createResponsesApiParser(
+        (message: ChatMessage) => {
+          // 首次响应时设置开始时间
           if (laststartedAtMS.value === 0) {
             laststartedAtMS.value = Date.now()
-            if (lastMessage.metadata) {
-              lastMessage.metadata.receivedAt = Date.now()
-            }
           }
 
-          let deltaContent = ''
-          if (chunk.type === 'response.content_part.added' && chunk.part?.type === 'text') {
-            deltaContent = chunk.part.text || ''
+          // 查找消息在会话中的索引并更新
+          const lastIndex = conversation.value.length - 1
+          if (lastIndex >= 0) {
+            conversation.value[lastIndex] = message
+            // 触发响应式更新
+            conversation.value = [...conversation.value]
           }
+        },
+        (message: ChatMessage) => {
+          // 消息完成时更新最后一个消息
+          const lastIndex = conversation.value.length - 1
+          if (lastIndex >= 0) {
+            conversation.value[lastIndex] = message
+            conversation.value = [...conversation.value]
+          }
+        },
+        (usage: any) => {
+          // 处理使用统计
+          lastEndedAtMS.value = Date.now()
+          lastUsage.value = {
+            prompt_tokens: usage.input_tokens || 0,
+            completion_tokens: usage.output_tokens || 0,
+            total_tokens: (usage.input_tokens || 0) + (usage.output_tokens || 0),
+          }
+          if (chat) {
+            chat.token.inTokens += usage.input_tokens || 0
+            chat.token.outTokens += usage.output_tokens || 0
+          }
+          streamCompleted = true
+        },
+      )
 
-          if (chunk.type === 'response.text.delta') {
-            deltaContent = chunk.delta || ''
-          }
-
-          if (deltaContent) {
-            // 使用新的消息更新函数
-            const updatedMessage = updateMessageContent(lastMessage, deltaContent, { appendMode: true })
-            // 更新最后一个消息
-            conversation.value[conversation.value.length - 1] = updatedMessage
-          }
-        }
+      for await (const chunk of stream) {
+        parser.parseEvent(chunk)
       }
-      else {
-        // Handle Chat Completions API format (original)
+    }
+    else {
+      // Handle Chat Completions API format (original)
+      for await (const chunk of stream) {
         const usage = chunk.usage
         if (usage) {
           lastEndedAtMS.value = Date.now()

@@ -16,7 +16,8 @@ export function useDexieStorage<T = string>(
         try {
           // 尝试解析JSON，如果失败则直接使用字符串值
           storedValue.value = typeof defaultValue === 'string' ? value as T : JSON.parse(value) as T
-        } catch {
+        }
+        catch {
           // JSON解析失败，使用原始字符串值
           storedValue.value = value as T
         }
@@ -72,14 +73,16 @@ export function useDexieRef<T = string>(
   const load = async (key: string) => {
     try {
       const value = await getSetting(key)
-      if (value !== undefined) {
+      if (value === undefined) {
+        storedValue.value = defaultValue
+      }
+      else {
         try {
           storedValue.value = typeof defaultValue === 'string' ? value as T : JSON.parse(value) as T
-        } catch {
+        }
+        catch {
           storedValue.value = value as T
         }
-      } else {
-        storedValue.value = defaultValue
       }
       isLoading = false
     }

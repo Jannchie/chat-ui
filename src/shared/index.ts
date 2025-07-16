@@ -23,6 +23,7 @@ export const preset = useDexieStorage<Record<string, Preset>>('preset', {})
 export const currentPreset = useDexieStorage('currentPreset', 'openai')
 export const customServiceUrl = useDexieStorage('serviceUrl', 'https://api.openai.com/v1')
 export const platform = useDexieStorage('platform', 'openai')
+
 export const useResponsesAPI = computed(() => {
   // OpenAI 使用 responses API，其他平台使用 completions API
   return platform.value === 'openai'
