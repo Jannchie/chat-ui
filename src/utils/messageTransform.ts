@@ -347,7 +347,7 @@ export function updateMessageReasoning(
 }
 
 /**
- * 将 MessageContent 转换为纯文本字符串
+ * 将 MessageContent 转换为纯文本字符串 (仅用于需要文本的地方，如 UserChatMessage)
  */
 export function messageContentToString(content: MessageContent): string {
   if (typeof content === 'string') {
@@ -360,19 +360,21 @@ export function messageContentToString(content: MessageContent): string {
         if (item.type === 'text') {
           return item.text
         }
+        // 对于图片和函数调用，在文本模式下返回空字符串
+        // 这样 UserChatMessage 组件会单独处理这些内容
         if (item.type === 'image_url') {
-          return `[图片: ${item.image_url.url}]`
+          return '' // 图片由 UserChatMessage 单独渲染
         }
         if (item.type === 'function_call') {
-          return `[函数调用: ${item.function_call.name}]`
+          return '' // 函数调用由组件单独处理
         }
         if (item.type === 'tool_call') {
-          return `[工具调用: ${item.tool_call.id}]`
+          return '' // 工具调用由组件单独处理
         }
         return ''
       })
       .filter(text => text.length > 0)
-      .join(' ')
+      .join('\n')
   }
 
   return ''

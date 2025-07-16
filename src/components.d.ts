@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AsideContainer: typeof import('./components/AsideContainer.vue')['default']
     AssistantChatMessage: typeof import('./components/AssistantChatMessage.vue')['default']
+    AssistantMessage: typeof import('./components/AssistantMessage.vue')['default']
     BaseContainer: typeof import('./components/BaseContainer.vue')['default']
     CacheHistoryModal: typeof import('./components/CacheHistoryModal.vue')['default']
     Chat: typeof import('./views/Chat.vue')['default']

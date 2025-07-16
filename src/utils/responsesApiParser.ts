@@ -66,7 +66,7 @@ export class ResponsesApiParser {
     if (event.response) {
       this.responseMetadata = {
         model: event.response.model,
-        ...event.response
+        ...event.response,
       }
     }
   }

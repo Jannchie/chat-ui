@@ -9,7 +9,11 @@ const props = defineProps<{
 }>()
 const message = computed(() => props.message)
 
+// For user messages, convert to string for UserChatMessage component
 const contentAsString = computed(() => messageContentToString(message.value.content))
+
+// For assistant messages, use original content structure
+const assistantContent = computed(() => message.value.content)
 </script>
 
 <template>
@@ -49,16 +53,16 @@ const contentAsString = computed(() => messageContentToString(message.value.cont
         <MessageMetadata :message="message" />
       </div>
       <div class="w-full">
-        <StreamContent
+        <AssistantMessage
           v-if="props.message.role === 'assistant'"
-          :content="contentAsString"
+          :content="assistantContent"
           :reasoning="props.message.reasoning"
           :loading="loading"
           :model="props.message.metadata?.model"
         />
         <UserChatMessage
           v-else
-          :content="contentAsString"
+          :content="message.content"
         />
       </div>
     </div>
@@ -88,16 +92,16 @@ const contentAsString = computed(() => messageContentToString(message.value.cont
           <MessageMetadata :message="message" />
         </div>
 
-        <StreamContent
+        <AssistantMessage
           v-if="message.role === 'assistant'"
-          :content="contentAsString"
+          :content="assistantContent"
           :reasoning="message.reasoning"
           :loading="loading"
           :model="message.metadata?.model"
         />
         <UserChatMessage
           v-else-if="message.role === 'user'"
-          :content="contentAsString"
+          :content="message.content"
         />
         <ErrorChatMessage
           v-else-if="message.role === 'error'"
