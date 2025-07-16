@@ -10,8 +10,7 @@ export async function resetAllDatabases(): Promise<void> {
     // 删除所有相关数据库
     for (const dbInfo of databases) {
       if (dbInfo.name && (
-        dbInfo.name === 'ChatUIDatabase'
-        || dbInfo.name === 'RequestCacheDB'
+        dbInfo.name === 'ChatUIDB_v2'
         || dbInfo.name.includes('chat')
         || dbInfo.name.includes('Chat')
       )) {

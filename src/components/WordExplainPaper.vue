@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { SentableChatMessage } from '../composables/useHelloWorld'
+import type { ChatMessage } from '../types/message'
 import { Paper, Tag } from '@roku-ui/vue'
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
 import { useRequestCache } from '../composables/useRequestCache'
-import { apiKey, model, platform, serviceUrl } from '../shared'
+import { apiKey, client, model, platform, serviceUrl } from '../shared'
+import { transformToChatCompletions } from '../utils/messageTransform'
 
 const props = withDefaults(defineProps<{
   content?: string
@@ -15,13 +16,14 @@ const content = computed(() => props.content)
 const prompt = computed(() => {
   return `Based on the content I provide, analyze and extract key difficult words that help in understanding the content, and explain them. Your explanation should be in the form of a JSON array of objects, including the following fields: word, part of speech, explanation in ${targetLang.value}, synonyms (if any) in the target language (${targetLang.value}). The content I provide is: "${props.content}"`
 })
-const conversation = computed<SentableChatMessage[]>(() => {
+const conversation = computed<ChatMessage[]>(() => {
   return [{
+    id: 'user-message-1',
     role: 'user',
     content: prompt.value,
+    timestamp: Date.now(),
   }]
 })
-const client = useClient()
 const { cacheSuccessfulRequest } = useRequestCache()
 
 const Explains = z.array(z.object({
@@ -43,7 +45,7 @@ watchEffect(async () => {
   try {
     const resp = await client.value.chat.completions.create({
       model: model.value,
-      messages: conversation.value,
+      messages: transformToChatCompletions(conversation.value),
       response_format: zodResponseFormat(WordExplainsResp, 'explains'),
     })
     const jsonStr = resp.choices[0].message.content

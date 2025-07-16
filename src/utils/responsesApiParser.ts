@@ -9,6 +9,7 @@ export class ResponsesApiParser {
   private currentMessage: ChatMessage | null = null
   private textAccumulator = ''
   private sentAt: number = 0
+  private responseMetadata: any = {}
 
   constructor(
     private onMessageUpdate: (message: ChatMessage) => void,
@@ -21,6 +22,10 @@ export class ResponsesApiParser {
    */
   parseEvent(event: any): void {
     switch (event.type) {
+      case 'response.created': {
+        this.handleResponseCreated(event)
+        break
+      }
       case 'response.output_item.added': {
         this.handleOutputItemAdded(event)
         break
@@ -56,12 +61,23 @@ export class ResponsesApiParser {
     }
   }
 
+  private handleResponseCreated(event: any): void {
+    // 保存 response 的元数据，包括模型信息
+    if (event.response) {
+      this.responseMetadata = {
+        model: event.response.model,
+        ...event.response
+      }
+    }
+  }
+
   private handleOutputItemAdded(_event: any): void {
     // 开始新的消息
     this.sentAt = Date.now()
     this.currentMessage = createUIMessage('assistant', '', {
       metadata: {
         sentAt: this.sentAt,
+        model: this.responseMetadata.model,
       },
     })
     this.textAccumulator = ''
@@ -133,12 +149,13 @@ export class ResponsesApiParser {
       return
     }
 
-    // 添加接收时间到metadata
+    // 添加接收时间到metadata，并确保模型信息保留
     this.currentMessage = {
       ...this.currentMessage,
       metadata: {
         ...this.currentMessage.metadata,
         receivedAt: Date.now(),
+        model: this.currentMessage.metadata?.model || this.responseMetadata.model,
       },
     }
 
@@ -160,6 +177,7 @@ export class ResponsesApiParser {
     this.currentMessage = null
     this.textAccumulator = ''
     this.sentAt = 0
+    this.responseMetadata = {}
   }
 }
 

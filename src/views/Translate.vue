@@ -4,7 +4,8 @@ import { BtnGroup, Paper, ScrollArea } from '@roku-ui/vue'
 import StreamContent from '../components/StreamContent.vue'
 import { useDexieStorage } from '../composables/useDexieStorage'
 import { useRequestCache } from '../composables/useRequestCache'
-import { apiKey, currentPreset, model, serviceUrl } from '../shared'
+import { apiKey, client, currentPreset, model, serviceUrl } from '../shared'
+import { transformToChatCompletions } from '../utils/messageTransform'
 
 const router = useRouter()
 function onHomeClick() {
@@ -53,7 +54,6 @@ const conversation = computed<ChatMessage[]>(() => [{
   timestamp: Date.now(),
 }])
 
-const client = useClient()
 const { cacheSuccessfulRequest } = useRequestCache()
 const translateContent = ref('')
 const loading = ref(false)
@@ -78,7 +78,7 @@ watchEffect(async () => {
     const stream = await client.value.chat.completions.create({
       model: model.value,
       stream: true,
-      messages: filteredConversition,
+      messages: transformToChatCompletions(filteredConversition),
     })
 
     let streamCompleted = false

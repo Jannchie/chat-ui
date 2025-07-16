@@ -41,43 +41,6 @@ class ChatUIDatabase extends Dexie {
 
 export const db = new ChatUIDatabase()
 
-export async function cleanupOldDatabases(): Promise<void> {
-  try {
-    // 清理可能存在的旧数据库实例
-    const oldDbName = 'RequestCacheDB'
-    if (typeof indexedDB !== 'undefined') {
-      const databases = await indexedDB.databases?.() || []
-      const hasOldDb = databases.some(dbInfo => dbInfo.name === oldDbName)
-
-      if (hasOldDb) {
-        // 首先尝试迁移旧的缓存数据
-        try {
-          const dexieModule = await import('dexie')
-          const Dexie = dexieModule.default
-          const oldDb = new Dexie(oldDbName)
-          oldDb.version(1).stores({
-            requestCache: '++id, cacheKey, timestamp, lastAccessed, accessCount',
-          })
-
-          const oldData = await oldDb.table('requestCache').toArray()
-          if (oldData.length > 0) {
-            await db.requestCache.bulkAdd(oldData)
-          }
-
-          oldDb.close()
-          oldDb.delete()
-        }
-        catch (error) {
-          console.warn('Could not migrate old cache data:', error)
-        }
-      }
-    }
-  }
-  catch (error) {
-    console.warn('Error during database cleanup:', error)
-  }
-}
-
 export async function getSetting(key: string, defaultValue?: string): Promise<string | undefined> {
   try {
     const setting = await db.settings.where('key').equals(key).first()
@@ -135,45 +98,12 @@ export async function getAllSettings(): Promise<Record<string, string>> {
   }
 }
 
-export async function migrateFromLocalStorage(): Promise<void> {
-  const localStorageKeys = [
-    'scheme',
-    'serviceUrl',
-    'platform',
-    'translate.targetLang',
-    'translate.tone',
-  ]
-
-  const dynamicKeys: string[] = []
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (key && (key.startsWith('model-') || key.startsWith('apiKey-'))) {
-      dynamicKeys.push(key)
-    }
-  }
-
-  const allKeys = [...localStorageKeys, ...dynamicKeys]
-
-  for (const key of allKeys) {
-    const value = localStorage.getItem(key)
-    if (value !== null) {
-      // 检查 Dexie 中是否已经有这个设置
-      const existingSetting = await getSetting(key)
-      if (existingSetting === undefined) {
-        await setSetting(key, value)
-      }
-    }
-  }
-}
-
 export function useDatabase() {
   return {
     getSetting,
     setSetting,
     removeSetting,
     getAllSettings,
-    migrateFromLocalStorage,
-    cleanupOldDatabases,
     db,
   }
 }
