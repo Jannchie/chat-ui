@@ -5,8 +5,9 @@ import { getSetting, setSetting } from './useDatabase'
 export function useDexieStorage<T = string>(
   key: string,
   defaultValue: T,
-): Ref<T> {
+): Ref<T> & { isLoaded: Ref<boolean> } {
   const storedValue = ref(defaultValue) as Ref<T>
+  const isLoaded = ref(false)
   let isLoading = true
 
   const load = async () => {
@@ -23,11 +24,13 @@ export function useDexieStorage<T = string>(
         }
       }
       isLoading = false
+      isLoaded.value = true
     }
     catch (error) {
       console.error(`Error loading setting ${key}:`, error)
       storedValue.value = defaultValue
       isLoading = false
+      isLoaded.value = true
     }
   }
 
@@ -60,14 +63,19 @@ export function useDexieStorage<T = string>(
     { deep: true },
   )
 
-  return storedValue
+  // 创建一个包含 isLoaded 属性的对象
+  const result = storedValue as Ref<T> & { isLoaded: Ref<boolean> }
+  result.isLoaded = isLoaded
+
+  return result
 }
 
 export function useDexieRef<T = string>(
   keyRef: Ref<string>,
   defaultValue: T,
-): Ref<T> {
+): Ref<T> & { isLoaded: Ref<boolean> } {
   const storedValue = ref(defaultValue) as Ref<T>
+  const isLoaded = ref(false)
   let isLoading = true
 
   const load = async (key: string) => {
@@ -85,11 +93,13 @@ export function useDexieRef<T = string>(
         }
       }
       isLoading = false
+      isLoaded.value = true
     }
     catch (error) {
       console.error(`Error loading setting ${key}:`, error)
       storedValue.value = defaultValue
       isLoading = false
+      isLoaded.value = true
     }
   }
 
@@ -131,5 +141,9 @@ export function useDexieRef<T = string>(
     { deep: true },
   )
 
-  return storedValue
+  // 创建一个包含 isLoaded 属性的对象
+  const result = storedValue as Ref<T> & { isLoaded: Ref<boolean> }
+  result.isLoaded = isLoaded
+  
+  return result
 }
