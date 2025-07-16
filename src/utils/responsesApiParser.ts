@@ -22,7 +22,6 @@ export class ResponsesApiParser {
    * 解析单个 SSE 事件
    */
   parseEvent(event: any): void {
-    console.warn('ResponsesApiParser - Event received:', event.type, event) // 调试所有事件
     switch (event.type) {
       case 'response.created': {
         this.handleResponseCreated(event)
@@ -151,8 +150,6 @@ export class ResponsesApiParser {
       return
     }
 
-    console.warn('ResponsesApiParser - handleOutputItemDone called, usageData:', this.usageData) // 调试信息
-
     // 添加接收时间到metadata，并确保模型信息和usage信息保留
     this.currentMessage = {
       ...this.currentMessage,
@@ -163,8 +160,6 @@ export class ResponsesApiParser {
         usage: this.usageData,
       },
     }
-
-    console.warn('ResponsesApiParser - Final message metadata:', this.currentMessage.metadata) // 调试信息
 
     // 消息完成
     this.onMessageComplete(this.currentMessage)
@@ -182,8 +177,6 @@ export class ResponsesApiParser {
           + (event.response.usage.output_tokens || event.response.usage.completion_tokens || 0),
       }
 
-      console.warn('ResponsesApiParser - Usage data:', this.usageData) // 调试信息
-
       // 如果当前消息存在，立即更新它的 usage 信息
       if (this.currentMessage) {
         this.currentMessage = {
@@ -199,9 +192,6 @@ export class ResponsesApiParser {
       if (this.onUsageUpdate) {
         this.onUsageUpdate(event.response.usage)
       }
-    }
-    else {
-      console.warn('ResponsesApiParser - No usage data in event:', event) // 调试信息
     }
   }
 
@@ -229,8 +219,7 @@ export function parseSSELine(line: string): any | null {
       }
       return JSON.parse(data)
     }
-    catch (error) {
-      console.warn('Failed to parse SSE data:', error)
+    catch {
       return null
     }
   }

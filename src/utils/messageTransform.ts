@@ -333,7 +333,6 @@ export function updateMessageReasoning(
   appendMode: boolean = true,
 ): ChatMessage {
   if (message.role !== 'assistant') {
-    console.warn('Reasoning can only be updated for assistant messages')
     return message
   }
 

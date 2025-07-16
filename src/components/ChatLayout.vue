@@ -333,7 +333,6 @@ async function onSubmit() {
     let streamCompleted = false
 
     if (useResponsesAPI.value) {
-      console.warn('ChatLayout - Using ResponsesAPI for platform:', platform.value)
       // 使用 responsesApiParser 处理 Responses API
       const parser = createResponsesApiParser(
         (message: ChatMessage) => {
@@ -379,7 +378,6 @@ async function onSubmit() {
       }
     }
     else {
-      console.warn('ChatLayout - Using Chat Completions API for platform:', platform.value)
       // Handle Chat Completions API format (original)
       for await (const chunk of stream) {
         const usage = chunk.usage
