@@ -1,12 +1,7 @@
-import type { MessageContent, UIMessage } from '../types/message'
+import type { ChatMessage, MessageContent } from '../types/message'
 
 // 向后兼容的类型别名
 export type { ImageContent, MessageContent, TextContent } from '../types/message'
-
-// 扩展 UIMessage 以提供向后兼容性
-export interface ChatMessage extends UIMessage {
-  // 所有必要的字段都已在 UIMessage 中定义
-}
 
 // 保持向后兼容的类型
 export type SentableChatMessage = {

@@ -3,7 +3,7 @@ import type { ResponseInput } from 'openai/resources/responses/responses.js'
 import type {
   MessageContent,
   TransformOptions,
-  UIMessage,
+  ChatMessage,
 } from '../types/message'
 
 /**
@@ -17,15 +17,15 @@ function generateMessageId(): string {
  * 创建新的 UI Message
  */
 export function createUIMessage(
-  role: UIMessage['role'],
+  role: ChatMessage['role'],
   content: MessageContent,
   options?: {
     id?: string
     timestamp?: number
     reasoning?: string
-    metadata?: UIMessage['metadata']
+    metadata?: ChatMessage['metadata']
   },
-): UIMessage {
+): ChatMessage {
   return {
     id: options?.id || generateMessageId(),
     role,
@@ -57,7 +57,7 @@ export function isValidMessageContent(content: any): content is MessageContent {
 /**
  * 预处理消息列表 - 过滤错误消息
  */
-function preprocessMessages(messages: UIMessage[]): UIMessage[] {
+function preprocessMessages(messages: ChatMessage[]): ChatMessage[] {
   // 过滤错误消息
   return messages.filter(msg => msg.role !== 'error')
 }
@@ -101,12 +101,12 @@ function convertContent(content: MessageContent): string | ChatCompletionContent
  * 将 UI Message 转换为 Chat Completions API 格式
  */
 export function transformToChatCompletions(
-  messages: UIMessage[],
+  messages: ChatMessage[],
 ): ChatCompletionMessageParam[] {
   const preprocessed = preprocessMessages(messages)
 
   return preprocessed
-    .filter((msg): msg is UIMessage & { role: Exclude<UIMessage['role'], 'error'> } => msg.role !== 'error')
+    .filter((msg): msg is ChatMessage & { role: Exclude<ChatMessage['role'], 'error'> } => msg.role !== 'error')
     .map((msg) => {
       let result: ChatCompletionMessageParam
 
@@ -183,7 +183,7 @@ export function transformToChatCompletions(
  * 将 UI Message 转换为 Responses API 格式
  */
 export function transformToResponsesAPI(
-  messages: UIMessage[],
+  messages: ChatMessage[],
 ): ResponseInput {
   const preprocessed = preprocessMessages(messages)
 
@@ -252,7 +252,7 @@ function convertContentToResponseInput(content: MessageContent): Array<any> {
  * 通用的消息转换器
  */
 export function transformMessages(
-  messages: UIMessage[],
+  messages: ChatMessage[],
   options: TransformOptions,
 ): ChatCompletionMessageParam[] | ResponseInput | any {
   // 如果提供了自定义转换器，使用它
@@ -281,12 +281,12 @@ export function transformMessages(
  */
 export function createMessagesFromConversation(
   conversation: Array<{
-    role: UIMessage['role']
+    role: ChatMessage['role']
     content: MessageContent
     reasoning?: string
-    metadata?: UIMessage['metadata']
+    metadata?: ChatMessage['metadata']
   }>,
-): UIMessage[] {
+): ChatMessage[] {
   return conversation.map(msg => createUIMessage(
     msg.role,
     msg.content,
@@ -301,13 +301,13 @@ export function createMessagesFromConversation(
  * 更新消息内容的辅助函数
  */
 export function updateMessageContent(
-  message: UIMessage,
+  message: ChatMessage,
   content: MessageContent,
   options?: {
     appendMode?: boolean // 是否追加模式（用于流式响应）
     updateTimestamp?: boolean
   },
-): UIMessage {
+): ChatMessage {
   const updated = { ...message }
 
   updated.content = (options?.appendMode && typeof updated.content === 'string' && typeof content === 'string')
@@ -325,10 +325,10 @@ export function updateMessageContent(
  * 更新消息 reasoning 的辅助函数（仅用于 assistant 消息）
  */
 export function updateMessageReasoning(
-  message: UIMessage,
+  message: ChatMessage,
   reasoning: string,
   appendMode: boolean = true,
-): UIMessage {
+): ChatMessage {
   if (message.role !== 'assistant') {
     console.warn('Reasoning can only be updated for assistant messages')
     return message

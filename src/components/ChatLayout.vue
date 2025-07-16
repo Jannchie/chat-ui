@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatMessage, ImageContent, ImageFile, MessageContent, TextContent } from '../composables/useHelloWorld'
+import type { ImageContent, ImageFile, MessageContent, TextContent } from '../composables/useHelloWorld'
 import type { TransformOptions } from '../types/message'
 import OpenAI from 'openai'
 import { useRequestCache } from '../composables/useRequestCache'

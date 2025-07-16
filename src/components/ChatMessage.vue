@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatMessage } from '../composables/useHelloWorld'
+import type { ChatMessage } from '../types/message'
 import { messageContentToString } from '../utils/messageTransform'
 import MessageMetadata from './MessageMetadata.vue'
 

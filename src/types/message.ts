@@ -42,7 +42,7 @@ export interface ToolCallContent {
 }
 
 // UI Message - 包含完整的前端需要的信息
-export interface UIMessage {
+export interface ChatMessage {
   role: 'user' | 'assistant' | 'system' | 'error'
   content: MessageContent
   id: string
@@ -68,6 +68,6 @@ export type APIMessage = ChatCompletionMessageParam | ResponseInput
 
 // Transform 函数类型
 export type MessageTransformer<T = any> = (
-  messages: UIMessage[],
+  messages: ChatMessage[],
   options: TransformOptions
 ) => T

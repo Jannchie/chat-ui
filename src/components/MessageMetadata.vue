@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { UIMessage } from '../types/message'
+import type { ChatMessage } from '../types/message'
 
 defineProps<{
-  message: UIMessage
+  message: ChatMessage
   showDetailed?: boolean
 }>()
 
@@ -28,7 +28,7 @@ function formatDate(timestamp: number) {
   }
 }
 
-function getResponseTime(message: UIMessage) {
+function getResponseTime(message: ChatMessage) {
   if (message.metadata?.sentAt && message.metadata?.receivedAt) {
     const responseTime = message.metadata.receivedAt - message.metadata.sentAt
     return responseTime < 1000 ? `${responseTime}ms` : `${(responseTime / 1000).toFixed(1)}s`
