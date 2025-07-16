@@ -10,6 +10,7 @@ export class ResponsesApiParser {
   private textAccumulator = ''
   private sentAt: number = 0
   private responseMetadata: any = {}
+  private usageData: any = null
 
   constructor(
     private onMessageUpdate: (message: ChatMessage) => void,
@@ -21,6 +22,7 @@ export class ResponsesApiParser {
    * 解析单个 SSE 事件
    */
   parseEvent(event: any): void {
+    console.warn('ResponsesApiParser - Event received:', event.type, event) // 调试所有事件
     switch (event.type) {
       case 'response.created': {
         this.handleResponseCreated(event)
@@ -149,15 +151,20 @@ export class ResponsesApiParser {
       return
     }
 
-    // 添加接收时间到metadata，并确保模型信息保留
+    console.warn('ResponsesApiParser - handleOutputItemDone called, usageData:', this.usageData) // 调试信息
+
+    // 添加接收时间到metadata，并确保模型信息和usage信息保留
     this.currentMessage = {
       ...this.currentMessage,
       metadata: {
         ...this.currentMessage.metadata,
         receivedAt: Date.now(),
         model: this.currentMessage.metadata?.model || this.responseMetadata.model,
+        usage: this.usageData,
       },
     }
+
+    console.warn('ResponsesApiParser - Final message metadata:', this.currentMessage.metadata) // 调试信息
 
     // 消息完成
     this.onMessageComplete(this.currentMessage)
@@ -165,8 +172,36 @@ export class ResponsesApiParser {
 
   private handleResponseCompleted(event: any): void {
     // 处理使用统计
-    if (event.response?.usage && this.onUsageUpdate) {
-      this.onUsageUpdate(event.response.usage)
+    if (event.response?.usage) {
+      // 标准化 usage 数据格式，兼容不同的 API
+      this.usageData = {
+        prompt_tokens: event.response.usage.input_tokens || event.response.usage.prompt_tokens || 0,
+        completion_tokens: event.response.usage.output_tokens || event.response.usage.completion_tokens || 0,
+        total_tokens: event.response.usage.total_tokens
+          || (event.response.usage.input_tokens || event.response.usage.prompt_tokens || 0)
+          + (event.response.usage.output_tokens || event.response.usage.completion_tokens || 0),
+      }
+
+      console.warn('ResponsesApiParser - Usage data:', this.usageData) // 调试信息
+
+      // 如果当前消息存在，立即更新它的 usage 信息
+      if (this.currentMessage) {
+        this.currentMessage = {
+          ...this.currentMessage,
+          metadata: {
+            ...this.currentMessage.metadata,
+            usage: this.usageData,
+          },
+        }
+        this.onMessageUpdate(this.currentMessage)
+      }
+
+      if (this.onUsageUpdate) {
+        this.onUsageUpdate(event.response.usage)
+      }
+    }
+    else {
+      console.warn('ResponsesApiParser - No usage data in event:', event) // 调试信息
     }
   }
 
@@ -178,6 +213,7 @@ export class ResponsesApiParser {
     this.textAccumulator = ''
     this.sentAt = 0
     this.responseMetadata = {}
+    this.usageData = null
   }
 }
 

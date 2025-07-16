@@ -35,6 +35,29 @@ function getResponseTime(message: ChatMessage) {
   return null
 }
 
+function formatTokenUsage(usage: any) {
+  // 使用箭头图标区分 prompt_tokens 和 completion_tokens
+  const upArrow = '⬆'
+  const downArrow = '⬇'
+  const prompt = usage.prompt_tokens
+  const completion = usage.completion_tokens
+
+  if (prompt !== undefined && completion !== undefined) {
+    return `${upArrow} ${prompt} ${downArrow} ${completion} tokens`
+  }
+  else if (prompt !== undefined) {
+    return `${upArrow} ${prompt} tokens`
+  }
+  else if (completion !== undefined) {
+    return `${downArrow} ${completion} tokens`
+  }
+  else if (usage.total_tokens) {
+    return `${usage.total_tokens} tokens`
+  }
+
+  return 'DEBUG: EMPTY_USAGE'
+}
+
 const currentPlatform = computed(() => {
   const url = serviceUrl.value
   if (url?.includes('openai.com')) {
@@ -56,14 +79,14 @@ const currentPlatform = computed(() => {
 <template>
   <div class="flex items-center gap-2 text-xs text-neutral-4">
     <!-- 时间戳 -->
-    <span class="opacity-70">
+    <span>
       {{ formatDate(message.timestamp) }}
     </span>
 
     <!-- 助手消息的模型信息 - 显示在时间旁边 -->
     <span
       v-if="message.role === 'assistant' && message.metadata?.model"
-      class="flex items-center gap-1 text-neutral-5 opacity-60 dark:text-neutral-4"
+      class="flex items-center gap-1 text-neutral-5 dark:text-neutral-4"
     >
       <span>·</span>
       <component :is="() => getPlatformIcon(currentPlatform)" class="text-xs" />
@@ -73,9 +96,17 @@ const currentPlatform = computed(() => {
     <!-- 响应时间 -->
     <span
       v-if="message.role === 'assistant' && getResponseTime(message)"
-      class="rounded bg-green-1 px-1.5 py-0.5 text-green-6 opacity-50 dark:bg-green-9 dark:text-green-4"
+      class="rounded bg-green-1 px-1.5 py-0.5 text-green-6 dark:bg-green-9 dark:text-green-4"
     >
       {{ getResponseTime(message) }}
+    </span>
+
+    <!-- Token 使用量 -->
+    <span
+      v-if="message.role === 'assistant' && message.metadata?.usage"
+      class="rounded bg-blue-1 px-1.5 py-0.5 text-blue-6 dark:bg-blue-9 dark:text-blue-4"
+    >
+      {{ formatTokenUsage(message.metadata.usage) }}
     </span>
 
     <!-- 重试次数 -->
@@ -83,7 +114,7 @@ const currentPlatform = computed(() => {
       v-if="message.metadata?.retryCount && message.metadata.retryCount > 0"
       class="rounded bg-yellow-1 px-1.5 py-0.5 text-yellow-6 opacity-50 dark:bg-yellow-9 dark:text-yellow-4"
     >
-      重试 {{ message.metadata.retryCount }}
+      Retried {{ message.metadata.retryCount }}
     </span>
 
     <!-- 编辑标识 -->
@@ -91,7 +122,7 @@ const currentPlatform = computed(() => {
       v-if="message.metadata?.edited"
       class="rounded bg-blue-1 px-1.5 py-0.5 text-blue-6 opacity-50 dark:bg-blue-9 dark:text-blue-4"
     >
-      已编辑
+      Edited
     </span>
 
     <!-- 详细信息展开 -->
@@ -101,6 +132,9 @@ const currentPlatform = computed(() => {
       </span>
       <span v-if="message.metadata?.receivedAt">
         收到: {{ formatTime(message.metadata.receivedAt) }}
+      </span>
+      <span v-if="message.metadata?.usage">
+        Token: {{ formatTokenUsage(message.metadata.usage) }}
       </span>
       <span>
         ID: {{ message.id.slice(-8) }}

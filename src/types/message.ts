@@ -54,6 +54,11 @@ export interface ChatMessage {
     edited?: boolean // 是否被编辑过
     retryCount?: number // 重试次数
     model?: string // 使用的模型
+    usage?: {
+      prompt_tokens?: number // 输入 token 数量
+      completion_tokens?: number // 输出 token 数量
+      total_tokens?: number // 总 token 数量
+    }
   }
 }
 

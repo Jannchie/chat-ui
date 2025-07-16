@@ -333,6 +333,7 @@ async function onSubmit() {
     let streamCompleted = false
 
     if (useResponsesAPI.value) {
+      console.warn('ChatLayout - Using ResponsesAPI for platform:', platform.value)
       // 使用 responsesApiParser 处理 Responses API
       const parser = createResponsesApiParser(
         (message: ChatMessage) => {
@@ -378,6 +379,7 @@ async function onSubmit() {
       }
     }
     else {
+      console.warn('ChatLayout - Using Chat Completions API for platform:', platform.value)
       // Handle Chat Completions API format (original)
       for await (const chunk of stream) {
         const usage = chunk.usage
@@ -390,7 +392,7 @@ async function onSubmit() {
           }
           streamCompleted = true
 
-          // 更新最后一条消息的 receivedAt 时间戳 (Chat Completions API)
+          // 更新最后一条消息的 receivedAt 时间戳和 usage 信息 (Chat Completions API)
           const lastMessage = conversation.value.at(-1)
           if (lastMessage && lastMessage.role === 'assistant') {
             const updatedMessage = {
@@ -398,6 +400,7 @@ async function onSubmit() {
               metadata: {
                 ...lastMessage.metadata,
                 receivedAt: Date.now(),
+                usage,
               },
             }
             conversation.value[conversation.value.length - 1] = updatedMessage
@@ -590,8 +593,7 @@ watchEffect(() => {
       </div>
       <div class="input-section relative min-h-120px flex shrink-0 flex-col items-center justify-end gap-1 px-4">
         <div
-          v-if="currentChat?.token"
-          class="z-10 flex flex-col items-center rounded-md text-sm op50 shadow-sm"
+          class="z-10 h-20px flex flex-col items-center rounded-md text-sm op50 shadow-sm"
         >
           <!-- 性能指标 -->
           <div
@@ -610,7 +612,7 @@ watchEffect(() => {
           </div>
           <!-- 合并的输入/输出统计 -->
           <div
-            v-if="currentChat.token.inTokens > 0 && currentChat.token.outTokens > 0"
+            v-if="currentChat && currentChat.token.inTokens > 0 && currentChat.token.outTokens > 0"
             class="mr-6 flex items-center"
           >
             <span class="mr-1 font-medium">Total Input/Output:</span>
