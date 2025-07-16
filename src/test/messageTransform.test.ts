@@ -486,9 +486,12 @@ describe('messagetransform', () => {
 
       const event = {
         type: 'response.output_item.added',
+        item: { id: 'test', type: 'message' },
+        output_index: 0,
+        sequence_number: 1,
       }
 
-      parser.parseEvent(event)
+      parser.parseEvent(event as any)
 
       // Should create a new message and call onMessageUpdate
       expect(onMessageUpdate).toHaveBeenCalledTimes(1)
@@ -509,13 +512,22 @@ describe('messagetransform', () => {
       )
 
       // First create a message
-      parser.parseEvent({ type: 'response.output_item.added' })
+      parser.parseEvent({
+        type: 'response.output_item.added',
+        item: { id: 'test', type: 'message' },
+        output_index: 0,
+        sequence_number: 1,
+      } as any)
 
       // Then send delta
       parser.parseEvent({
         type: 'response.output_text.delta',
         delta: 'Hello',
-      })
+        content_index: 0,
+        item_id: 'test',
+        output_index: 0,
+        sequence_number: 2,
+      } as any)
 
       expect(onMessageUpdate).toHaveBeenCalledTimes(2)
       const updatedMessage = onMessageUpdate.mock.calls[1][0]
@@ -541,9 +553,10 @@ describe('messagetransform', () => {
             output_tokens: 20,
           },
         },
+        sequence_number: 3,
       }
 
-      parser.parseEvent(event)
+      parser.parseEvent(event as any)
 
       expect(onUsageUpdate).toHaveBeenCalledTimes(1)
       expect(onUsageUpdate).toHaveBeenCalledWith({
@@ -564,17 +577,31 @@ describe('messagetransform', () => {
       )
 
       // Create a message
-      parser.parseEvent({ type: 'response.output_item.added' })
+      parser.parseEvent({
+        type: 'response.output_item.added',
+        item: { id: 'test', type: 'message' },
+        output_index: 0,
+        sequence_number: 1,
+      } as any)
       parser.parseEvent({
         type: 'response.output_text.delta',
         delta: 'Hello',
-      })
+        content_index: 0,
+        item_id: 'test',
+        output_index: 0,
+        sequence_number: 2,
+      } as any)
 
       // Reset
       parser.reset()
 
       // Should start fresh
-      parser.parseEvent({ type: 'response.output_item.added' })
+      parser.parseEvent({
+        type: 'response.output_item.added',
+        item: { id: 'test2', type: 'message' },
+        output_index: 0,
+        sequence_number: 1,
+      } as any)
       const newMessage = onMessageUpdate.mock.calls.at(-1)![0]
       expect(newMessage.content).toBe('')
     })

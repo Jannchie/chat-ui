@@ -6,8 +6,8 @@ import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
 import { apiKey, client, model, platform, serviceUrl, useCurrentChat, useResponsesAPI } from '../shared'
 import { generateId, isMobile, setChat } from '../utils'
-import { createUIMessage, transformMessages, updateMessageContent, updateMessageReasoning } from '../utils/messageTransform'
-import { createResponsesApiParser } from '../utils/responsesApiParser'
+import { createUIMessage, transformMessages } from '../utils/messageTransform'
+import { createUnifiedStreamParser } from '../utils/streamParser'
 
 const router = useRouter()
 
@@ -332,118 +332,50 @@ async function onSubmit() {
     lastEndedAtMS.value = 0
     let streamCompleted = false
 
-    if (useResponsesAPI.value) {
-      // 使用 responsesApiParser 处理 Responses API
-      const parser = createResponsesApiParser(
-        (message: ChatMessage) => {
-          // 首次响应时设置开始时间
-          if (laststartedAtMS.value === 0) {
-            laststartedAtMS.value = Date.now()
-          }
-
-          // 查找消息在会话中的索引并更新
-          const lastIndex = conversation.value.length - 1
-          if (lastIndex >= 0) {
-            conversation.value[lastIndex] = message
-            // 触发响应式更新
-            conversation.value = [...conversation.value]
-          }
-        },
-        (message: ChatMessage) => {
-          // 消息完成时更新最后一个消息
-          const lastIndex = conversation.value.length - 1
-          if (lastIndex >= 0) {
-            conversation.value[lastIndex] = message
-            conversation.value = [...conversation.value]
-          }
-        },
-        (usage: any) => {
-          // 处理使用统计
-          lastEndedAtMS.value = Date.now()
-          lastUsage.value = {
-            prompt_tokens: usage.input_tokens || 0,
-            completion_tokens: usage.output_tokens || 0,
-            total_tokens: (usage.input_tokens || 0) + (usage.output_tokens || 0),
-          }
-          if (chat) {
-            chat.token.inTokens += usage.input_tokens || 0
-            chat.token.outTokens += usage.output_tokens || 0
-          }
-          streamCompleted = true
-        },
-      )
-
-      for await (const chunk of stream) {
-        parser.parseEvent(chunk)
-      }
-    }
-    else {
-      // Handle Chat Completions API format (original)
-      for await (const chunk of stream) {
-        const usage = chunk.usage
-        if (usage) {
-          lastEndedAtMS.value = Date.now()
-          lastUsage.value = usage
-          if (chat) {
-            chat.token.inTokens += usage.prompt_tokens
-            chat.token.outTokens += usage.completion_tokens
-          }
-          streamCompleted = true
-
-          // 更新最后一条消息的 receivedAt 时间戳和 usage 信息 (Chat Completions API)
-          const lastMessage = conversation.value.at(-1)
-          if (lastMessage && lastMessage.role === 'assistant') {
-            const updatedMessage = {
-              ...lastMessage,
-              metadata: {
-                ...lastMessage.metadata,
-                receivedAt: Date.now(),
-                usage,
-              },
-            }
-            conversation.value[conversation.value.length - 1] = updatedMessage
-          }
-        }
-
-        const lastMessage = conversation.value.at(-1)
-        if (chunk.choices.length === 0) {
-          continue
-        }
-
-        const delta = chunk.choices[0].delta as any
-        if (!delta) {
-          continue
-        }
-
+    // 使用统一的流式处理器
+    const parser = createUnifiedStreamParser({
+      onMessageUpdate: (message: ChatMessage) => {
+        // 首次响应时设置开始时间
         if (laststartedAtMS.value === 0) {
           laststartedAtMS.value = Date.now()
         }
-        if (!lastMessage) {
-          return
-        }
 
-        let messageUpdated = false
-
-        if (delta.content) {
-          // 使用新的消息更新函数更新内容
-          const updatedMessage = updateMessageContent(lastMessage, delta.content, { appendMode: true })
-          conversation.value[conversation.value.length - 1] = updatedMessage
-          messageUpdated = true
-        }
-
-        if (delta.reasoning && lastMessage.role === 'assistant') {
-          // 使用新的消息更新函数更新 reasoning
-          const currentMessage = conversation.value.at(-1)!
-          const updatedMessage = updateMessageReasoning(currentMessage, delta.reasoning, true)
-          conversation.value[conversation.value.length - 1] = updatedMessage
-          messageUpdated = true
-        }
-
-        // 如果消息有更新，触发响应式更新
-        if (messageUpdated) {
+        // 查找消息在会话中的索引并更新
+        const lastIndex = conversation.value.length - 1
+        if (lastIndex >= 0) {
+          conversation.value[lastIndex] = message
+          // 触发响应式更新
           conversation.value = [...conversation.value]
         }
-      }
+      },
+      onMessageComplete: (message: ChatMessage) => {
+        // 消息完成时更新最后一个消息
+        const lastIndex = conversation.value.length - 1
+        if (lastIndex >= 0) {
+          conversation.value[lastIndex] = message
+          conversation.value = [...conversation.value]
+        }
+      },
+      onUsageUpdate: (usage: any) => {
+        // 处理使用统计
+        lastEndedAtMS.value = Date.now()
+        lastUsage.value = {
+          prompt_tokens: usage.input_tokens || usage.prompt_tokens || 0,
+          completion_tokens: usage.output_tokens || usage.completion_tokens || 0,
+          total_tokens: usage.total_tokens
+            || (usage.input_tokens || usage.prompt_tokens || 0)
+            + (usage.output_tokens || usage.completion_tokens || 0),
+        }
+        if (chat) {
+          chat.token.inTokens += usage.input_tokens || usage.prompt_tokens || 0
+          chat.token.outTokens += usage.output_tokens || usage.completion_tokens || 0
+        }
+        streamCompleted = true
+      },
+    })
+
+    for await (const chunk of stream) {
+      parser.parseEvent(chunk)
     }
 
     // Cache successful request
