@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
-import { BtnGroup, ScrollArea } from '@roku-ui/vue'
+import { BtnGroup, ScrollArea, Select } from '@roku-ui/vue'
 import StreamContent from '../components/StreamContent.vue'
 import WordExplainPaper from '../components/WordExplainPaper.vue'
 import { useDexieStorage } from '../composables/useDexieStorage'
@@ -41,8 +41,8 @@ const SUPPORTED_LANGUAGES = [
 ]
 
 const text = ref('')
-const sourceLang = useDexieStorage('translate.sourceLang', 'auto')
-const targetLang = useDexieStorage('translate.targetLang', 'zh')
+const sourceLang = useDexieStorage('translate.sourceLang', { id: 'auto', name: 'Auto Detect', flag: '🔍' })
+const targetLang = useDexieStorage('translate.targetLang', { id: 'zh', name: '中文', flag: '🇨🇳' })
 const tone = useDexieStorage<'neutral' | 'formal' | 'informal' | 'professional' | 'friendly'>('translate.tone', 'neutral')
 const showWordExplain = useDexieStorage('translate.showWordExplain', true)
 const translationHistory = useDexieStorage<Array<{ id: string, source: string, target: string, sourceLang: string, targetLang: string, timestamp: number }>>('translate.history', [])
@@ -73,7 +73,7 @@ const tonePrompt = computed(() => {
 })
 
 const targetLanguage = computed(() => {
-  return SUPPORTED_LANGUAGES.find(lang => lang.code === targetLang.value) || SUPPORTED_LANGUAGES[1]
+  return SUPPORTED_LANGUAGES.find(lang => lang.code === targetLang.value.id) || SUPPORTED_LANGUAGES[1]
 })
 
 const conversation = computed<ChatMessage[]>(() => [{
@@ -96,7 +96,7 @@ let requestId = 0
 
 // Language swap function
 function swapLanguages() {
-  if (sourceLang.value === 'auto') {
+  if (sourceLang.value.id === 'auto') {
     return
   }
   const temp = sourceLang.value
@@ -127,8 +127,8 @@ function saveToHistory(source: string, target: string) {
     id: Date.now().toString(),
     source,
     target,
-    sourceLang: sourceLang.value,
-    targetLang: targetLang.value,
+    sourceLang: sourceLang.value.id,
+    targetLang: targetLang.value.id,
     timestamp: Date.now(),
   }
   translationHistory.value.unshift(historyItem)
@@ -292,7 +292,7 @@ watchEffect(async () => {
 
           <!-- Main Translation Interface -->
           <div class="animate-fade-delay">
-            <div class="overflow-hidden border border-neutral-700/50 rounded-2xl bg-neutral-800/40 backdrop-blur-sm">
+            <div class="border border-neutral-700/50 rounded-2xl bg-neutral-800/40 backdrop-blur-sm">
               <div class="grid grid-cols-1 min-h-600px lg:grid-cols-2">
                 <!-- Input Panel -->
                 <div class="border-b border-neutral-700/50 p-8 lg:border-b-0 lg:border-r">
@@ -303,20 +303,25 @@ watchEffect(async () => {
                         <i class="i-tabler-arrow-right h-4 w-4" />
                         From
                       </div>
-                      <select
+                      <Select
                         v-model="sourceLang"
-                        class="bg-surface-base/80 focus:ring-primary-500/20 focus:border-primary-500 h-10 border border-neutral-700/50 rounded-xl px-3 py-2 text-sm outline-none transition-all hover:border-neutral-600 focus:ring-2"
+                        :options="[{ id: 'auto', name: 'Auto Detect', flag: '🔍' }, ...SUPPORTED_LANGUAGES.map(lang => ({ id: lang.code, name: lang.name, flag: lang.flag }))]"
+                        size="lg"
+                        color="primary"
+                        placeholder="Select source language"
+                        searchable
+                        class="h-10 w-200px"
                       >
-                        <option value="auto">
-                          🔍 Auto Detect
-                        </option>
-                        <option v-for="lang in SUPPORTED_LANGUAGES" :key="lang.code" :value="lang.code">
-                          {{ lang.flag }} {{ lang.name }}
-                        </option>
-                      </select>
+                        <template #item="{ data }">
+                          <div class="flex items-center gap-2">
+                            <span>{{ data.flag }}</span>
+                            <span>{{ data.name }}</span>
+                          </div>
+                        </template>
+                      </Select>
 
                       <button
-                        :disabled="sourceLang === 'auto'"
+                        :disabled="sourceLang.id === 'auto'"
                         class="rounded-full bg-neutral-800/60 p-2 transition-all active:scale-95 hover:scale-110 disabled:cursor-not-allowed hover:bg-neutral-700 disabled:opacity-50"
                         @click="swapLanguages"
                       >
@@ -359,14 +364,22 @@ watchEffect(async () => {
                         To
                         <i class="i-tabler-arrow-right h-4 w-4" />
                       </div>
-                      <select
+                      <Select
                         v-model="targetLang"
-                        class="bg-surface-base/80 focus:ring-primary-500/20 focus:border-primary-500 h-10 border border-neutral-700/50 rounded-xl px-3 py-2 text-sm outline-none transition-all hover:border-neutral-600 focus:ring-2"
+                        :options="SUPPORTED_LANGUAGES.map(lang => ({ id: lang.code, name: lang.name, flag: lang.flag }))"
+                        size="lg"
+                        color="primary"
+                        placeholder="Select target language"
+                        searchable
+                        class="h-10 w-200px"
                       >
-                        <option v-for="lang in SUPPORTED_LANGUAGES" :key="lang.code" :value="lang.code">
-                          {{ lang.flag }} {{ lang.name }}
-                        </option>
-                      </select>
+                        <template #item="{ data }">
+                          <div class="flex items-center gap-2">
+                            <span>{{ data.flag }}</span>
+                            <span>{{ data.name }}</span>
+                          </div>
+                        </template>
+                      </Select>
                     </div>
                     <div class="flex items-center gap-2">
                       <div v-if="loading" class="text-primary-400 flex items-center gap-1 text-xs">
