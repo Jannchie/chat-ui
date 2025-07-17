@@ -9,7 +9,6 @@ import type {
   ResponseStreamEvent,
   ResponseTextDeltaEvent,
   ResponseTextDoneEvent,
-  ResponseUsage,
   StreamCallbacks,
   StreamParser,
   StreamState,
@@ -23,6 +22,8 @@ export class UnifiedStreamParser implements StreamParser {
     sentAt: 0,
     model: undefined,
     usage: undefined,
+    firstTokenAt: undefined,
+    lastTokenAt: undefined,
   }
 
   constructor(private callbacks: StreamCallbacks) {}
@@ -43,6 +44,8 @@ export class UnifiedStreamParser implements StreamParser {
       sentAt: 0,
       model: undefined,
       usage: undefined,
+      firstTokenAt: undefined,
+      lastTokenAt: undefined,
     }
   }
 
@@ -98,18 +101,21 @@ export class UnifiedStreamParser implements StreamParser {
 
     const delta = chunk.choices[0]?.delta
     if (delta?.content) {
+      this.recordTokenTime()
       this.state.textContent += delta.content
       this.updateCurrentMessage()
-    }
-
-    if (chunk.choices[0]?.finish_reason) {
-      this.finalizeMessage()
     }
 
     // 处理 usage 信息
     if (chunk.usage) {
       this.state.usage = this.normalizeUsage(chunk.usage)
-      this.callbacks.onUsageUpdate?.(this.state.usage)
+      if (this.state.usage) {
+        this.callbacks.onUsageUpdate?.(this.state.usage)
+      }
+    }
+
+    if (chunk.choices[0]?.finish_reason) {
+      this.finalizeMessage()
     }
   }
 
@@ -133,6 +139,7 @@ export class UnifiedStreamParser implements StreamParser {
 
   private handleTextDelta(event: ResponseTextDeltaEvent): void {
     if (event.delta) {
+      this.recordTokenTime()
       this.state.textContent += event.delta
       this.updateCurrentMessage()
     }
@@ -161,19 +168,34 @@ export class UnifiedStreamParser implements StreamParser {
     if (event.response?.usage) {
       this.state.usage = this.normalizeUsage(event.response.usage)
 
-      // 更新当前消息的 usage 信息
+      // 计算 token 速度
+      let tokenSpeed: number | undefined
+      if (this.state.usage && this.state.firstTokenAt && this.state.lastTokenAt) {
+        const outputTokens = this.state.usage.output_tokens
+        if (outputTokens && outputTokens > 0) {
+          const duration = (this.state.lastTokenAt - this.state.firstTokenAt) / 1000 // 转换为秒
+          if (duration > 0) {
+            tokenSpeed = outputTokens / duration
+          }
+        }
+      }
+
+      // 更新当前消息的 usage 信息和 token 速度
       if (this.state.currentMessage) {
         this.state.currentMessage = {
           ...this.state.currentMessage,
           metadata: {
             ...this.state.currentMessage.metadata,
             usage: this.state.usage,
+            tokenSpeed,
           },
         }
         this.callbacks.onMessageUpdate(this.state.currentMessage)
       }
 
-      this.callbacks.onUsageUpdate?.(this.state.usage)
+      if (this.state.usage) {
+        this.callbacks.onUsageUpdate?.(this.state.usage)
+      }
     }
   }
 
@@ -201,9 +223,29 @@ export class UnifiedStreamParser implements StreamParser {
     this.callbacks.onMessageUpdate(this.state.currentMessage)
   }
 
+  private recordTokenTime(): void {
+    const now = Date.now()
+    if (!this.state.firstTokenAt) {
+      this.state.firstTokenAt = now
+    }
+    this.state.lastTokenAt = now
+  }
+
   private finalizeMessage(): void {
     if (!this.state.currentMessage) {
       return
+    }
+
+    // 计算 token 速度
+    let tokenSpeed: number | undefined
+    if (this.state.usage && this.state.firstTokenAt && this.state.lastTokenAt) {
+      const outputTokens = this.state.usage.output_tokens
+      if (outputTokens && outputTokens > 0) {
+        const duration = (this.state.lastTokenAt - this.state.firstTokenAt) / 1000 // 转换为秒
+        if (duration > 0) {
+          tokenSpeed = outputTokens / duration
+        }
+      }
     }
 
     // 添加接收时间和最终的 usage 信息
@@ -213,21 +255,24 @@ export class UnifiedStreamParser implements StreamParser {
         ...this.state.currentMessage.metadata,
         receivedAt: Date.now(),
         usage: this.state.usage,
+        tokenSpeed,
       },
     }
 
     this.callbacks.onMessageComplete(this.state.currentMessage)
   }
 
-  private normalizeUsage(usage: any): ResponseUsage {
-    // 标准化不同 API 的 usage 格式
+  private normalizeUsage(usage: any): any {
+    // 标准化不同 API 的 usage 格式，统一转换成 input_tokens 和 output_tokens 形式
+    const inputTokens = usage.input_tokens || usage.prompt_tokens || 0
+    const outputTokens = usage.output_tokens || usage.completion_tokens || 0
+    const totalTokens = usage.total_tokens || inputTokens + outputTokens
+
     return {
-      input_tokens: usage.input_tokens || usage.prompt_tokens || 0,
-      output_tokens: usage.output_tokens || usage.completion_tokens || 0,
-      total_tokens: usage.total_tokens
-        || (usage.input_tokens || usage.prompt_tokens || 0)
-        + (usage.output_tokens || usage.completion_tokens || 0),
-    } as ResponseUsage
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      total_tokens: totalTokens,
+    }
   }
 }
 

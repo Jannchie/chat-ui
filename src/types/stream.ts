@@ -35,6 +35,8 @@ export interface StreamState {
   sentAt: number
   model?: string
   usage?: ResponseUsage
+  firstTokenAt?: number
+  lastTokenAt?: number
 }
 
 export type { ChatCompletionChunk } from 'openai/resources/chat/completions'

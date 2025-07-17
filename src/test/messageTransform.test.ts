@@ -11,7 +11,7 @@ import {
   updateMessageContent,
   updateMessageReasoning,
 } from '../utils/messageTransform'
-import { createResponsesApiParser } from '../utils/responsesApiParser'
+import { createUnifiedStreamParser } from '../utils/streamParser'
 
 describe('messagetransform', () => {
   describe('createuimessage', () => {
@@ -456,17 +456,17 @@ describe('messagetransform', () => {
     })
   })
 
-  describe('responsesapiparser', () => {
+  describe('unifiedstreamparser', () => {
     it('should create parser with callbacks', () => {
       const onMessageUpdate = vi.fn()
       const onMessageComplete = vi.fn()
       const onUsageUpdate = vi.fn()
 
-      const parser = createResponsesApiParser(
+      const parser = createUnifiedStreamParser({
         onMessageUpdate,
         onMessageComplete,
         onUsageUpdate,
-      )
+      })
 
       expect(parser).toBeDefined()
       expect(typeof parser.parseEvent).toBe('function')
@@ -478,11 +478,11 @@ describe('messagetransform', () => {
       const onMessageComplete = vi.fn()
       const onUsageUpdate = vi.fn()
 
-      const parser = createResponsesApiParser(
+      const parser = createUnifiedStreamParser({
         onMessageUpdate,
         onMessageComplete,
         onUsageUpdate,
-      )
+      })
 
       const event = {
         type: 'response.output_item.added',
@@ -505,11 +505,11 @@ describe('messagetransform', () => {
       const onMessageComplete = vi.fn()
       const onUsageUpdate = vi.fn()
 
-      const parser = createResponsesApiParser(
+      const parser = createUnifiedStreamParser({
         onMessageUpdate,
         onMessageComplete,
         onUsageUpdate,
-      )
+      })
 
       // First create a message
       parser.parseEvent({
@@ -539,11 +539,11 @@ describe('messagetransform', () => {
       const onMessageComplete = vi.fn()
       const onUsageUpdate = vi.fn()
 
-      const parser = createResponsesApiParser(
+      const parser = createUnifiedStreamParser({
         onMessageUpdate,
         onMessageComplete,
         onUsageUpdate,
-      )
+      })
 
       const event = {
         type: 'response.completed',
@@ -560,8 +560,9 @@ describe('messagetransform', () => {
 
       expect(onUsageUpdate).toHaveBeenCalledTimes(1)
       expect(onUsageUpdate).toHaveBeenCalledWith({
-        input_tokens: 10,
-        output_tokens: 20,
+        prompt_tokens: 10,
+        completion_tokens: 20,
+        total_tokens: 30,
       })
     })
 
@@ -570,11 +571,11 @@ describe('messagetransform', () => {
       const onMessageComplete = vi.fn()
       const onUsageUpdate = vi.fn()
 
-      const parser = createResponsesApiParser(
+      const parser = createUnifiedStreamParser({
         onMessageUpdate,
         onMessageComplete,
         onUsageUpdate,
-      )
+      })
 
       // Create a message
       parser.parseEvent({

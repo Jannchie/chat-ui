@@ -90,4 +90,9 @@ export default defineConfig({
     ],
     exclude: ['shiki'],
   },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    globals: true,
+  },
 })
