@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
+import { vAutoAnimate } from '@formkit/auto-animate'
 import { messageContentToString } from '../utils/messageTransform'
 import MessageMetadata from './MessageMetadata.vue'
 
@@ -8,6 +9,8 @@ const props = defineProps<{
   loading: boolean
 }>()
 const message = computed(() => props.message)
+
+// 为底部 metadata 容器添加自动动画指令
 
 // For user messages, convert to string for UserChatMessage component
 const contentAsString = computed(() => messageContentToString(message.value.content))
@@ -50,7 +53,7 @@ const assistantContent = computed(() => message.value.content)
       </div>
       <!-- 移动端元数据 - 移到消息内容上方 -->
       <div class="mb-3">
-        <MessageMetadata :message="message" />
+        <MessageMetadata :message="message" position="top" />
       </div>
       <div class="w-full">
         <AssistantMessage
@@ -64,6 +67,10 @@ const assistantContent = computed(() => message.value.content)
           v-else
           :content="message.content"
         />
+      </div>
+      <!-- 移动端底部元数据 - 显示执行完毕后的性能指标 -->
+      <div v-auto-animate class="mt-3">
+        <MessageMetadata v-if="props.message.role === 'assistant' && !loading" :message="message" position="bottom" />
       </div>
     </div>
     <!-- 桌面端保持原有的左右结构 -->
@@ -89,7 +96,7 @@ const assistantContent = computed(() => message.value.content)
       <div class="flex-grow overflow-hidden">
         <!-- 桌面端元数据 - 移到消息内容上方 -->
         <div class="mb-3">
-          <MessageMetadata :message="message" />
+          <MessageMetadata :message="message" position="top" />
         </div>
 
         <AssistantMessage
@@ -107,6 +114,11 @@ const assistantContent = computed(() => message.value.content)
           v-else-if="message.role === 'error'"
           :content="contentAsString"
         />
+
+        <!-- 桌面端底部元数据 - 显示执行完毕后的性能指标 -->
+        <div v-auto-animate class="mt-3">
+          <MessageMetadata v-if="message.role === 'assistant' && !loading" :message="message" position="bottom" />
+        </div>
       </div>
     </div>
   </div>

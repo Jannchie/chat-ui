@@ -49,11 +49,14 @@ export interface ChatMessage {
   timestamp: number // 消息的时间戳
   reasoning?: string // 仅用于 assistant 消息
   metadata?: {
+    // 执行前/执行中的 metadata
     sentAt?: number // 用户发送消息的时间
-    receivedAt?: number // 收到 AI 响应的时间
     edited?: boolean // 是否被编辑过
-    retryCount?: number // 重试次数
     model?: string // 使用的模型
+    retryCount?: number // 重试次数
+
+    // 执行完毕后的 metadata
+    receivedAt?: number // 收到 AI 响应的时间
     tokenSpeed?: number // tokens per second
     usage?: {
       input_tokens?: number // 输入 token 数量

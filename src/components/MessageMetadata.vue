@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
+import { vAutoAnimate } from '@formkit/auto-animate'
 import { serviceUrl } from '../shared'
 import { getPlatformIcon } from '../utils'
 
 defineProps<{
   message: ChatMessage
   showDetailed?: boolean
+  position?: 'top' | 'bottom' // 新增位置参数
 }>()
+
+// 为底部 metadata 容器添加自动动画指令
 
 function formatTime(timestamp: number) {
   return new Intl.DateTimeFormat('en-UK', {
@@ -78,9 +82,9 @@ const currentPlatform = computed(() => {
 
 <template>
   <div class="text-xs text-neutral-4">
-    <!-- 大屏幕下为单行，小屏幕下为多行 -->
-    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-      <!-- 第一行：基本信息（时间和模型） -->
+    <!-- 顶部 metadata：执行前/执行中的信息 -->
+    <div v-if="!position || position === 'top'" class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+      <!-- 基本信息（时间和模型） -->
       <div class="flex items-center gap-2">
         <!-- 时间戳 -->
         <span>
@@ -105,8 +109,10 @@ const currentPlatform = computed(() => {
           Edited
         </span>
       </div>
+    </div>
 
-      <!-- 第二行：性能指标 -->
+    <!-- 底部 metadata：执行完毕后的性能指标 -->
+    <div v-if="position === 'bottom'" v-auto-animate class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
       <div
         v-if="message.role === 'assistant' && (getResponseTime(message) || message.metadata?.usage || message.metadata?.tokenSpeed || (message.metadata?.retryCount && message.metadata.retryCount > 0))"
         class="flex items-center gap-2"
