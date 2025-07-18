@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
 import { vAutoAnimate } from '@formkit/auto-animate'
+import { Tag } from '@roku-ui/vue'
 import { serviceUrl } from '../shared'
 import { getPlatformIcon } from '../utils'
 
@@ -9,8 +10,6 @@ defineProps<{
   showDetailed?: boolean
   position?: 'top' | 'bottom' // 新增位置参数
 }>()
-
-// 为底部 metadata 容器添加自动动画指令
 
 function formatTime(timestamp: number) {
   return new Intl.DateTimeFormat('en-UK', {
@@ -29,14 +28,6 @@ function formatDate(timestamp: number) {
     minute: '2-digit',
     hour12: false,
   }).format(new Date(timestamp))
-}
-
-function getResponseTime(message: ChatMessage) {
-  if (message.metadata?.sentAt && message.metadata?.receivedAt) {
-    const responseTime = message.metadata.receivedAt - message.metadata.sentAt
-    return responseTime < 1000 ? `${responseTime}ms` : `${(responseTime / 1000).toFixed(1)}s`
-  }
-  return null
 }
 
 function formatTokenUsage(usage: any) {
@@ -101,70 +92,78 @@ const currentPlatform = computed(() => {
           <span>{{ message.metadata.model }}</span>
         </span>
 
+        <!-- 动态时间显示 (消息进行中或已完成) -->
+        <MessageTimer :message="message" mode="compact" />
+
         <!-- 编辑标识 -->
-        <span
+        <Tag
           v-if="message.metadata?.edited"
-          class="rounded bg-blue-1 px-1.5 py-0.5 text-blue-6 opacity-50 dark:bg-blue-9 dark:text-blue-4"
+          size="sm"
+          variant="light"
+          color="#f59e0b"
+          style="opacity: 0.5;"
         >
           Edited
-        </span>
+        </Tag>
       </div>
     </div>
 
     <!-- 底部 metadata：执行完毕后的性能指标 -->
     <div v-if="position === 'bottom'" v-auto-animate class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
       <div
-        v-if="message.role === 'assistant' && (getResponseTime(message) || message.metadata?.usage || message.metadata?.tokenSpeed || (message.metadata?.retryCount && message.metadata.retryCount > 0))"
+        v-if="message.role === 'assistant' && (message.metadata?.receivedAt || message.metadata?.usage || message.metadata?.tokenSpeed || (message.metadata?.retryCount && message.metadata.retryCount > 0))"
         class="flex items-center gap-2"
       >
-        <!-- 响应时间 -->
-        <span
-          v-if="getResponseTime(message)"
-          class="rounded bg-green-1 px-1.5 py-0.5 text-green-6 dark:bg-green-9 dark:text-green-4"
-        >
-          {{ getResponseTime(message) }}
-        </span>
+        <!-- 响应时间 (消息已完成) -->
+        <MessageTimer :message="message" mode="detailed" />
 
         <!-- Token 使用量 -->
-        <span
+        <Tag
           v-if="message.metadata?.usage"
-          class="rounded bg-blue-1 px-1.5 py-0.5 text-blue-6 dark:bg-blue-9 dark:text-blue-4"
+          size="sm"
+          variant="light"
+          color="#3d79d3"
         >
           {{ formatTokenUsage(message.metadata.usage) }}
-        </span>
+        </Tag>
 
         <!-- Token 速度 -->
-        <span
+        <Tag
           v-if="message.metadata?.tokenSpeed"
-          class="rounded bg-purple-1 px-1.5 py-0.5 text-purple-6 dark:bg-purple-9 dark:text-purple-4"
+          size="sm"
+          variant="light"
+          color="#ce9d41"
         >
           {{ message.metadata.tokenSpeed.toFixed(1) }} t/s
-        </span>
+        </Tag>
 
         <!-- 重试次数 -->
-        <span
+        <Tag
           v-if="message.metadata?.retryCount && message.metadata.retryCount > 0"
-          class="rounded bg-yellow-1 px-1.5 py-0.5 text-yellow-6 opacity-50 dark:bg-yellow-9 dark:text-yellow-4"
+          size="sm"
+          variant="light"
+          color="yellow"
+          style="opacity: 0.5;"
         >
           Retried {{ message.metadata.retryCount }}
-        </span>
+        </Tag>
       </div>
     </div>
 
     <!-- 详细信息展开 -->
     <div v-if="showDetailed" class="mt-1 flex items-center gap-2 opacity-50">
-      <span v-if="message.metadata?.sentAt">
+      <Tag v-if="message.metadata?.sentAt" size="sm" variant="light" color="gray">
         发送: {{ formatTime(message.metadata.sentAt) }}
-      </span>
-      <span v-if="message.metadata?.receivedAt">
+      </Tag>
+      <Tag v-if="message.metadata?.receivedAt" size="sm" variant="light" color="gray">
         收到: {{ formatTime(message.metadata.receivedAt) }}
-      </span>
-      <span v-if="message.metadata?.usage">
+      </Tag>
+      <Tag v-if="message.metadata?.usage" size="sm" variant="light" color="blue">
         Token: {{ formatTokenUsage(message.metadata.usage) }}
-      </span>
-      <span>
+      </Tag>
+      <Tag size="sm" variant="light" color="gray">
         ID: {{ message.id.slice(-8) }}
-      </span>
+      </Tag>
     </div>
   </div>
 </template>

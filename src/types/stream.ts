@@ -12,6 +12,7 @@ export interface StreamCallbacks {
 export interface StreamParser {
   parseEvent: (event: ResponseStreamEvent | ChatCompletionChunk) => void
   reset: () => void
+  setSentTime: (sentAt: number) => void
 }
 
 export type StreamEventType

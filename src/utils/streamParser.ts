@@ -28,6 +28,10 @@ export class UnifiedStreamParser implements StreamParser {
 
   constructor(private callbacks: StreamCallbacks) {}
 
+  setSentTime(sentAt: number): void {
+    this.state.sentAt = sentAt
+  }
+
   parseEvent(event: ResponseStreamEvent | ChatCompletionChunk): void {
     if (this.isResponseStreamEvent(event)) {
       this.handleResponseEvent(event)
@@ -186,6 +190,7 @@ export class UnifiedStreamParser implements StreamParser {
           ...this.state.currentMessage,
           metadata: {
             ...this.state.currentMessage.metadata,
+            firstTokenAt: this.state.firstTokenAt,
             usage: this.state.usage,
             tokenSpeed,
           },
@@ -200,7 +205,10 @@ export class UnifiedStreamParser implements StreamParser {
   }
 
   private initializeMessage(model?: string): void {
-    this.state.sentAt = Date.now()
+    // 如果没有预设的 sentAt 时间，使用当前时间
+    if (this.state.sentAt === 0) {
+      this.state.sentAt = Date.now()
+    }
     this.state.currentMessage = createUIMessage('assistant', '', {
       metadata: {
         sentAt: this.state.sentAt,
@@ -227,6 +235,16 @@ export class UnifiedStreamParser implements StreamParser {
     const now = Date.now()
     if (!this.state.firstTokenAt) {
       this.state.firstTokenAt = now
+      // 记录第一个 token 时间到消息 metadata 中
+      if (this.state.currentMessage) {
+        this.state.currentMessage = {
+          ...this.state.currentMessage,
+          metadata: {
+            ...this.state.currentMessage.metadata,
+            firstTokenAt: now,
+          },
+        }
+      }
     }
     this.state.lastTokenAt = now
   }
@@ -253,6 +271,7 @@ export class UnifiedStreamParser implements StreamParser {
       ...this.state.currentMessage,
       metadata: {
         ...this.state.currentMessage.metadata,
+        firstTokenAt: this.state.firstTokenAt,
         receivedAt: Date.now(),
         usage: this.state.usage,
         tokenSpeed,

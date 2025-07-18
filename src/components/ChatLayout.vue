@@ -292,6 +292,10 @@ async function onSubmit() {
             lastMessage.content = (error?.status ?? 0) >= 500 ? 'Server Error.' : 'Error.'
           }
         }
+        // 设置 receivedAt 以停止计时器
+        if (lastMessage.metadata) {
+          lastMessage.metadata.receivedAt = Date.now()
+        }
         return null
       }
       else {
@@ -374,6 +378,9 @@ async function onSubmit() {
       },
     })
 
+    // 设置正确的请求发送时间
+    parser.setSentTime(assistantMessage.metadata!.sentAt!)
+
     for await (const chunk of stream) {
       parser.parseEvent(chunk)
     }
@@ -390,6 +397,16 @@ async function onSubmit() {
   }
   finally {
     streaming.value = false
+
+    // 确保最后一条消息有正确的 receivedAt 字段以停止计时器
+    const lastIndex = conversation.value.length - 1
+    if (lastIndex >= 0) {
+      const lastMessage = conversation.value[lastIndex]
+      if (lastMessage.role === 'assistant' && lastMessage.metadata && !lastMessage.metadata.receivedAt) {
+        lastMessage.metadata.receivedAt = Date.now()
+        conversation.value = [...conversation.value]
+      }
+    }
 
     if (chat) {
       chat.conversation = conversation.value

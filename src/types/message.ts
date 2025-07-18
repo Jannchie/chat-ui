@@ -56,7 +56,8 @@ export interface ChatMessage {
     retryCount?: number // 重试次数
 
     // 执行完毕后的 metadata
-    receivedAt?: number // 收到 AI 响应的时间
+    firstTokenAt?: number // 收到第一个 token 的时间
+    receivedAt?: number // 收到 AI 响应完毕的时间
     tokenSpeed?: number // tokens per second
     usage?: {
       input_tokens?: number // 输入 token 数量
