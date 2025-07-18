@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
-import { Tag, Tooltip } from '@roku-ui/vue'
+import { Tag } from '@roku-ui/vue'
 
 const props = defineProps<{
   message: ChatMessage
@@ -150,13 +150,13 @@ function getTimings(message: ChatMessage) {
 
     <!-- 详细模式：显示延迟时间和输出时间 -->
     <template v-else-if="mode === 'detailed' && getTimings(message)?.isCompleted">
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-2">
         <!-- 延迟时间 -->
         <Tag
           v-if="getTimings(message)?.latency"
           size="sm"
           variant="light"
-          color="#b23ce0"
+          color="#da9732"
           :title="`latency time: ${getTimings(message)?.latency}`"
         >
           <template #leftSection>
@@ -169,8 +169,8 @@ function getTimings(message: ChatMessage) {
           v-if="getTimings(message)?.output"
           size="sm"
           variant="light"
-          color="#15a0b3"
-          title="output time: {{ getTimings(message)?.output }}"
+          color="#15b39e"
+          :title="`output time: ${getTimings(message)?.output}`"
         >
           <template #leftSection>
             <i class="i-tabler-bolt h-3 w-3" />

@@ -2,7 +2,8 @@
 import type { ChatMessage } from '../types/message'
 import { vAutoAnimate } from '@formkit/auto-animate'
 import { messageContentToString } from '../utils/messageTransform'
-import MessageMetadata from './MessageMetadata.vue'
+import MessageMetadataBottom from './MessageMetadataBottom.vue'
+import MessageMetadataTop from './MessageMetadataTop.vue'
 
 const props = defineProps<{
   message: ChatMessage
@@ -53,7 +54,7 @@ const assistantContent = computed(() => message.value.content)
       </div>
       <!-- 移动端元数据 - 移到消息内容上方 -->
       <div class="mb-3">
-        <MessageMetadata :message="message" position="top" />
+        <MessageMetadataTop :message="message" />
       </div>
       <div class="w-full">
         <AssistantMessage
@@ -70,7 +71,7 @@ const assistantContent = computed(() => message.value.content)
       </div>
       <!-- 移动端底部元数据 - 显示执行完毕后的性能指标 -->
       <div v-auto-animate class="mt-3">
-        <MessageMetadata v-if="props.message.role === 'assistant' && !loading" :message="message" position="bottom" />
+        <MessageMetadataBottom v-if="props.message.role === 'assistant' && !loading" :message="message" />
       </div>
     </div>
     <!-- 桌面端保持原有的左右结构 -->
@@ -96,7 +97,7 @@ const assistantContent = computed(() => message.value.content)
       <div class="flex-grow overflow-hidden">
         <!-- 桌面端元数据 - 移到消息内容上方 -->
         <div class="mb-3">
-          <MessageMetadata :message="message" position="top" />
+          <MessageMetadataTop :message="message" />
         </div>
 
         <AssistantMessage
@@ -117,7 +118,7 @@ const assistantContent = computed(() => message.value.content)
 
         <!-- 桌面端底部元数据 - 显示执行完毕后的性能指标 -->
         <div v-auto-animate class="mt-3">
-          <MessageMetadata v-if="message.role === 'assistant' && !loading" :message="message" position="bottom" />
+          <MessageMetadataBottom v-if="message.role === 'assistant' && !loading" :message="message" />
         </div>
       </div>
     </div>

@@ -24,6 +24,8 @@ declare module 'vue' {
     ImageUpload: typeof import('./components/ImageUpload.vue')['default']
     MainContainer: typeof import('./components/MainContainer.vue')['default']
     MessageMetadata: typeof import('./components/MessageMetadata.vue')['default']
+    MessageMetadataBottom: typeof import('./components/MessageMetadataBottom.vue')['default']
+    MessageMetadataTop: typeof import('./components/MessageMetadataTop.vue')['default']
     MessageTimer: typeof import('./components/MessageTimer.vue')['default']
     RecentChatWrapper: typeof import('./components/RecentChatWrapper.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
