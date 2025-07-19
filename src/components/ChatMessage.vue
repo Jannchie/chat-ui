@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
-import { vAutoAnimate } from '@formkit/auto-animate'
 import { messageContentToString } from '../utils/messageTransform'
 import MessageMetadataBottom from './MessageMetadataBottom.vue'
 import MessageMetadataTop from './MessageMetadataTop.vue'
@@ -70,8 +69,10 @@ const assistantContent = computed(() => message.value.content)
         />
       </div>
       <!-- 移动端底部元数据 - 显示执行完毕后的性能指标 -->
-      <div v-auto-animate class="mt-3">
-        <MessageMetadataBottom v-if="props.message.role === 'assistant' && !loading" :message="message" />
+      <div class="mt-3 min-h-6">
+        <Transition name="fade">
+          <MessageMetadataBottom v-if="props.message.role === 'assistant' && !loading" :message="message" />
+        </Transition>
       </div>
     </div>
     <!-- 桌面端保持原有的左右结构 -->
@@ -117,10 +118,22 @@ const assistantContent = computed(() => message.value.content)
         />
 
         <!-- 桌面端底部元数据 - 显示执行完毕后的性能指标 -->
-        <div v-auto-animate class="mt-3">
-          <MessageMetadataBottom v-if="message.role === 'assistant' && !loading" :message="message" />
+        <div class="mt-3 min-h-6">
+          <Transition name="fade">
+            <MessageMetadataBottom v-if="message.role === 'assistant' && !loading" :message="message" />
+          </Transition>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+}
+</style>
