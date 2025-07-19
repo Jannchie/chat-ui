@@ -31,7 +31,7 @@
     "@shikijs/markdown-it": "^3.8.1",
     "@types/dom-view-transitions": "^1.0.6",
     "@types/markdown-it": "^14.1.2",
-    "@types/node": "^24.0.14",
+    "@types/node": "^24.0.15",
     "@unocss/eslint-plugin": "66.3.3",
     "@unocss/preset-icons": "66.3.3",
     "@unocss/preset-typography": "66.3.3",
@@ -54,6 +54,6 @@
     "vite-plugin-pwa": "^1.0.1",
     "vite-plugin-vue-devtools": "^7.7.7",
     "vitest": "^3.2.4",
-    "vue-tsc": "^3.0.2"
+    "vue-tsc": "^3.0.3"
   }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { ImageContent, ImageFile, MessageContent, TextContent } from '../composables/useHelloWorld'
-import type { ChatMessage, TransformOptions } from '../types/message'
 import OpenAI from 'openai'
+import type { ChatMessage, ImageContent, MessageContent, TextContent, TransformOptions } from '../types/message'
+import type { ImageFile } from '../composables/useHelloWorld'
 import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
 import { apiKey, client, model, platform, serviceUrl, useCurrentChat, useResponsesAPI } from '../shared'
@@ -265,7 +265,7 @@ async function onSubmit() {
     const apiMessages = transformMessages(
       conversation.value.slice(0, -1), // 排除最后一条空的助手消息
       transformOptions,
-    )
+    ) as OpenAI.Chat.Completions.ChatCompletionMessageParam[]
 
     let stream: AsyncIterable<any> | null = null
 
@@ -321,7 +321,7 @@ async function onSubmit() {
     }
     else {
       stream = await client.value.chat.completions.create({
-        messages: apiMessages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+        messages: apiMessages,
         model: currentModel,
         stream: true,
         stream_options: {
@@ -367,8 +367,8 @@ async function onSubmit() {
           prompt_tokens: usage.input_tokens || usage.prompt_tokens || 0,
           completion_tokens: usage.output_tokens || usage.completion_tokens || 0,
           total_tokens: usage.total_tokens
-            || (usage.input_tokens || usage.prompt_tokens || 0)
-            + (usage.output_tokens || usage.completion_tokens || 0),
+          || (usage.input_tokens || usage.prompt_tokens || 0)
+          + (usage.output_tokens || usage.completion_tokens || 0),
         }
         if (chat) {
           chat.token.inTokens += usage.input_tokens || usage.prompt_tokens || 0
@@ -570,7 +570,10 @@ watchEffect(() => {
         </div>
         <div class="relative z-10 max-w-830px w-full leading-0">
           <!-- Image preview area above input panel -->
-          <div v-if="uploadedImages.length > 0" class="mb-3 flex flex-wrap gap-3 pt-3">
+          <div
+            v-if="uploadedImages.length > 0"
+            class="mb-3 flex flex-wrap gap-3 pt-3"
+          >
             <div
               v-for="image in uploadedImages"
               :key="image.id"
@@ -583,7 +586,7 @@ watchEffect(() => {
               >
               <button
                 class="absolute h-6 w-6 flex items-center justify-center rounded-full bg-neutral-8 opacity-0 transition-opacity -right-2 -top-2 hover:bg-neutral-7 group-hover:opacity-100"
-                @click="uploadedImages = uploadedImages.filter(img => img.id !== image.id)"
+                @click="uploadedImages = uploadedImages.filter((img: ImageFile) => img.id !== image.id)"
               >
                 <i class="i-tabler-x h-4 w-4 text-neutral-3" />
               </button>
@@ -626,17 +629,33 @@ watchEffect(() => {
                 <ImageUpload v-model="uploadedImages" />
               </div>
 
-              <!-- Send button - bottom right -->
-              <button
-                :disabled="streaming"
-                :class="{
-                  'opacity-0': !input.trim() && uploadedImages.length === 0,
-                }"
-                class="h-8 w-8 flex items-center justify-center rounded-lg color-[#c4c7c5] transition-all hover:bg-neutral-7"
-                @click="onSubmit"
-              >
-                <i class="i-tabler-send h-4 w-4" />
-              </button>
+              <!-- Prompt optimize and send buttons - bottom right -->
+              <div class="flex items-center gap-2">
+                <!-- Prompt optimize button -->
+                <PromptOptimizeButton
+                  v-model="input"
+                  :disabled="streaming"
+                  size="md"
+                  variant="ghost"
+                  @optimized="(optimizedPrompt: string) => {
+                    // Optional: Show a toast notification or animation
+                    console.log('Prompt optimized:', optimizedPrompt)
+                  }"
+                />
+
+                <!-- Send button -->
+                <button
+                  :disabled="streaming || (!input.trim() && uploadedImages.length === 0)"
+                  :class="{
+                    'opacity-50 cursor-not-allowed': streaming || (!input.trim() && uploadedImages.length === 0),
+                    'hover:bg-neutral-7': !streaming && (input.trim() || uploadedImages.length > 0),
+                  }"
+                  class="h-8 w-8 flex items-center justify-center rounded-lg color-[#c4c7c5] transition-all"
+                  @click="onSubmit"
+                >
+                  <i class="i-tabler-send h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

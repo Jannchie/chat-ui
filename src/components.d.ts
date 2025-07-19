@@ -27,6 +27,7 @@ declare module 'vue' {
     MessageMetadataBottom: typeof import('./components/MessageMetadataBottom.vue')['default']
     MessageMetadataTop: typeof import('./components/MessageMetadataTop.vue')['default']
     MessageTimer: typeof import('./components/MessageTimer.vue')['default']
+    PromptOptimizeButton: typeof import('./components/PromptOptimizeButton.vue')['default']
     RecentChatWrapper: typeof import('./components/RecentChatWrapper.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

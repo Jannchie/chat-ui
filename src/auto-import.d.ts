@@ -235,6 +235,7 @@ declare global {
   const usePreferredReducedMotion: typeof import('@vueuse/core')['usePreferredReducedMotion']
   const usePreferredReducedTransparency: typeof import('@vueuse/core')['usePreferredReducedTransparency']
   const usePrevious: typeof import('@vueuse/core')['usePrevious']
+  const usePromptOptimizer: typeof import('./composables/usePromptOptimizer')['usePromptOptimizer']
   const useRafFn: typeof import('@vueuse/core')['useRafFn']
   const useRefHistory: typeof import('@vueuse/core')['useRefHistory']
   const useRequestCache: typeof import('./composables/useRequestCache')['useRequestCache']
@@ -321,6 +322,9 @@ declare global {
   // @ts-ignore
   export type { ImageFile, ChatData, ImageContent, MessageContent, TextContent } from './composables/useHelloWorld'
   import('./composables/useHelloWorld')
+  // @ts-ignore
+  export type { PromptOptimizationOptions } from './composables/usePromptOptimizer'
+  import('./composables/usePromptOptimizer')
   // @ts-ignore
   export type { RequestCacheKey } from './composables/useRequestCache'
   import('./composables/useRequestCache')
