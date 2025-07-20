@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type PromptOptimizationOptions, usePromptOptimizer } from '../composables/usePromptOptimizer'
+import type { PromptOptimizationOptions } from '../composables/usePromptOptimizer'
+import { usePromptOptimizer } from '../composables/usePromptOptimizer'
 
 interface Props {
   modelValue: string

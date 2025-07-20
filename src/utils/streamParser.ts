@@ -22,6 +22,7 @@ export class UnifiedStreamParser implements StreamParser {
     sentAt: 0,
     model: undefined,
     usage: undefined,
+    cost: undefined,
     firstTokenAt: undefined,
     lastTokenAt: undefined,
   }
@@ -48,6 +49,7 @@ export class UnifiedStreamParser implements StreamParser {
       sentAt: 0,
       model: undefined,
       usage: undefined,
+      cost: undefined,
       firstTokenAt: undefined,
       lastTokenAt: undefined,
     }
@@ -103,23 +105,42 @@ export class UnifiedStreamParser implements StreamParser {
       this.initializeMessage(chunk.model)
     }
 
-    const delta = chunk.choices[0]?.delta
+    // 处理内容 delta
+    const delta = chunk.choices?.[0]?.delta
     if (delta?.content) {
       this.recordTokenTime()
       this.state.textContent += delta.content
       this.updateCurrentMessage()
     }
 
-    // 处理 usage 信息
+    // 处理 usage 信息（支持 OpenRouter 等在单独 chunk 中返回 usage 的情况）
     if (chunk.usage) {
       this.state.usage = this.normalizeUsage(chunk.usage)
+      // 保存 cost 信息（如果提供的话）
+      if ('cost' in chunk.usage && typeof (chunk.usage as any).cost === 'number') {
+        this.state.cost = (chunk.usage as any).cost
+      }
       if (this.state.usage) {
         this.callbacks.onUsageUpdate?.(this.state.usage)
       }
     }
 
-    if (chunk.choices[0]?.finish_reason) {
+    // 检查完成状态
+    const finishReason = chunk.choices?.[0]?.finish_reason
+    if (finishReason) {
       this.finalizeMessage()
+    }
+    // 如果有 usage 信息但还没有完成，也要更新消息的 metadata
+    else if (chunk.usage && this.state.currentMessage) {
+      this.state.currentMessage = {
+        ...this.state.currentMessage,
+        metadata: {
+          ...this.state.currentMessage.metadata,
+          usage: this.state.usage,
+          cost: this.state.cost,
+        },
+      }
+      this.callbacks.onMessageUpdate(this.state.currentMessage)
     }
   }
 
@@ -192,6 +213,7 @@ export class UnifiedStreamParser implements StreamParser {
             ...this.state.currentMessage.metadata,
             firstTokenAt: this.state.firstTokenAt,
             usage: this.state.usage,
+            cost: this.state.cost,
             tokenSpeed,
           },
         }
@@ -274,6 +296,7 @@ export class UnifiedStreamParser implements StreamParser {
         firstTokenAt: this.state.firstTokenAt,
         receivedAt: Date.now(),
         usage: this.state.usage,
+        cost: this.state.cost,
         tokenSpeed,
       },
     }

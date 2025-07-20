@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import OpenAI from 'openai'
-import type { ChatMessage, ImageContent, MessageContent, TextContent, TransformOptions } from '../types/message'
 import type { ImageFile } from '../composables/useHelloWorld'
+import type { ChatMessage, ImageContent, MessageContent, TextContent, TransformOptions } from '../types/message'
+import OpenAI from 'openai'
 import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
 import { apiKey, client, model, platform, serviceUrl, useCurrentChat, useResponsesAPI } from '../shared'
@@ -367,8 +367,8 @@ async function onSubmit() {
           prompt_tokens: usage.input_tokens || usage.prompt_tokens || 0,
           completion_tokens: usage.output_tokens || usage.completion_tokens || 0,
           total_tokens: usage.total_tokens
-          || (usage.input_tokens || usage.prompt_tokens || 0)
-          + (usage.output_tokens || usage.completion_tokens || 0),
+            || (usage.input_tokens || usage.prompt_tokens || 0)
+            + (usage.output_tokens || usage.completion_tokens || 0),
         }
         if (chat) {
           chat.token.inTokens += usage.input_tokens || usage.prompt_tokens || 0

@@ -560,8 +560,8 @@ describe('messagetransform', () => {
 
       expect(onUsageUpdate).toHaveBeenCalledTimes(1)
       expect(onUsageUpdate).toHaveBeenCalledWith({
-        prompt_tokens: 10,
-        completion_tokens: 20,
+        input_tokens: 10,
+        output_tokens: 20,
         total_tokens: 30,
       })
     })

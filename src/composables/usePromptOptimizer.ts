@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import type OpenAI from 'openai'
+import { ref } from 'vue'
 import { client, model, useResponsesAPI } from '../shared'
 
 export interface PromptOptimizationOptions {
@@ -14,7 +14,7 @@ export function usePromptOptimizer() {
 
   const optimizePrompt = async (
     originalPrompt: string,
-    options: PromptOptimizationOptions = {}
+    options: PromptOptimizationOptions = {},
   ): Promise<string | null> => {
     if (!originalPrompt.trim()) {
       return null
@@ -58,7 +58,8 @@ Return only the optimized prompt without any explanations or additional text.`
           ],
         })
         optimizedContent = response.output_text
-      } else {
+      }
+      else {
         const response = await client.value.chat.completions.create({
           model: model.value,
           messages: [
@@ -78,11 +79,13 @@ Return only the optimized prompt without any explanations or additional text.`
       }
 
       return optimizedContent?.trim() || null
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Prompt optimization failed:', error)
       optimizationError.value = error instanceof Error ? error.message : 'Optimization failed'
       return null
-    } finally {
+    }
+    finally {
       isOptimizing.value = false
     }
   }

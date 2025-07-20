@@ -36,6 +36,7 @@ export interface StreamState {
   sentAt: number
   model?: string
   usage?: ResponseUsage
+  cost?: number
   firstTokenAt?: number
   lastTokenAt?: number
 }
