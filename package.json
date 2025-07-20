@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@formkit/auto-animate": "^0.8.2",
-    "@iconify/json": "^2.2.359",
+    "@iconify/json": "^2.2.360",
     "@jannchie/eslint-config": "^3.6.1",
     "@shikijs/markdown-it": "^3.8.1",
     "@types/dom-view-transitions": "^1.0.6",
