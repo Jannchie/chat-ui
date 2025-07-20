@@ -224,7 +224,7 @@ function convertContentToResponseInput(content: MessageContent, role: ChatMessag
       if (item.type === 'image_url') {
         return {
           type: 'input_image',
-          image_url: item.image_url,
+          image_url: item.image_url?.url,
           detail: 'auto' as const,
         }
       }
