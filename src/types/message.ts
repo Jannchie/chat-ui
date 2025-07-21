@@ -60,9 +60,9 @@ export interface ChatMessage {
     receivedAt?: number // 收到 AI 响应完毕的时间
     tokenSpeed?: number // tokens per second
     usage?: {
-      input_tokens?: number // 输入 token 数量
-      output_tokens?: number // 输出 token 数量
-      total_tokens?: number // 总 token 数量
+      input_tokens: number // 输入 token 数量
+      output_tokens: number // 输出 token 数量
+      total_tokens: number // 总 token 数量
     }
     cost?: number // API 提供的实际费用（优先于计算费用）
   }

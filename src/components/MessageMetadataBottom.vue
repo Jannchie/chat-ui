@@ -47,7 +47,7 @@ async function updateTokenCost() {
   }
 
   const cacheKey = `${props.message.metadata.model}-${JSON.stringify(props.message.metadata.usage)}`
-  
+
   // 检查缓存
   if (tokenCostCache.value.has(cacheKey)) {
     displayedCost.value = tokenCostCache.value.get(cacheKey) || null
@@ -57,11 +57,12 @@ async function updateTokenCost() {
   try {
     const cost = await calculateTokenCost(props.message.metadata.model, props.message.metadata.usage)
     const formattedCost = cost ? formatCost(cost.totalCost) : null
-    
+
     // 缓存结果
     tokenCostCache.value.set(cacheKey, formattedCost)
     displayedCost.value = formattedCost
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to calculate token cost:', error)
     tokenCostCache.value.set(cacheKey, null)
     displayedCost.value = null
