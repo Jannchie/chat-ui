@@ -76,7 +76,10 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div v-if="message.role === 'assistant' && (message.metadata?.receivedAt || message.metadata?.usage || message.metadata?.tokenSpeed || (message.metadata?.retryCount && message.metadata.retryCount > 0))" class="flex items-center gap-2">
+  <div
+    v-if="message.role === 'assistant' && (message.metadata?.receivedAt || message.metadata?.usage || message.metadata?.tokenSpeed || (message.metadata?.retryCount && message.metadata.retryCount > 0))"
+    class="font-condensed flex gap-2 items-center"
+  >
     <MessageTimer :message="message" mode="detailed" />
     <Tag v-if="message.metadata?.usage" size="sm" variant="light" color="#0d8d9e">
       {{ formatTokenUsage(message.metadata.usage) }}

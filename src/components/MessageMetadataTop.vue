@@ -37,13 +37,13 @@ const currentPlatform = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-2 text-xs">
+  <div class="text-xs font-condensed flex gap-2 items-center">
     <span class="op-75">
       {{ formatDate(message.timestamp) }}
     </span>
     <span
       v-if="message.role === 'assistant' && message.metadata?.model"
-      class="flex items-center gap-1 op-75"
+      class="op-75 flex gap-1 items-center"
     >
       <span>·</span>
       <component :is="() => getPlatformIcon(currentPlatform)" class="text-xs" />

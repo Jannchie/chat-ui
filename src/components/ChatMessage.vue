@@ -21,9 +21,9 @@ const assistantContent = computed(() => message.value.content)
 
 <template>
   <div
-    class="m-auto w-full flex-grow-1 px-3 py-4 md:max-w-712px md:px-4 md:py-6"
+    class="m-auto px-3 py-4 flex-grow-1 w-full md:px-4 md:py-6 md:max-w-712px"
     :class="{
-      'bg-neutral-8 rounded-t-xl': message.role === 'user',
+      'bg-neutral-800 rounded-t-xl': message.role === 'user',
       'bg-neutral-9 rounded-b-xl mb-2': message.role === 'assistant',
     }"
   >
@@ -32,18 +32,18 @@ const assistantContent = computed(() => message.value.content)
       class="block md:hidden"
     >
       <div class="mb-3 flex items-center">
-        <div class="mr-1 flex-shrink-0 leading-0">
+        <div class="leading-0 mr-1 flex-shrink-0">
           <i
             v-if="props.message.role === 'user'"
-            class="i-fluent-person-28-filled text-xs text-neutral-4"
+            class="text-neutral-4 i-fluent-person-28-filled text-xs"
           />
           <i
             v-else
-            class="i-fluent-bot-48-filled text-xs text-neutral-4"
+            class="text-neutral-4 i-fluent-bot-48-filled text-xs"
             :class="{ 'animate-pulse': props.loading && props.message.role === 'assistant' }"
           />
         </div>
-        <div class="text-xs text-neutral-4 font-medium">
+        <div class="text-neutral-4 text-xs font-medium">
           <span v-if="props.message.role === 'user'">User</span>
           <span
             v-else
@@ -79,7 +79,7 @@ const assistantContent = computed(() => message.value.content)
     <div
       class="hidden md:flex md:gap-4"
     >
-      <div class="sticky top-4 z-10 h-8 w-8 flex-shrink-0">
+      <div class="flex-shrink-0 h-8 w-8 top-4 sticky z-10">
         <i
           v-if="props.message.role === 'user'"
           class="i-fluent-person-28-filled h-full w-full"

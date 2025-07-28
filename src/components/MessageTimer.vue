@@ -118,7 +118,7 @@ function getTimings(message: ChatMessage) {
 </script>
 
 <template>
-  <div v-if="message.role === 'assistant'" class="flex items-center gap-1">
+  <div v-if="message.role === 'assistant'" class="flex gap-1 items-center">
     <!-- 紧凑模式：显示单个时间 -->
     <template v-if="!mode || mode === 'compact'">
       <!-- 动态时间显示 (消息进行中) -->
@@ -150,7 +150,7 @@ function getTimings(message: ChatMessage) {
 
     <!-- 详细模式：显示延迟时间和输出时间 -->
     <template v-else-if="mode === 'detailed' && getTimings(message)?.isCompleted">
-      <div class="flex items-center gap-2">
+      <div class="flex gap-2 items-center">
         <!-- 延迟时间 -->
         <Tag
           v-if="getTimings(message)?.latency"

@@ -129,14 +129,14 @@ async function explainWords() {
     v-if="content && !translationLoading"
     :loading="loading"
     :rounded="1"
-    class="not-prose min-h-32 flex flex-col gap-8 border border-transparent"
+    class="not-prose border border-transparent flex flex-col gap-8 min-h-32"
   >
     <div
       v-for="e, i in explains"
       :key="i"
       class="flex flex-col gap-2"
     >
-      <div class="flex items-end gap-2">
+      <div class="flex gap-2 items-end">
         <span class="text-3xl font-bold">
           {{ e.word }}
         </span>
@@ -147,7 +147,7 @@ async function explainWords() {
           {{ e.pos }}
         </Tag>
       </div>
-      <div class="flex gap-2 text-sm">
+      <div class="text-sm flex gap-2">
         <span
           v-for="synonym in e.synonyms"
           :key="synonym"

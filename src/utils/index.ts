@@ -45,35 +45,39 @@ export async function loadShiki() {
   if (isShikiLoaded) {
     return
   }
+  
+  try {
+    const Shiki = await import('@shikijs/markdown-it')
 
-  const Shiki = await import('@shikijs/markdown-it')
-
-  const shiki = await Shiki.default({
-    themes: {
-      light: 'vitesse-light',
-      dark: 'vitesse-dark',
-    },
-    // Only load most commonly used languages to reduce bundle size
-    langs: [
-      'javascript',
-      'typescript',
-      'python',
-      'bash',
-      'json',
-      'html',
-      'css',
-      'markdown',
-      'vue',
-      'rust',
-      'go',
-      'java',
-      'sql',
-    ],
-    defaultColor: 'dark',
-    fallbackLanguage: 'markdown',
-  })
-  md.use(shiki)
-  isShikiLoaded = true
+    const shiki = await Shiki.default({
+      themes: {
+        light: 'vitesse-light',
+        dark: 'vitesse-dark',
+      },
+      // Only load most commonly used languages to reduce bundle size
+      langs: [
+        'javascript',
+        'typescript',
+        'python',
+        'bash',
+        'json',
+        'html',
+        'css',
+        'markdown',
+        'vue',
+        'rust',
+        'go',
+        'java',
+        'sql',
+      ],
+    })
+    md.use(shiki)
+    isShikiLoaded = true
+  } catch (error) {
+    console.error('Failed to load Shiki:', error)
+    // 如果 Shiki 加载失败，至少确保不会重复尝试
+    isShikiLoaded = true
+  }
 }
 
 export function getChat(id: string) {

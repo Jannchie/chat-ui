@@ -1,6 +1,6 @@
 function OpenRouterSVG() {
   return (
-    <svg width="100%" height="100%" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" class="w-4 rounded-full" fill="currentColor" stroke="currentColor" aria-label="Logo">
+    <svg width="100%" height="100%" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" class="rounded-full w-4" fill="currentColor" stroke="currentColor" aria-label="Logo">
       <g clip-path="url(#clip0_205_3)">
         <path d="M3 248.945C18 248.945 76 236 106 219C136 202 136 202 198 158C276.497 102.293 332 120.945 423 120.945" stroke-width="90"></path>
         <path d="M511 121.5L357.25 210.268L357.25 32.7324L511 121.5Z"></path>

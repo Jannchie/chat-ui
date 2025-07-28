@@ -30,14 +30,14 @@ onUnmounted(() => {
 <template>
   <div
     v-if="visible"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+    class="bg-black/80 flex items-center inset-0 justify-center fixed z-50 backdrop-blur-sm"
     @click="close"
   >
-    <div class="relative h-full w-full flex items-center justify-center p-4">
+    <div class="p-4 flex h-full w-full items-center justify-center relative">
       <img
         :src="imageUrl"
         alt="Preview"
-        class="max-h-[85vh] max-w-[85vw] rounded-lg object-contain"
+        class="rounded-lg max-h-[85vh] max-w-[85vw] object-contain"
         @click.stop
       >
     </div>

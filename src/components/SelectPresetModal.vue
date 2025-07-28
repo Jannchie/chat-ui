@@ -30,20 +30,20 @@ onClickOutside(modalRef, () => {
     >
       <div
         v-if="show"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        class="bg-black/50 flex items-center inset-0 justify-center fixed z-50"
       >
         <div
           ref="modalRef"
-          class="absolute top-10rem w-96 rounded-3xl bg-neutral-9 p-4 pt-6 shadow-lg"
+          class="bg-neutral-9 p-4 pt-6 rounded-3xl w-96 shadow-lg top-10rem absolute"
         >
-          <div class="mb-4 px-2 text-lg text-neutral-2 font-bold">
+          <div class="text-neutral-2 text-lg font-bold mb-4 px-2">
             Select a Preset
           </div>
-          <div class="max-h-80 flex flex-col gap-2 overflow-auto">
+          <div class="flex flex-col gap-2 max-h-80 overflow-auto">
             <div
               v-for="p in presets"
               :key="p"
-              class="flex cursor-pointer items-center gap-4 rounded-full px-3 py-2 text-sm font-medium transition-all hover:bg-neutral-7 hover:shadow-sm"
+              class="hover:bg-neutral-7 text-sm font-medium px-3 py-2 rounded-full flex gap-4 cursor-pointer transition-all items-center hover:shadow-sm"
               :class="{
                 'bg-neutral-8': platform === p,
               }"

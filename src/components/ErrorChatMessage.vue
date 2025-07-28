@@ -29,14 +29,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="error-message border border-red-200 rounded-md bg-red-50 p-3 dark:border-red-700 dark:bg-red-900">
+  <div class="error-message p-3 border border-red-200 rounded-md bg-red-50 dark:border-red-700 dark:bg-red-900">
     <div class="flex items-start">
       <!-- Content container -->
       <div class="ml-3 flex-grow">
         <!-- Error title (if provided) -->
         <h3
           v-if="title"
-          class="mb-1 text-sm text-red-800 font-medium dark:text-red-300"
+          class="text-sm text-red-800 font-medium mb-1 dark:text-red-300"
         >
           {{ title }}
         </h3>
@@ -45,7 +45,7 @@ onMounted(() => {
         <div class="text-sm text-red-700 dark:text-red-200">
           <pre
             ref="contentRef"
-            class="whitespace-pre-wrap bg-transparent font-inherit"
+            class="font-inherit bg-transparent whitespace-pre-wrap"
             :class="collapsed ? 'line-clamp-3' : 'line-clamp-none'"
             v-text="content"
           />
@@ -58,7 +58,7 @@ onMounted(() => {
         class="ml-2 flex-shrink-0"
         @click="collapsed = !collapsed"
       >
-        <button class="h-8 w-8 flex items-center justify-center rounded-full text-red-500 hover:bg-red-100">
+        <button class="text-red-500 rounded-full flex h-8 w-8 items-center justify-center hover:bg-red-100">
           <i
             :class="collapsed ? 'i-tabler-chevron-down' : 'i-tabler-chevron-up'"
           />

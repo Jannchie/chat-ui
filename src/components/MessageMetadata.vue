@@ -72,11 +72,11 @@ const currentPlatform = computed(() => {
 </script>
 
 <template>
-  <div class="text-xs text-neutral-4">
+  <div class="text-neutral-4 text-xs">
     <!-- 顶部 metadata：执行前/执行中的信息 -->
-    <div v-if="!position || position === 'top'" class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+    <div v-if="!position || position === 'top'" class="flex flex-col gap-1 sm:flex-row sm:gap-2 sm:items-center">
       <!-- 基本信息（时间和模型） -->
-      <div class="flex items-center gap-2">
+      <div class="flex gap-2 items-center">
         <!-- 时间戳 -->
         <span>
           {{ formatDate(message.timestamp) }}
@@ -85,7 +85,7 @@ const currentPlatform = computed(() => {
         <!-- 助手消息的模型信息 - 显示在时间旁边 -->
         <span
           v-if="message.role === 'assistant' && message.metadata?.model"
-          class="flex items-center gap-1 text-neutral-5 dark:text-neutral-4"
+          class="text-neutral-5 dark:text-neutral-4 flex gap-1 items-center"
         >
           <span>·</span>
           <component :is="() => getPlatformIcon(currentPlatform)" class="text-xs" />
@@ -109,10 +109,10 @@ const currentPlatform = computed(() => {
     </div>
 
     <!-- 底部 metadata：执行完毕后的性能指标 -->
-    <div v-if="position === 'bottom'" v-auto-animate class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+    <div v-if="position === 'bottom'" v-auto-animate class="flex flex-col gap-1 sm:flex-row sm:gap-2 sm:items-center">
       <div
         v-if="message.role === 'assistant' && (message.metadata?.receivedAt || message.metadata?.usage || message.metadata?.tokenSpeed || (message.metadata?.retryCount && message.metadata.retryCount > 0))"
-        class="flex items-center gap-2"
+        class="flex gap-2 items-center"
       >
         <!-- 响应时间 (消息已完成) -->
         <MessageTimer :message="message" mode="detailed" />
@@ -151,7 +151,7 @@ const currentPlatform = computed(() => {
     </div>
 
     <!-- 详细信息展开 -->
-    <div v-if="showDetailed" class="mt-1 flex items-center gap-2 opacity-50">
+    <div v-if="showDetailed" class="mt-1 opacity-50 flex gap-2 items-center">
       <Tag v-if="message.metadata?.sentAt" size="sm" variant="light" color="gray">
         发送: {{ formatTime(message.metadata.sentAt) }}
       </Tag>

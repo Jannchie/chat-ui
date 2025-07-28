@@ -93,33 +93,33 @@ onUnmounted(() => {
 <template>
   <div
     v-if="showModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    class="bg-black/50 flex items-center inset-0 justify-center fixed z-50"
     @click.self="showModal = false"
   >
-    <div class="max-h-[80vh] max-w-2xl w-full overflow-hidden rounded-lg bg-[#1a1a1a] shadow-xl">
-      <div class="flex items-center justify-between border-b border-neutral-700 p-4">
+    <div class="rounded-lg bg-[#1a1a1a] max-h-[80vh] max-w-2xl w-full shadow-xl overflow-hidden">
+      <div class="p-4 border-b border-neutral-700 flex items-center justify-between">
         <h2 class="text-xl text-white font-semibold">
           Cache History
         </h2>
-        <div class="flex items-center gap-2">
-          <div class="flex rounded-lg bg-neutral-800 p-1">
+        <div class="flex gap-2 items-center">
+          <div class="p-1 rounded-lg bg-neutral-800 flex">
             <button
               :class="displayMode === 'recent' ? 'bg-neutral-600 text-white' : 'text-neutral-400 hover:text-white'"
-              class="rounded px-3 py-1 text-sm transition-colors"
+              class="text-sm px-3 py-1 rounded transition-colors"
               @click="displayMode = 'recent'"
             >
               Recent
             </button>
             <button
               :class="displayMode === 'frequent' ? 'bg-neutral-600 text-white' : 'text-neutral-400 hover:text-white'"
-              class="rounded px-3 py-1 text-sm transition-colors"
+              class="text-sm px-3 py-1 rounded transition-colors"
               @click="displayMode = 'frequent'"
             >
               Frequent
             </button>
           </div>
           <button
-            class="h-9 w-9 rounded-full leading-0 hover:bg-neutral-700"
+            class="leading-0 rounded-full h-9 w-9 hover:bg-neutral-700"
             @click="showModal = false"
           >
             <i class="i-tabler-x text-white" />
@@ -128,42 +128,42 @@ onUnmounted(() => {
       </div>
 
       <div class="max-h-[60vh] overflow-y-auto">
-        <div v-if="loading" class="flex items-center justify-center p-8">
+        <div v-if="loading" class="p-8 flex items-center justify-center">
           <div class="text-neutral-400">
             Loading...
           </div>
         </div>
-        <div v-else-if="cacheEntries.length === 0" class="flex items-center justify-center p-8">
+        <div v-else-if="cacheEntries.length === 0" class="p-8 flex items-center justify-center">
           <div class="text-neutral-400">
             No cache entries found
           </div>
         </div>
-        <div v-else class="divide-y divide-neutral-700">
+        <div v-else class="divide-neutral-700 divide-y">
           <div
             v-for="entry in cacheEntries"
             :key="entry.id"
-            class="cursor-pointer p-4 transition-colors hover:bg-neutral-800"
+            class="p-4 cursor-pointer transition-colors hover:bg-neutral-800"
             @click="applyConfiguration(entry)"
           >
             <div class="flex items-center justify-between">
               <div class="flex-1">
-                <div class="flex items-center gap-2">
+                <div class="flex gap-2 items-center">
                   <div class="text-white font-medium">
                     {{ getDisplayName(entry) }}
                   </div>
-                  <div class="flex items-center gap-1 text-xs text-neutral-400">
+                  <div class="text-xs text-neutral-400 flex gap-1 items-center">
                     <i class="i-tabler-mouse" />
                     {{ entry.accessCount }}
                   </div>
                 </div>
-                <div class="mt-1 text-sm text-neutral-400">
+                <div class="text-sm text-neutral-400 mt-1">
                   API Key: {{ getMaskedApiKey(entry.key.apiKey) }}
                 </div>
-                <div class="mt-1 text-xs text-neutral-500">
+                <div class="text-xs text-neutral-500 mt-1">
                   {{ formatDate(entry.timestamp) }}
                 </div>
               </div>
-              <div class="flex items-center text-neutral-400">
+              <div class="text-neutral-400 flex items-center">
                 <i class="i-tabler-arrow-right" />
               </div>
             </div>

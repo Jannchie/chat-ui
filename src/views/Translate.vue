@@ -211,33 +211,33 @@ watchEffect(async () => {
     <AsideContainer>
       <div class="mt-104px pb-4">
         <button
-          class="min-w-130px flex items-center gap-4 rounded-full bg-neutral-8 px-4 py-3 leading-0 disabled:pointer-events-none hover:bg-neutral-7 disabled:op-50"
+          class="hover:bg-neutral-7 leading-0 px-4 py-3 rounded-full bg-neutral-800 flex gap-4 min-w-130px items-center disabled:op-50 disabled:pointer-events-none"
           @click="onHomeClick"
         >
           <i class="i-tabler-home h-5 w-5" />
-          <span class="flex-grow-1 text-sm">Home</span>
+          <span class="text-sm flex-grow-1">Home</span>
         </button>
       </div>
 
       <!-- Translation History Sidebar -->
       <div v-if="translationHistory.length > 0" class="mt-6 px-4">
-        <div class="mb-3 flex items-center gap-2 text-sm text-neutral-400 font-medium">
+        <div class="text-sm text-neutral-400 font-medium mb-3 flex gap-2 items-center">
           <i class="i-tabler-history h-4 w-4" />
           Recent
         </div>
       </div>
-      <div v-if="translationHistory.length > 0" class="flex-grow basis-0 overflow-x-hidden overflow-y-auto px-4">
+      <div v-if="translationHistory.length > 0" class="px-4 flex-grow basis-0 overflow-x-hidden overflow-y-auto">
         <div class="space-y-2">
           <div
             v-for="item in translationHistory.slice(0, 8)"
             :key="item.id"
-            class="group cursor-pointer border border-neutral-700/30 rounded-xl bg-neutral-800/30 p-3 transition-all hover:bg-neutral-800/60"
+            class="group p-3 border border-neutral-700/30 rounded-xl bg-neutral-800/30 cursor-pointer transition-all hover:bg-neutral-800/60"
             @click="text = item.source; translateContent = item.target"
           >
-            <div class="truncate text-sm text-neutral-300 leading-relaxed group-hover:text-white">
+            <div class="text-sm text-neutral-300 leading-relaxed truncate group-hover:text-white">
               {{ item.source }}
             </div>
-            <div class="mt-2 truncate text-xs text-neutral-500 group-hover:text-neutral-400">
+            <div class="text-xs text-neutral-500 mt-2 truncate group-hover:text-neutral-400">
               {{ item.target }}
             </div>
           </div>
@@ -247,12 +247,12 @@ watchEffect(async () => {
 
     <MainContainer>
       <ChatHeader />
-      <ScrollArea is="main" class="h-full flex flex-col overflow-x-hidden overflow-y-auto">
-        <div class="mx-auto max-w-7xl w-full flex flex-col gap-8 px-6 py-8">
+      <ScrollArea is="main" class="flex flex-col h-full overflow-x-hidden overflow-y-auto">
+        <div class="mx-auto px-6 py-8 flex flex-col gap-8 max-w-7xl w-full">
           <!-- Header -->
           <div class="text-center">
-            <div class="mb-4 text-4xl font-bold">
-              <div class="gradient-text flex items-center justify-center gap-3">
+            <div class="text-4xl font-bold mb-4">
+              <div class="gradient-text flex gap-3 items-center justify-center">
                 <i class="i-tabler-world h-12 w-12" />
                 Translate
               </div>
@@ -264,10 +264,10 @@ watchEffect(async () => {
 
           <!-- Tone Controls -->
           <div class="animate-fade-delay">
-            <div class="border border-neutral-700/50 rounded-2xl bg-neutral-800/40 p-8 backdrop-blur-sm">
+            <div class="p-8 border border-neutral-700/50 rounded-2xl bg-neutral-800/40 backdrop-blur-sm">
               <!-- Tone Selection -->
               <div class="flex justify-center">
-                <div class="mb-3 flex items-center gap-2 text-sm text-neutral-400 font-medium">
+                <div class="text-sm text-neutral-400 font-medium mb-3 flex gap-2 items-center">
                   <i class="i-tabler-mood-smile h-4 w-4" />
                   Tone
                 </div>
@@ -276,7 +276,7 @@ watchEffect(async () => {
                 <BtnGroup
                   v-model="tone"
                   color="primary"
-                  class="shadow-md children:py-3 children:text-sm children:h-full! children:min-w-90px! children:border-neutral-700! first-children:rounded-xl last-children:rounded-xl"
+                  class="shadow-md children:text-sm children:py-3 children:border-neutral-700! first-children:rounded-xl last-children:rounded-xl children:h-full! children:min-w-90px!"
                   :unselectable="false"
                   :selections="[
                     { label: 'Neutral', value: 'neutral' },
@@ -295,11 +295,11 @@ watchEffect(async () => {
             <div class="border border-neutral-700/50 rounded-2xl bg-neutral-800/40 backdrop-blur-sm">
               <div class="grid grid-cols-1 min-h-600px lg:grid-cols-2">
                 <!-- Input Panel -->
-                <div class="border-b border-neutral-700/50 p-8 lg:border-b-0 lg:border-r">
+                <div class="p-8 border-b border-neutral-700/50 lg:border-b-0 lg:border-r">
                   <!-- Language Selection -->
                   <div class="mb-4 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                      <div class="flex items-center gap-2 text-sm text-neutral-400 font-medium">
+                    <div class="flex gap-3 items-center">
+                      <div class="text-sm text-neutral-400 font-medium flex gap-2 items-center">
                         <i class="i-tabler-arrow-right h-4 w-4" />
                         From
                       </div>
@@ -313,7 +313,7 @@ watchEffect(async () => {
                         class="h-10 w-200px"
                       >
                         <template #item="{ data }">
-                          <div class="flex items-center gap-2">
+                          <div class="flex gap-2 items-center">
                             <span>{{ data.flag }}</span>
                             <span>{{ data.name }}</span>
                           </div>
@@ -322,22 +322,22 @@ watchEffect(async () => {
 
                       <button
                         :disabled="sourceLang.id === 'auto'"
-                        class="rounded-full bg-neutral-800/60 p-2 transition-all active:scale-95 hover:scale-110 disabled:cursor-not-allowed hover:bg-neutral-700 disabled:opacity-50"
+                        class="p-2 rounded-full bg-neutral-800/60 transition-all hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 hover:scale-110"
                         @click="swapLanguages"
                       >
                         <i class="i-tabler-switch-3 h-4 w-4" />
                       </button>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex gap-2 items-center">
                       <div v-if="text.length > 0" class="text-xs text-neutral-500">
                         {{ text.length }} chars
                       </div>
-                      <div v-if="isTyping" class="text-primary-400 flex items-center gap-1 text-xs">
+                      <div v-if="isTyping" class="text-primary-400 text-xs flex gap-1 items-center">
                         <i class="i-tabler-pencil h-4 w-4 animate-pulse" />
                         <span>Typing...</span>
                       </div>
                       <button
-                        class="rounded-lg bg-neutral-900/50 p-2 transition-all hover:scale-105 hover:bg-neutral-800/50"
+                        class="p-2 rounded-lg bg-neutral-900/50 transition-all hover:bg-neutral-800/50 hover:scale-105"
                         @click="clearContent"
                       >
                         <i class="i-tabler-eraser h-4 w-4" />
@@ -350,17 +350,17 @@ watchEffect(async () => {
                       v-model="text"
                       placeholder="Enter text to translate..."
                       style="resize: none; scrollbar-width: none; min-height: 520px;"
-                      class="w-full border-none bg-transparent text-xl text-neutral-200 leading-relaxed outline-none placeholder-neutral-500"
+                      class="text-xl text-neutral-200 leading-relaxed outline-none border-none bg-transparent w-full placeholder-neutral-500"
                     />
                   </div>
                 </div>
 
                 <!-- Output Panel -->
-                <div class="bg-neutral-900/30 p-8">
+                <div class="p-8 bg-neutral-900/30">
                   <!-- Language Selection -->
                   <div class="mb-4 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                      <div class="flex items-center gap-2 text-sm text-neutral-400 font-medium">
+                    <div class="flex gap-3 items-center">
+                      <div class="text-sm text-neutral-400 font-medium flex gap-2 items-center">
                         To
                         <i class="i-tabler-arrow-right h-4 w-4" />
                       </div>
@@ -374,21 +374,21 @@ watchEffect(async () => {
                         class="h-10 w-200px"
                       >
                         <template #item="{ data }">
-                          <div class="flex items-center gap-2">
+                          <div class="flex gap-2 items-center">
                             <span>{{ data.flag }}</span>
                             <span>{{ data.name }}</span>
                           </div>
                         </template>
                       </Select>
                     </div>
-                    <div class="flex items-center gap-2">
-                      <div v-if="loading" class="text-primary-400 flex items-center gap-1 text-xs">
+                    <div class="flex gap-2 items-center">
+                      <div v-if="loading" class="text-primary-400 text-xs flex gap-1 items-center">
                         <i class="i-tabler-brain h-4 w-4 animate-pulse" />
                         <span>Translating...</span>
                       </div>
                       <button
                         v-if="translateContent"
-                        class="rounded-lg bg-neutral-900/50 p-2 transition-all hover:scale-105 hover:bg-neutral-800/50"
+                        class="p-2 rounded-lg bg-neutral-900/50 transition-all hover:bg-neutral-800/50 hover:scale-105"
                         @click="copyToClipboard(translateContent)"
                       >
                         <i class="i-tabler-clipboard h-4 w-4" />
@@ -396,22 +396,22 @@ watchEffect(async () => {
                     </div>
                   </div>
 
-                  <div class="relative min-h-520px">
-                    <div v-if="loading" class="absolute inset-0 flex items-center justify-center">
-                      <div class="flex items-center gap-3 text-neutral-400">
-                        <div class="border-primary-400 h-6 w-6 animate-spin border-2 border-t-transparent rounded-full" />
+                  <div class="min-h-520px relative">
+                    <div v-if="loading" class="flex items-center inset-0 justify-center absolute">
+                      <div class="text-neutral-400 flex gap-3 items-center">
+                        <div class="border-primary-400 border-2 border-t-transparent rounded-full h-6 w-6 animate-spin" />
                         <span>Translating...</span>
                       </div>
                     </div>
-                    <div v-else-if="!translateContent && text.length === 0" class="absolute inset-0 flex items-center justify-center text-neutral-500">
+                    <div v-else-if="!translateContent && text.length === 0" class="text-neutral-500 flex items-center inset-0 justify-center absolute">
                       <div class="text-center">
-                        <i class="i-tabler-language mb-3 h-12 w-12 opacity-50" />
+                        <i class="i-tabler-language mb-3 opacity-50 h-12 w-12" />
                         <p class="text-sm">
                           Translation will appear here
                         </p>
                       </div>
                     </div>
-                    <div v-else-if="!translateContent && text.length > 0" class="absolute inset-0 flex items-center justify-center text-neutral-500">
+                    <div v-else-if="!translateContent && text.length > 0" class="text-neutral-500 flex items-center inset-0 justify-center absolute">
                       <div class="text-center">
                         <i class="i-tabler-dots mb-2 h-8 w-8 animate-pulse" />
                         <p class="text-sm">
@@ -421,7 +421,7 @@ watchEffect(async () => {
                     </div>
                     <StreamContent
                       v-else
-                      class="max-w-full text-xl leading-relaxed"
+                      class="text-xl leading-relaxed max-w-full"
                       :content="translateContent"
                       :loading="false"
                     />
@@ -433,14 +433,14 @@ watchEffect(async () => {
 
           <!-- Word Explanation Panel -->
           <div v-if="translateContent" class="animate-fade-delay">
-            <div class="border border-neutral-700/50 rounded-2xl bg-neutral-800/40 p-8 backdrop-blur-sm">
+            <div class="p-8 border border-neutral-700/50 rounded-2xl bg-neutral-800/40 backdrop-blur-sm">
               <div class="mb-4 flex items-center justify-between">
-                <div class="flex items-center gap-2">
+                <div class="flex gap-2 items-center">
                   <i class="text-primary-400 i-tabler-vocabulary h-5 w-5" />
                   <span class="text-lg font-medium">Word Explanations</span>
                 </div>
                 <button
-                  class="rounded-lg bg-neutral-900/50 p-2 transition-all hover:scale-105 hover:bg-neutral-800/50"
+                  class="p-2 rounded-lg bg-neutral-900/50 transition-all hover:bg-neutral-800/50 hover:scale-105"
                   @click="showWordExplain = !showWordExplain"
                 >
                   <i :class="showWordExplain ? 'i-tabler-eye-off' : 'i-tabler-eye'" class="h-4 w-4" />
@@ -462,14 +462,14 @@ watchEffect(async () => {
 
                 <div
                   v-else
-                  class="flex items-start justify-center pt-8 text-center text-neutral-500 transition-all duration-300 ease-in-out"
+                  class="text-neutral-500 pt-8 text-center flex transition-all duration-300 ease-in-out items-start justify-center"
                 >
                   <div>
-                    <i class="i-tabler-eye-off mb-2 h-8 w-8 opacity-50" />
+                    <i class="i-tabler-eye-off mb-2 opacity-50 h-8 w-8" />
                     <p class="text-sm">
                       Word explanations are hidden
                     </p>
-                    <p class="mt-1 text-xs text-neutral-600">
+                    <p class="text-xs text-neutral-600 mt-1">
                       Click the eye icon to show detailed explanations
                     </p>
                   </div>

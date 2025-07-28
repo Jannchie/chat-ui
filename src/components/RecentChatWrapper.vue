@@ -32,7 +32,7 @@ const hasMoreChats = computed(() => chatHistory.value.length > displayLimit.valu
       class="mt-3 flex justify-center"
     >
       <button
-        class="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+        class="text-sm text-blue-600 px-4 py-2 hover:text-blue-800 hover:underline"
         @click="toggleShowMore"
       >
         {{ showAll ? 'Show Less' : `Show More (${chatHistory.length - displayLimit} more)` }}

@@ -29,29 +29,29 @@ function onClick() {
 <template>
   <button
     ref="buttonRef"
-    class="relative w-full text-sm"
+    class="text-sm w-full relative"
     @click="onClick"
   >
     <div
       :class="{
-        'bg-blue-5/30 text-blue-2 ': active,
-        'hover:bg-neutral-8': !active,
+        'bg-blue-500/30 text-blue-200 ': active,
+        'hover:bg-neutral-800': !active,
       }"
-      class="flex items-center gap-2 rounded-full py-1 pl-2 pr-1"
+      class="py-1 pl-2 pr-1 rounded-full flex gap-2 items-center"
     >
       <i class="i-tabler-message m-2 flex-shrink-0" />
-      <span class="flex-grow overflow-x-hidden text-ellipsis text-left text-nowrap">
+      <span class="text-left flex-grow text-nowrap text-ellipsis overflow-x-hidden">
         {{ chatData.title ?? 'Untitled Chat' }}
       </span>
       <button
         v-if="hover || showMenu"
         :class="{
-          'hover:bg-neutral-9/25': active,
-          'hover:bg-neutral-7/25': !active,
-          'bg-neutral-9/25': showMenu && active,
-          'bg-neutral-7/25': showMenu && !active,
+          'hover:bg-neutral-900/25': active,
+          'hover:bg-neutral-700/25': !active,
+          'bg-neutral-900/25': showMenu && active,
+          'bg-neutral-700/25': showMenu && !active,
         }"
-        class="rounded-full p-2 leading-0"
+        class="leading-0 p-2 rounded-full"
         @click="onActionClick"
       >
         <i
@@ -62,7 +62,7 @@ function onClick() {
     </div>
     <div
       v-if="showMenu"
-      class="fixed inset-0 z-9"
+      class="inset-0 fixed z-9"
     />
   </button>
 </template>

@@ -68,9 +68,9 @@ async function onDelete(e: MouseEvent) {
         :style="{ top: `${openedXY.y}px`, left: `${openedXY.x}px` }"
         class="fixed z-10"
       >
-        <div class="w-32 overflow-hidden rounded-md bg-neutral-8">
+        <div class="bg-neutral-8 rounded-md w-32 overflow-hidden">
           <button
-            class="w-full px-4 py-2 hover:bg-neutral-7"
+            class="hover:bg-neutral-7 px-4 py-2 w-full"
             @click="onDelete"
           >
             Delete
@@ -79,20 +79,20 @@ async function onDelete(e: MouseEvent) {
       </menu>
       <button
         :disabled="currentChat === null"
-        class="min-w-130px flex items-center gap-4 rounded-full bg-neutral-8 px-4 py-3 leading-0 disabled:pointer-events-none hover:bg-neutral-7 disabled:op-50"
+        class="hover:bg-neutral-7 leading-0 px-4 py-3 rounded-full bg-neutral-800 flex gap-4 min-w-130px items-center disabled:op-50 disabled:pointer-events-none"
         @click="onNewChatClick"
       >
         <i class="i-tabler-plus h-5 w-5" />
-        <span class="flex-grow-1 text-sm">
+        <span class="text-sm flex-grow-1">
           New Chat
         </span>
       </button>
     </div>
-    <div class="my-2 flex items-center justify-between px-4">
+    <div class="my-2 px-4 flex items-center justify-between">
       <span class="text-sm">Recent Chat</span>
       <button
         v-if="hasMoreChats"
-        class="text-xs text-blue-2"
+        class="text-blue-2 text-xs"
         @click="toggleShowMore"
       >
         {{ showAll ? 'Show Less' : `Show More (${chatHistory.length - displayLimit})` }}

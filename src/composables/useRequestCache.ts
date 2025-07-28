@@ -110,11 +110,11 @@ async function getRecentSuccessfulRequests(limit = 10): Promise<RequestCacheEntr
   try {
     await cleanupExpiredEntries()
 
-    return await db.requestCache
+    const entries = await db.requestCache
       .filter(entry => entry.success)
-      .reverse()
-      .limit(limit)
       .toArray()
+
+    return entries.toReversed().slice(0, limit)
   }
   catch (error) {
     console.error('Error getting recent requests:', error)
@@ -126,12 +126,12 @@ async function getTopSuccessfulRequests(limit = 10): Promise<RequestCacheEntry[]
   try {
     await cleanupExpiredEntries()
 
-    return await db.requestCache
+    const entries = await db.requestCache
       .orderBy('accessCount')
-      .reverse()
       .filter(entry => entry.success)
-      .limit(limit)
       .toArray()
+
+    return entries.toReversed().slice(0, limit)
   }
   catch (error) {
     console.error('Error getting top requests:', error)

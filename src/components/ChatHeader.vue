@@ -12,24 +12,24 @@ const showCacheHistoryModal = ref(false)
 </script>
 
 <template>
-  <header class="flex flex-shrink-0 items-center justify-between gap-4 px-4 py-3 text-lg lg:h-72px lg:px-6">
+  <header class="text-lg px-4 py-3 flex flex-shrink-0 gap-4 items-center justify-between lg:px-6 lg:h-72px">
     <!-- New Conversation Button for small screens -->
     <button
-      class="flex items-center justify-center rounded-full p-2 text-lg lg:hidden hover:bg-neutral-8"
+      class="hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center lg:hidden"
       @click="$router.push('/')"
     >
       <i class="i-tabler-plus text-neutral-400" />
     </button>
     <!-- Model selection - visible on all devices -->
     <button
-      class="flex cursor-pointer items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors hover:bg-neutral-8 lg:px-4 lg:py-2.5"
+      class="text-sm font-medium px-3 py-2 rounded-full flex gap-2 cursor-pointer transition-colors items-center lg:px-4 lg:py-2.5 hover:bg-neutral-800"
       @click="showSelectPresetModal = true"
     >
       <div class="text-lg leading-0">
         <component :is="() => getPlatformIcon(platform)" />
       </div>
       {{ getPlatformName(platform) }}
-      <i class="i-tabler-chevron-down ml-1 text-xs opacity-60" />
+      <i class="i-tabler-chevron-down text-xs ml-1 opacity-60" />
     </button>
 
     <!-- Keep original SelectPresetModal -->
@@ -51,44 +51,44 @@ const showCacheHistoryModal = ref(false)
     <div class="hidden lg:flex lg:gap-3">
       <div
         v-if="platform === 'custom'"
-        class="flex items-center gap-2"
+        class="flex gap-2 items-center"
       >
-        <div class="flex items-center pr-2 text-lg">
+        <div class="text-lg pr-2 flex items-center">
           <i class="i-tabler-link text-green-400" />
-          <span class="pl-2 text-sm font-medium">Service URL</span>
+          <span class="text-sm font-medium pl-2">Service URL</span>
         </div>
         <input
           v-model="customServiceUrl"
           placeholder="Service URL"
-          class="w-36 rounded-full bg-[#1e1e1f] px-6 py-2 text-sm text-[#e3e3e3] outline-none transition-all focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20"
+          class="text-sm text-[#e3e3e3] px-6 py-2 outline-none rounded-full bg-[#1e1e1f] w-36 transition-all focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20"
           type="text"
         >
       </div>
 
-      <div class="flex items-center gap-2">
-        <div class="flex items-center pr-2 text-lg">
+      <div class="flex gap-2 items-center">
+        <div class="text-lg pr-2 flex items-center">
           <i class="i-tabler-cube text-purple-400" />
-          <span class="pl-2 text-sm font-medium">Model</span>
+          <span class="text-sm font-medium pl-2">Model</span>
         </div>
         <!-- Replace input with button to show model selection modal -->
         <button
-          class="min-w-36 flex items-center justify-between rounded-full bg-[#1e1e1f] px-6 py-2 text-sm text-[#e3e3e3] transition-all focus:border-neutral-500/50 hover:bg-[#252526] focus:ring-2 focus:ring-neutral-500/20"
+          class="text-sm text-[#e3e3e3] px-6 py-2 rounded-full bg-[#1e1e1f] flex min-w-36 transition-all items-center justify-between focus:border-neutral-500/50 hover:bg-[#252526] focus:ring-2 focus:ring-neutral-500/20"
           @click="showSelectModelModal = true"
         >
-          <span class="truncate pr-2">{{ model || 'Select Model' }}</span>
+          <span class="pr-2 truncate">{{ model || 'Select Model' }}</span>
           <i class="i-tabler-chevron-down text-xs opacity-60" />
         </button>
       </div>
 
-      <div class="flex items-center gap-2">
-        <div class="flex items-center pr-2 text-lg">
+      <div class="flex gap-2 items-center">
+        <div class="text-lg pr-2 flex items-center">
           <i class="i-tabler-key text-blue-400" />
-          <span class="pl-2 text-sm font-medium">API Key</span>
+          <span class="text-sm font-medium pl-2">API Key</span>
         </div>
         <input
           v-model="apiKey"
           placeholder="API Key"
-          class="w-36 rounded-full bg-[#1e1e1f] px-6 py-2 text-sm text-[#e3e3e3] outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
+          class="text-sm text-[#e3e3e3] px-6 py-2 outline-none rounded-full bg-[#1e1e1f] w-36 transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
           type="password"
         >
       </div>
@@ -96,7 +96,7 @@ const showCacheHistoryModal = ref(false)
       <!-- Cache History Button -->
       <div class="flex items-center">
         <button
-          class="flex items-center justify-center rounded-full p-2 text-lg transition-colors hover:bg-neutral-8"
+          class="hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center"
           title="Cache History"
           @click="showCacheHistoryModal = true"
         >
@@ -107,7 +107,7 @@ const showCacheHistoryModal = ref(false)
 
     <!-- Mobile view - menu toggle -->
     <button
-      class="flex items-center justify-center rounded-full p-2 text-lg lg:hidden hover:bg-neutral-8"
+      class="hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center lg:hidden"
       @click="showMobileMenu = !showMobileMenu"
     >
       <i class="i-tabler-settings text-neutral-400" />
@@ -116,16 +116,16 @@ const showCacheHistoryModal = ref(false)
     <!-- Mobile menu drawer -->
     <div
       v-if="showMobileMenu"
-      class="fixed inset-0 z-50 bg-black/50 lg:hidden"
+      class="bg-black/50 inset-0 fixed z-50 lg:hidden"
       @click.self="showMobileMenu = false"
     >
-      <div class="absolute right-0 top-0 h-full w-64 bg-[#121212] p-4 shadow-lg">
+      <div class="p-4 bg-[#121212] h-full w-64 shadow-lg right-0 top-0 absolute">
         <div class="mb-6 flex items-center justify-between">
           <h3 class="text-lg font-medium">
             Settings
           </h3>
           <button
-            class="rounded-full p-1 hover:bg-neutral-8"
+            class="hover:bg-neutral-8 p-1 rounded-full"
             @click="showMobileMenu = false"
           >
             <i class="i-tabler-x text-lg" />
@@ -134,14 +134,14 @@ const showCacheHistoryModal = ref(false)
 
         <div class="flex flex-col gap-6">
           <div class="flex flex-col gap-2">
-            <label class="flex items-center gap-2 text-sm font-medium">
+            <label class="text-sm font-medium flex gap-2 items-center">
               <i class="i-tabler-key text-blue-400" />
               API Key
             </label>
             <input
               v-model="apiKey"
               placeholder="API Key"
-              class="w-full rounded-lg bg-[#1e1e1f] px-4 py-2 text-sm text-[#e3e3e3] outline-none transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
+              class="text-sm text-[#e3e3e3] px-4 py-2 outline-none rounded-lg bg-[#1e1e1f] w-full transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
               type="password"
             >
           </div>
@@ -150,26 +150,26 @@ const showCacheHistoryModal = ref(false)
             v-if="platform === 'custom'"
             class="flex flex-col gap-2"
           >
-            <label class="flex items-center gap-2 text-sm font-medium">
+            <label class="text-sm font-medium flex gap-2 items-center">
               <i class="i-tabler-link text-green-400" />
               Service URL
             </label>
             <input
               v-model="customServiceUrl"
               placeholder="Service URL"
-              class="w-full rounded-lg bg-[#1e1e1f] px-4 py-2 text-sm text-[#e3e3e3] outline-none transition-all focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20"
+              class="text-sm text-[#e3e3e3] px-4 py-2 outline-none rounded-lg bg-[#1e1e1f] w-full transition-all focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20"
               type="text"
             >
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="flex items-center gap-2 text-sm font-medium">
+            <label class="text-sm font-medium flex gap-2 items-center">
               <i class="i-tabler-cube text-purple-400" />
               Model
             </label>
             <!-- Replace input with button to show model selection modal in mobile menu -->
             <button
-              class="w-full flex items-center justify-between rounded-lg bg-[#1e1e1f] px-4 py-2 text-sm text-[#e3e3e3] transition-all focus:border-neutral-500/50 hover:bg-[#252526] focus:ring-2 focus:ring-neutral-500/20"
+              class="text-sm text-[#e3e3e3] px-4 py-2 rounded-lg bg-[#1e1e1f] flex w-full transition-all items-center justify-between focus:border-neutral-500/50 hover:bg-[#252526] focus:ring-2 focus:ring-neutral-500/20"
               @click="showSelectModelModal = true; showMobileMenu = false"
             >
               <span class="truncate">{{ model || 'Select Model' }}</span>
@@ -180,7 +180,7 @@ const showCacheHistoryModal = ref(false)
           <!-- Cache History Button -->
           <div class="flex justify-center">
             <button
-              class="flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:bg-neutral-7"
+              class="hover:bg-neutral-7 text-sm font-medium px-4 py-2 rounded-lg flex gap-2 transition-colors items-center justify-center"
               @click="showCacheHistoryModal = true; showMobileMenu = false"
             >
               <i class="i-tabler-history text-neutral-400" />

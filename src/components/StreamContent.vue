@@ -151,22 +151,22 @@ function copyContentToClipboard() {
     <div>
       <div
         v-if="reasoning && reasoning.length > 0"
-        class="mb-4 min-w-full w-full overflow-auto rounded-xl bg-neutral-1 px-4 py-2 text-xs prose prose-gray dark:bg-neutral-950 dark:prose-invert"
+        class="bg-neutral-1 text-xs mb-4 px-4 py-2 rounded-xl min-w-full w-full overflow-auto prose prose-gray dark:bg-neutral-950 dark:prose-invert"
       >
         <StreamMarkdownReasoning />
       </div>
 
-      <div class="relative mb-2">
-        <div class="absolute right-0 top-0 z-10">
+      <div class="mb-2 relative">
+        <div class="right-0 top-0 absolute z-10">
           <button
-            class="h-8 w-8 flex items-center justify-center rounded bg-transparent p-1.5 opacity-50 transition-all duration-200 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
+            class="p-1.5 rounded bg-transparent opacity-50 flex h-8 w-8 transition-all duration-200 items-center justify-center hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
             aria-label="Copy markdown content"
             @click="copyContentToClipboard"
           >
-            <i class="i-tabler-copy h-5 w-5 text-neutral-500 dark:text-neutral-4" />
+            <i class="i-tabler-copy dark:text-neutral-4 text-neutral-500 h-5 w-5" />
             <div
               v-if="showCopyTooltip"
-              class="pointer-events-none absolute right-0 whitespace-nowrap rounded bg-black/70 px-2 py-1 text-xs text-white -bottom-7 dark:bg-white/70 dark:text-black"
+              class="text-xs text-white px-2 py-1 rounded bg-black/70 pointer-events-none whitespace-nowrap right-0 absolute dark:text-black dark:bg-white/70 -bottom-7"
             >
               Copied!
             </div>
@@ -177,7 +177,7 @@ function copyContentToClipboard() {
       <div
         key="prose"
         ref="streamMarkdownWrapperRef"
-        class="hover text-sm prose prose-neutral children:mt-0 md:text-base prose-code:text-sm prose-h1:text-3xl prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-h5:text-base dark:prose-invert prose-code:after:content-none prose-code:before:content-none"
+        class="hover text-sm prose prose-neutral md:text-base prose-code:text-sm prose-h1:text-3xl prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-h5:text-base children:mt-0 dark:prose-invert prose-code:after:content-none prose-code:before:content-none"
       >
         <StreamMarkdownContent />
       </div>
