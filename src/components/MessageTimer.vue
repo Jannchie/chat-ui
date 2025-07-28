@@ -156,7 +156,7 @@ function getTimings(message: ChatMessage) {
           v-if="getTimings(message)?.latency"
           size="sm"
           variant="light"
-          color="#da9732"
+          color="surface"
           :title="`latency time: ${getTimings(message)?.latency}`"
         >
           <template #leftSection>
@@ -169,7 +169,7 @@ function getTimings(message: ChatMessage) {
           v-if="getTimings(message)?.output"
           size="sm"
           variant="light"
-          color="#15b39e"
+          color="surface"
           :title="`output time: ${getTimings(message)?.output}`"
         >
           <template #leftSection>

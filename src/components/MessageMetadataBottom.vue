@@ -81,16 +81,16 @@ watchEffect(() => {
     class="font-condensed flex gap-2 items-center"
   >
     <MessageTimer :message="message" mode="detailed" />
-    <Tag v-if="message.metadata?.usage" size="sm" variant="light" color="#0d8d9e">
+    <Tag v-if="message.metadata?.usage" size="sm" variant="light" color="surface">
       {{ formatTokenUsage(message.metadata.usage) }}
     </Tag>
-    <Tag v-if="displayedCost" size="sm" variant="light" color="#10b981">
+    <Tag v-if="displayedCost" size="sm" variant="light" color="surface">
       {{ displayedCost }}
     </Tag>
-    <Tag v-if="message.metadata?.tokenSpeed" size="sm" variant="light" color="#2680ca">
+    <Tag v-if="message.metadata?.tokenSpeed" size="sm" variant="light" color="surface">
       {{ message.metadata.tokenSpeed.toFixed(1) }} t/s
     </Tag>
-    <Tag v-if="message.metadata?.retryCount && message.metadata.retryCount > 0" size="sm" variant="light" color="#f59e0b" style="opacity: 0.5;">
+    <Tag v-if="message.metadata?.retryCount && message.metadata.retryCount > 0" size="sm" variant="light" color="surface" style="opacity: 0.5;">
       Retried {{ message.metadata.retryCount }}
     </Tag>
   </div>
