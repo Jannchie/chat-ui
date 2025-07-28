@@ -92,7 +92,8 @@ async function onDelete(e: MouseEvent) {
       <span class="text-sm">Recent Chat</span>
       <button
         v-if="hasMoreChats"
-        class="text-blue-2 text-xs"
+        role="button"
+        class="text-xs dark:text-blue-200"
         @click="toggleShowMore"
       >
         {{ showAll ? 'Show Less' : `Show More (${chatHistory.length - displayLimit})` }}
