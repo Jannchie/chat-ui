@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { RokuProvider } from '@roku-ui/vue'
+import { loadShiki } from './utils'
+
+loadShiki()
 </script>
 
 <template>

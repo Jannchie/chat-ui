@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { loadKatex, loadShiki, md } from '../utils'
+import { isKatexLoaded, isShikiLoaded, loadKatex, loadShiki, md } from '../utils'
 
 const props = withDefaults(defineProps<{
   content: string
@@ -63,7 +63,7 @@ const contentFinal = computed(() => {
   return props.loading ? formatedContent.value : msg
 })
 
-const contentVNodes = computedWithControl([contentFinal], () => {
+const contentVNodes = computedWithControl(() => [contentFinal.value, isShikiLoaded.value, isKatexLoaded.value], () => {
   const content = contentFinal.value ?? ''
 
   // Check if content contains code blocks and load Shiki if needed

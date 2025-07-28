@@ -18,11 +18,11 @@ export default defineConfig({
         },
       },
     }),
-    // presetWebFonts({
-    //   provider: 'google',
-    //   fonts: {
-    //     condensed: 'Roboto Condensed',
-    //   },
-    // }),
+    presetWebFonts({
+      provider: 'google',
+      fonts: {
+        condensed: 'Roboto Condensed',
+      },
+    }),
   ],
 })

@@ -22,11 +22,11 @@ md.use(VNodePlugin)
 md.use(todo)
 
 // Lazy load katex and shiki to reduce initial bundle size
-let isKatexLoaded = false
-let isShikiLoaded = false
+export const isKatexLoaded = ref(false)
+export const isShikiLoaded = ref(false)
 
 export async function loadKatex() {
-  if (isKatexLoaded) {
+  if (isKatexLoaded.value) {
     return
   }
 
@@ -38,22 +38,19 @@ export async function loadKatex() {
 
   const tm = texmath.default.use(katex.default)
   md.use(tm, { delimiters: ['brackets', 'dollars'] })
-  isKatexLoaded = true
+  isKatexLoaded.value = true
 }
 
 export async function loadShiki() {
-  if (isShikiLoaded) {
+  if (isShikiLoaded.value) {
     return
   }
-  
+
   try {
     const Shiki = await import('@shikijs/markdown-it')
 
     const shiki = await Shiki.default({
-      themes: {
-        light: 'vitesse-light',
-        dark: 'vitesse-dark',
-      },
+      theme: 'vitesse-dark',
       // Only load most commonly used languages to reduce bundle size
       langs: [
         'javascript',
@@ -69,14 +66,18 @@ export async function loadShiki() {
         'go',
         'java',
         'sql',
+        'jsx',
+        'tsx',
       ],
+      fallbackLanguage: 'markdown',
     })
     md.use(shiki)
-    isShikiLoaded = true
-  } catch (error) {
+    isShikiLoaded.value = true
+  }
+  catch (error) {
     console.error('Failed to load Shiki:', error)
     // 如果 Shiki 加载失败，至少确保不会重复尝试
-    isShikiLoaded = true
+    isShikiLoaded.value = true
   }
 }
 
