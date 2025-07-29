@@ -119,7 +119,7 @@ function openFileDialog() {
 
     <!-- Upload button -->
     <button
-      class="text-neutral-4 hover:bg-neutral-7 rounded-lg flex h-8 w-8 transition-colors items-center justify-center"
+      class="text-neutral-400 rounded-lg flex h-8 w-8 transition-colors items-center justify-center hover:bg-neutral-700"
       title="Upload images"
       @click="openFileDialog"
     >
