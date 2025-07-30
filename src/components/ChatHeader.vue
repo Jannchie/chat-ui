@@ -4,11 +4,13 @@ import { apiKey, customServiceUrl, model, platform } from '../shared'
 import { getPlatformIcon, getPlatformName } from '../utils'
 import CacheHistoryModal from './CacheHistoryModal.vue'
 import SelectModelModal from './SelectModelModal.vue'
+import SettingsModal from './SettingsModal.vue'
 
 const showSelectModelModal = ref(false)
 const showMobileMenu = ref(false)
 const showSelectPresetModal = ref(false)
 const showCacheHistoryModal = ref(false)
+const showSettingsModal = ref(false)
 </script>
 
 <template>
@@ -47,6 +49,11 @@ const showCacheHistoryModal = ref(false)
     <CacheHistoryModal
       v-model="showCacheHistoryModal"
     />
+
+    <SettingsModal
+      v-model="showSettingsModal"
+    />
+
     <!-- Desktop view - row of inputs -->
     <div class="hidden lg:flex lg:gap-3">
       <div
@@ -101,6 +108,13 @@ const showCacheHistoryModal = ref(false)
           @click="showCacheHistoryModal = true"
         >
           <i class="i-tabler-history text-neutral-400" />
+        </button>
+        <button
+          class="hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center"
+          title="Settings"
+          @click="showSettingsModal = true"
+        >
+          <i class="i-tabler-settings text-neutral-400" />
         </button>
       </div>
     </div>

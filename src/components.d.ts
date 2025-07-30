@@ -33,6 +33,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SelectModelModal: typeof import('./components/SelectModelModal.vue')['default']
     SelectPresetModal: typeof import('./components/SelectPresetModal.vue')['default']
+    SettingsModal: typeof import('./components/SettingsModal.vue')['default']
     StreamContent: typeof import('./components/StreamContent.vue')['default']
     Translate: typeof import('./views/Translate.vue')['default']
     UserChatMessage: typeof import('./components/UserChatMessage.vue')['default']
