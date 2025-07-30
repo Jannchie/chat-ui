@@ -24,7 +24,7 @@ const assistantContent = computed(() => message.value.content)
     class="m-auto px-3 py-4 flex-grow-1 w-full md:px-4 md:py-6 md:max-w-712px"
     :class="{
       'bg-neutral-800 rounded-t-xl': message.role === 'user',
-      'bg-neutral-9 rounded-b-xl mb-2': message.role === 'assistant',
+      'bg-neutral-900 rounded-b-xl mb-2': message.role === 'assistant',
     }"
   >
     <!-- 移动端上下结构布局（图标+文字在上，内容在下） -->

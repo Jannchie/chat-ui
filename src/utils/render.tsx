@@ -147,7 +147,7 @@ const CodeBlockWrapper = defineComponent({
       class: 'code-block-wrapper border rounded-xl my-4 overflow-hidden max-w-[calc(100vw-24px)]',
     }, [
       h('div', {
-        class: 'code-block-toolbar bg-neutral-9 border-b px-4 text-neutral-4 py-2 flex justify-between items-center',
+        class: 'code-block-toolbar bg-neutral-900 border-b px-4 text-neutral-4 py-2 flex justify-between items-center',
       }, [
         h('span', { class: 'code-language text-sm uppercase font-mono' }, this.language || 'text'),
         h('button', {

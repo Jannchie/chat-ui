@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RequestCacheEntry } from '../composables/useDatabase'
+import { Modal } from '@roku-ui/vue'
 import { useRequestCache } from '../composables/useRequestCache'
 import { apiKey, customServiceUrl, model, platform } from '../shared'
 
@@ -73,29 +74,10 @@ watch(displayMode, () => {
     loadCacheEntries()
   }
 })
-
-// Handle ESC key to close modal
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && showModal.value) {
-    showModal.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
-})
 </script>
 
 <template>
-  <div
-    v-if="showModal"
-    class="bg-black/50 flex items-center inset-0 justify-center fixed z-50"
-    @click.self="showModal = false"
-  >
+  <Modal v-model="showModal">
     <div class="rounded-lg bg-[#1a1a1a] max-h-[80vh] max-w-2xl w-full shadow-xl overflow-hidden">
       <div class="p-4 border-b border-neutral-700 flex items-center justify-between">
         <h2 class="text-xl text-white font-semibold">
@@ -171,5 +153,5 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-  </div>
+  </Modal>
 </template>
