@@ -53,7 +53,6 @@ export interface ChatMessage {
     sentAt?: number // 用户发送消息的时间
     edited?: boolean // 是否被编辑过
     model?: string // 使用的模型
-    retryCount?: number // 重试次数
 
     // 执行完毕后的 metadata
     firstTokenAt?: number // 收到第一个 token 的时间

@@ -111,7 +111,7 @@ const currentPlatform = computed(() => {
     <!-- 底部 metadata：执行完毕后的性能指标 -->
     <div v-if="position === 'bottom'" v-auto-animate class="flex flex-col gap-1 sm:flex-row sm:gap-2 sm:items-center">
       <div
-        v-if="message.role === 'assistant' && (message.metadata?.receivedAt || message.metadata?.usage || message.metadata?.tokenSpeed || (message.metadata?.retryCount && message.metadata.retryCount > 0))"
+        v-if="message.role === 'assistant' && (message.metadata?.receivedAt || message.metadata?.usage || message.metadata?.tokenSpeed)"
         class="flex gap-2 items-center"
       >
         <!-- 响应时间 (消息已完成) -->
@@ -135,17 +135,6 @@ const currentPlatform = computed(() => {
           color="#ce9d41"
         >
           {{ message.metadata.tokenSpeed.toFixed(1) }} t/s
-        </Tag>
-
-        <!-- 重试次数 -->
-        <Tag
-          v-if="message.metadata?.retryCount && message.metadata.retryCount > 0"
-          size="sm"
-          variant="light"
-          color="yellow"
-          style="opacity: 0.5;"
-        >
-          Retried {{ message.metadata.retryCount }}
         </Tag>
       </div>
     </div>

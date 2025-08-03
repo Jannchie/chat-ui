@@ -52,18 +52,11 @@ const displayedCost = computed(() => {
   }
   return format(convertedCost, selectedCurrency.value)
 })
-
-const originalCost = computed(() => {
-  if (cost.value === null || cost.value === undefined) {
-    return null
-  }
-  return format(cost.value, 'USD')
-})
 </script>
 
 <template>
   <div
-    v-if="message.role === 'assistant' && (message.metadata?.receivedAt || message.metadata?.usage || message.metadata?.tokenSpeed || (message.metadata?.retryCount && message.metadata.retryCount > 0))"
+    v-if="message.role === 'assistant' && (message.metadata?.receivedAt || message.metadata?.usage || message.metadata?.tokenSpeed)"
     class="font-condensed flex gap-2 items-center"
   >
     <MessageTimer :message="message" mode="detailed" />
@@ -73,14 +66,8 @@ const originalCost = computed(() => {
     <Tag v-if="displayedCost" size="sm" variant="light" color="surface">
       {{ displayedCost }}
     </Tag>
-    <Tag v-if="originalCost && displayedCost && displayedCost !== originalCost" size="sm" variant="light" color="surface" style="opacity: 0.5;">
-      {{ originalCost }}
-    </Tag>
     <Tag v-if="message.metadata?.tokenSpeed" size="sm" variant="light" color="surface">
       {{ message.metadata.tokenSpeed.toFixed(1) }} t/s
-    </Tag>
-    <Tag v-if="message.metadata?.retryCount && message.metadata.retryCount > 0" size="sm" variant="light" color="surface" style="opacity: 0.5;">
-      Retried {{ message.metadata.retryCount }}
     </Tag>
   </div>
 </template>
