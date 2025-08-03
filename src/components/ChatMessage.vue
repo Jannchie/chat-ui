@@ -23,7 +23,7 @@ const assistantContent = computed(() => message.value.content)
   <div
     class="m-auto px-3 py-4 flex-grow-1 w-full md:px-4 md:py-6 md:max-w-712px"
     :class="{
-      'bg-neutral-200 dark:bg-neutral-800 rounded-t-xl': message.role === 'user',
+      'bg-neutral-100 dark:bg-neutral-800 rounded-t-xl': message.role === 'user',
       'bg-neutral-100 dark:bg-neutral-900 rounded-b-xl mb-2': message.role === 'assistant',
     }"
   >

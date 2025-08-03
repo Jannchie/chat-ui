@@ -595,7 +595,7 @@ watchEffect(() => {
 
           <!-- Unified input panel -->
           <div
-            class="dark:hover:bg-neutral-8 rounded-xl bg-neutral-200 transition-all relative dark:bg-[#1e1e1f] focus-within:bg-neutral-300 hover:bg-neutral-300 dark:focus-within:bg-neutral-800"
+            class="rounded-xl bg-neutral-100 transition-all relative dark:bg-[#1e1e1f] focus-within:bg-neutral-200 hover:bg-neutral-200 dark:focus-within:bg-neutral-800 dark:hover:bg-neutral-800"
           >
             <!-- Textarea without border -->
             <textarea
@@ -659,7 +659,7 @@ watchEffect(() => {
             </div>
           </div>
         </div>
-        <div class="animate-fade-delay text-xs color-[#c4c7c5] pb-3 pt-1 flex gap-2 animate-delay-500">
+        <div class="animate-fade-delay text-xs color-[#6d6d6d] pb-3 pt-1 flex gap-2 animate-delay-500 dark:color-[#c4c7c5]">
           <span>
             Jannchie's Web UI for Chat Services
           </span>
