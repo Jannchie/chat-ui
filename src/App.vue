@@ -17,7 +17,14 @@ loadShiki()
   font-optical-sizing: auto;
   font-style: normal;
   color-scheme: dark light;
+}
+
+:root[data-scheme="dark"] {
   background-color: #1e1e1f !important;
+}
+
+:root[data-scheme="light"] {
+  background-color: #f5f5f5 !important;
 }
 
 .input-section:before {
@@ -27,12 +34,18 @@ loadShiki()
     width: 100%;
     height: 100px;
     pointer-events: none;
+    background: -webkit-gradient(linear,left top,left bottom,from(#f5f5f500),color-stop(60%,#f5f5f5));
+    background: -webkit-linear-gradient(top,#f5f5f500,#f5f5f5 60%);
+    background: linear-gradient(180deg,#f5f5f500,#f5f5f5 60%);
+}
+
+:root[data-scheme="dark"] .input-section:before {
     background: -webkit-gradient(linear,left top,left bottom,from(#13131400),color-stop(60%,#131314));
     background: -webkit-linear-gradient(top,#13131400,#131314 60%);
     background: linear-gradient(180deg,#13131400,#131314 60%);
 }
 pre {
-  outline: none;
+  background-color: #1e1e1e;
 }
 
 .input-enter-animate {

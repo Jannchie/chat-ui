@@ -58,7 +58,7 @@ onMounted(() => {
         class="ml-2 flex-shrink-0"
         @click="collapsed = !collapsed"
       >
-        <button class="text-red-500 rounded-full flex h-8 w-8 items-center justify-center hover:bg-red-100">
+        <button class="text-red-500 rounded-full flex h-8 w-8 items-center justify-center hover:bg-red-100 dark:hover:bg-red-800">
           <i
             :class="collapsed ? 'i-tabler-chevron-down' : 'i-tabler-chevron-up'"
           />

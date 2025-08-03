@@ -17,14 +17,14 @@ const showSettingsModal = ref(false)
   <header class="text-lg px-4 py-3 flex flex-shrink-0 gap-4 items-center justify-between lg:px-6 lg:h-72px">
     <!-- New Conversation Button for small screens -->
     <button
-      class="hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center lg:hidden"
+      class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex hidden items-center justify-center hover:bg-neutral-100 lg:hidden"
       @click="$router.push('/')"
     >
       <i class="i-tabler-plus text-neutral-400" />
     </button>
     <!-- Model selection - visible on all devices -->
     <button
-      class="text-sm font-medium px-3 py-2 rounded-full flex gap-2 cursor-pointer transition-colors items-center lg:px-4 lg:py-2.5 hover:bg-neutral-800"
+      class="text-sm font-medium px-3 py-2 rounded-full flex gap-2 cursor-pointer transition-colors items-center lg:px-4 lg:py-2.5 hover:bg-neutral-200 dark:hover:bg-neutral-800"
       @click="showSelectPresetModal = true"
     >
       <div class="text-lg leading-0">
@@ -67,7 +67,7 @@ const showSettingsModal = ref(false)
         <input
           v-model="customServiceUrl"
           placeholder="Service URL"
-          class="text-sm text-[#e3e3e3] px-6 py-2 outline-none rounded-full bg-[#1e1e1f] w-36 transition-all focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20"
+          class="text-sm text-neutral-700 px-6 py-2 outline-none rounded-full bg-neutral-200 w-36 transition-all dark:text-[#e3e3e3] focus:border-green-500/50 dark:bg-[#1e1e1f] focus:ring-2 focus:ring-green-500/20"
           type="text"
         >
       </div>
@@ -79,7 +79,7 @@ const showSettingsModal = ref(false)
         </div>
         <!-- Replace input with button to show model selection modal -->
         <button
-          class="text-sm text-[#e3e3e3] px-6 py-2 rounded-full bg-[#1e1e1f] flex min-w-36 transition-all items-center justify-between focus:border-neutral-500/50 hover:bg-[#252526] focus:ring-2 focus:ring-neutral-500/20"
+          class="text-sm text-neutral-700 px-6 py-2 rounded-full bg-neutral-200 flex min-w-36 transition-all items-center justify-between dark:text-[#e3e3e3] focus:border-neutral-500/50 dark:bg-[#1e1e1f] hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-[#252526]"
           @click="showSelectModelModal = true"
         >
           <span class="pr-2 truncate">{{ model || 'Select Model' }}</span>
@@ -95,7 +95,7 @@ const showSettingsModal = ref(false)
         <input
           v-model="apiKey"
           placeholder="API Key"
-          class="text-sm text-[#e3e3e3] px-6 py-2 outline-none rounded-full bg-[#1e1e1f] w-36 transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
+          class="text-sm text-neutral-700 px-6 py-2 outline-none rounded-full bg-neutral-200 w-36 transition-all dark:text-[#e3e3e3] focus:border-blue-500/50 dark:bg-[#1e1e1f] focus:ring-2 focus:ring-blue-500/20"
           type="password"
         >
       </div>
@@ -103,14 +103,14 @@ const showSettingsModal = ref(false)
       <!-- Cache History Button -->
       <div class="flex items-center">
         <button
-          class="hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center"
+          class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100"
           title="Cache History"
           @click="showCacheHistoryModal = true"
         >
           <i class="i-tabler-history text-neutral-400" />
         </button>
         <button
-          class="hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center"
+          class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100"
           title="Settings"
           @click="showSettingsModal = true"
         >
@@ -121,7 +121,7 @@ const showSettingsModal = ref(false)
 
     <!-- Mobile view - menu toggle -->
     <button
-      class="hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center lg:hidden"
+      class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center hover:bg-neutral-100 lg:hidden"
       @click="showMobileMenu = !showMobileMenu"
     >
       <i class="i-tabler-settings text-neutral-400" />
@@ -155,7 +155,7 @@ const showSettingsModal = ref(false)
             <input
               v-model="apiKey"
               placeholder="API Key"
-              class="text-sm text-[#e3e3e3] px-4 py-2 outline-none rounded-lg bg-[#1e1e1f] w-full transition-all focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
+              class="text-sm text-neutral-700 px-4 py-2 outline-none rounded-lg bg-neutral-200 w-full transition-all dark:text-[#e3e3e3] focus:border-blue-500/50 dark:bg-[#1e1e1f] focus:ring-2 focus:ring-blue-500/20"
               type="password"
             >
           </div>
@@ -171,7 +171,7 @@ const showSettingsModal = ref(false)
             <input
               v-model="customServiceUrl"
               placeholder="Service URL"
-              class="text-sm text-[#e3e3e3] px-4 py-2 outline-none rounded-lg bg-[#1e1e1f] w-full transition-all focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20"
+              class="text-sm text-neutral-700 px-4 py-2 outline-none rounded-lg bg-neutral-200 w-full transition-all dark:text-[#e3e3e3] focus:border-green-500/50 dark:bg-[#1e1e1f] focus:ring-2 focus:ring-green-500/20"
               type="text"
             >
           </div>
@@ -183,7 +183,7 @@ const showSettingsModal = ref(false)
             </label>
             <!-- Replace input with button to show model selection modal in mobile menu -->
             <button
-              class="text-sm text-[#e3e3e3] px-4 py-2 rounded-lg bg-[#1e1e1f] flex w-full transition-all items-center justify-between focus:border-neutral-500/50 hover:bg-[#252526] focus:ring-2 focus:ring-neutral-500/20"
+              class="text-sm text-neutral-700 px-4 py-2 rounded-lg bg-neutral-200 flex w-full transition-all items-center justify-between dark:text-[#e3e3e3] focus:border-neutral-500/50 dark:bg-[#1e1e1f] hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-[#252526]"
               @click="showSelectModelModal = true; showMobileMenu = false"
             >
               <span class="truncate">{{ model || 'Select Model' }}</span>

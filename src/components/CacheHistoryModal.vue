@@ -78,22 +78,22 @@ watch(displayMode, () => {
 
 <template>
   <Modal v-model="showModal">
-    <div class="rounded-lg bg-[#1a1a1a] max-h-[80vh] max-w-2xl w-full shadow-xl overflow-hidden">
+    <div class="rounded-lg bg-neutral-100 max-h-[80vh] max-w-2xl w-full shadow-xl overflow-hidden dark:bg-[#1a1a1a]">
       <div class="p-4 border-b border-neutral-700 flex items-center justify-between">
-        <h2 class="text-xl text-white font-semibold">
+        <h2 class="text-xl text-neutral-800 font-semibold dark:text-white">
           Cache History
         </h2>
         <div class="flex gap-2 items-center">
-          <div class="p-1 rounded-lg bg-neutral-800 flex">
+          <div class="p-1 rounded-lg bg-neutral-200 flex dark:bg-neutral-800">
             <button
-              :class="displayMode === 'recent' ? 'bg-neutral-600 text-white' : 'text-neutral-400 hover:text-white'"
+              :class="displayMode === 'recent' ? 'text-white bg-neutral-500 dark:bg-neutral-600' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'"
               class="text-sm px-3 py-1 rounded transition-colors"
               @click="displayMode = 'recent'"
             >
               Recent
             </button>
             <button
-              :class="displayMode === 'frequent' ? 'bg-neutral-600 text-white' : 'text-neutral-400 hover:text-white'"
+              :class="displayMode === 'frequent' ? 'text-white bg-neutral-500 dark:bg-neutral-600' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'"
               class="text-sm px-3 py-1 rounded transition-colors"
               @click="displayMode = 'frequent'"
             >
@@ -101,10 +101,10 @@ watch(displayMode, () => {
             </button>
           </div>
           <button
-            class="leading-0 rounded-full h-9 w-9 hover:bg-neutral-700"
+            class="leading-0 rounded-full h-9 w-9 hover:bg-neutral-200 dark:hover:bg-neutral-700"
             @click="showModal = false"
           >
-            <i class="i-tabler-x text-white" />
+            <i class="i-tabler-x text-neutral-600 dark:text-white" />
           </button>
         </div>
       </div>
@@ -124,13 +124,13 @@ watch(displayMode, () => {
           <div
             v-for="entry in cacheEntries"
             :key="entry.id"
-            class="p-4 cursor-pointer transition-colors hover:bg-neutral-800"
+            class="p-4 cursor-pointer transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
             @click="applyConfiguration(entry)"
           >
             <div class="flex items-center justify-between">
               <div class="flex-1">
                 <div class="flex gap-2 items-center">
-                  <div class="text-white font-medium">
+                  <div class="text-neutral-800 font-medium dark:text-white">
                     {{ getDisplayName(entry) }}
                   </div>
                   <div class="text-xs text-neutral-400 flex gap-1 items-center">

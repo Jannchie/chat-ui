@@ -211,7 +211,7 @@ watchEffect(async () => {
     <AsideContainer>
       <div class="mt-104px pb-4">
         <button
-          class="hover:bg-neutral-7 leading-0 px-4 py-3 rounded-full bg-neutral-800 flex gap-4 min-w-130px items-center disabled:op-50 disabled:pointer-events-none"
+          class="dark:hover:bg-neutral-7 leading-0 px-4 py-3 rounded-full bg-neutral-300 flex gap-4 min-w-130px items-center dark:bg-neutral-800 hover:bg-neutral-400 disabled:op-50 disabled:pointer-events-none"
           @click="onHomeClick"
         >
           <i class="i-tabler-home h-5 w-5" />
@@ -231,13 +231,13 @@ watchEffect(async () => {
           <div
             v-for="item in translationHistory.slice(0, 8)"
             :key="item.id"
-            class="group p-3 border border-neutral-700/30 rounded-xl bg-neutral-800/30 cursor-pointer transition-all hover:bg-neutral-800/60"
+            class="group p-3 border border-neutral-300/30 rounded-xl bg-neutral-200/30 cursor-pointer transition-all dark:border-neutral-700/30 dark:bg-neutral-800/30 hover:bg-neutral-300/60 dark:hover:bg-neutral-800/60"
             @click="text = item.source; translateContent = item.target"
           >
-            <div class="text-sm text-neutral-300 leading-relaxed truncate group-hover:text-white">
+            <div class="text-sm text-neutral-600 leading-relaxed truncate dark:text-neutral-300 group-hover:text-neutral-800 dark:group-hover:text-white">
               {{ item.source }}
             </div>
-            <div class="text-xs text-neutral-500 mt-2 truncate group-hover:text-neutral-400">
+            <div class="text-xs text-neutral-400 mt-2 truncate dark:text-neutral-500 group-hover:text-neutral-600 dark:group-hover:text-neutral-400">
               {{ item.target }}
             </div>
           </div>
@@ -264,7 +264,7 @@ watchEffect(async () => {
 
           <!-- Tone Controls -->
           <div class="animate-fade-delay">
-            <div class="p-8 border border-neutral-700/50 rounded-2xl bg-neutral-800/40 backdrop-blur-sm">
+            <div class="p-8 border border-neutral-300/50 rounded-2xl bg-neutral-200/40 backdrop-blur-sm dark:border-neutral-700/50 dark:bg-neutral-800/40">
               <!-- Tone Selection -->
               <div class="flex justify-center">
                 <div class="text-sm text-neutral-400 font-medium mb-3 flex gap-2 items-center">
@@ -292,7 +292,7 @@ watchEffect(async () => {
 
           <!-- Main Translation Interface -->
           <div class="animate-fade-delay">
-            <div class="border border-neutral-700/50 rounded-2xl bg-neutral-800/40 backdrop-blur-sm">
+            <div class="border border-neutral-300/50 rounded-2xl bg-neutral-200/40 backdrop-blur-sm dark:border-neutral-700/50 dark:bg-neutral-800/40">
               <div class="grid grid-cols-1 min-h-600px lg:grid-cols-2">
                 <!-- Input Panel -->
                 <div class="p-8 border-b border-neutral-700/50 lg:border-b-0 lg:border-r">
@@ -322,7 +322,7 @@ watchEffect(async () => {
 
                       <button
                         :disabled="sourceLang.id === 'auto'"
-                        class="p-2 rounded-full bg-neutral-800/60 transition-all hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 hover:scale-110"
+                        class="p-2 rounded-full bg-neutral-300/60 transition-all dark:bg-neutral-800/60 hover:bg-neutral-400 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 hover:scale-110 dark:hover:bg-neutral-700"
                         @click="swapLanguages"
                       >
                         <i class="i-tabler-switch-3 h-4 w-4" />
@@ -337,7 +337,7 @@ watchEffect(async () => {
                         <span>Typing...</span>
                       </div>
                       <button
-                        class="p-2 rounded-lg bg-neutral-900/50 transition-all hover:bg-neutral-800/50 hover:scale-105"
+                        class="p-2 rounded-lg bg-neutral-200/50 transition-all dark:bg-neutral-900/50 hover:bg-neutral-300/50 hover:scale-105 dark:hover:bg-neutral-800/50"
                         @click="clearContent"
                       >
                         <i class="i-tabler-eraser h-4 w-4" />
@@ -356,7 +356,7 @@ watchEffect(async () => {
                 </div>
 
                 <!-- Output Panel -->
-                <div class="p-8 bg-neutral-900/30">
+                <div class="p-8 bg-neutral-200/30 dark:bg-neutral-900/30">
                   <!-- Language Selection -->
                   <div class="mb-4 flex items-center justify-between">
                     <div class="flex gap-3 items-center">
@@ -388,7 +388,7 @@ watchEffect(async () => {
                       </div>
                       <button
                         v-if="translateContent"
-                        class="p-2 rounded-lg bg-neutral-900/50 transition-all hover:bg-neutral-800/50 hover:scale-105"
+                        class="p-2 rounded-lg bg-neutral-200/50 transition-all dark:bg-neutral-900/50 hover:bg-neutral-300/50 hover:scale-105 dark:hover:bg-neutral-800/50"
                         @click="copyToClipboard(translateContent)"
                       >
                         <i class="i-tabler-clipboard h-4 w-4" />
@@ -433,14 +433,14 @@ watchEffect(async () => {
 
           <!-- Word Explanation Panel -->
           <div v-if="translateContent" class="animate-fade-delay">
-            <div class="p-8 border border-neutral-700/50 rounded-2xl bg-neutral-800/40 backdrop-blur-sm">
+            <div class="p-8 border border-neutral-300/50 rounded-2xl bg-neutral-200/40 backdrop-blur-sm dark:border-neutral-700/50 dark:bg-neutral-800/40">
               <div class="mb-4 flex items-center justify-between">
                 <div class="flex gap-2 items-center">
                   <i class="text-primary-400 i-tabler-vocabulary h-5 w-5" />
                   <span class="text-lg font-medium">Word Explanations</span>
                 </div>
                 <button
-                  class="p-2 rounded-lg bg-neutral-900/50 transition-all hover:bg-neutral-800/50 hover:scale-105"
+                  class="p-2 rounded-lg bg-neutral-200/50 transition-all dark:bg-neutral-900/50 hover:bg-neutral-300/50 hover:scale-105 dark:hover:bg-neutral-800/50"
                   @click="showWordExplain = !showWordExplain"
                 >
                   <i :class="showWordExplain ? 'i-tabler-eye-off' : 'i-tabler-eye'" class="h-4 w-4" />

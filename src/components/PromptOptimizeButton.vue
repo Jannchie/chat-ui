@@ -51,8 +51,8 @@ const variantClasses = {
 
 const hoverClasses = {
   default: 'hover:bg-blue-500/30',
-  ghost: 'hover:bg-neutral-7',
-  outline: 'hover:bg-neutral-7',
+  ghost: 'hover:bg-neutral-200 dark:hover:bg-neutral-7',
+  outline: 'hover:bg-neutral-200 dark:hover:bg-neutral-7',
 }
 
 async function handleOptimize(withOptions = false) {
@@ -122,8 +122,8 @@ async function handleOptimizeWithOptions() {
         class="bg-black/50 flex items-center inset-0 justify-center fixed z-50"
         @click.self="showOptionsModal = false"
       >
-        <div class="border-neutral-6 p-6 border rounded-xl bg-neutral-800 max-w-[90vw] w-96">
-          <h3 class="text-neutral-1 text-lg font-medium mb-4">
+        <div class="dark:border-neutral-6 p-6 border border-neutral-300 rounded-xl bg-neutral-100 max-w-[90vw] w-96 dark:bg-neutral-800">
+          <h3 class="dark:text-neutral-1 text-lg text-neutral-800 font-medium mb-4">
             Optimization Options
           </h3>
 
@@ -135,7 +135,7 @@ async function handleOptimizeWithOptions() {
               </label>
               <select
                 v-model="optimizationOptions.style"
-                class="border-neutral-6 text-neutral-1 bg-neutral-7 px-3 py-2 border rounded-lg w-full"
+                class="dark:text-neutral-1 dark:bg-neutral-7 dark:border-neutral-6 text-neutral-800 px-3 py-2 border border-neutral-400 rounded-lg bg-neutral-200 w-full"
               >
                 <option value="professional">
                   Professional
@@ -159,7 +159,7 @@ async function handleOptimizeWithOptions() {
               </label>
               <select
                 v-model="optimizationOptions.purpose"
-                class="border-neutral-6 bg-neutral-7 text-neutral-1 px-3 py-2 border rounded-lg w-full"
+                class="dark:text-neutral-1 dark:bg-neutral-7 dark:border-neutral-6 text-neutral-800 px-3 py-2 border border-neutral-400 rounded-lg bg-neutral-200 w-full"
               >
                 <option value="general">
                   General
@@ -183,7 +183,7 @@ async function handleOptimizeWithOptions() {
               </label>
               <select
                 v-model="optimizationOptions.language"
-                class="border-neutral-6 bg-neutral-7 text-neutral-1 px-3 py-2 border rounded-lg w-full"
+                class="dark:text-neutral-1 dark:bg-neutral-7 dark:border-neutral-6 text-neutral-800 px-3 py-2 border border-neutral-400 rounded-lg bg-neutral-200 w-full"
               >
                 <option value="auto-detect">
                   Auto-detect
@@ -215,7 +215,7 @@ async function handleOptimizeWithOptions() {
           <!-- Action Buttons -->
           <div class="mt-6 flex gap-3">
             <button
-              class="bg-neutral-7 text-neutral-1 hover:bg-neutral-6 px-4 py-2 rounded-lg flex-1 transition-colors"
+              class="dark:text-neutral-1 dark:bg-neutral-7 dark:hover:bg-neutral-6 text-neutral-800 px-4 py-2 rounded-lg bg-neutral-300 flex-1 transition-colors hover:bg-neutral-400"
               @click="showOptionsModal = false"
             >
               Cancel

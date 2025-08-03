@@ -68,9 +68,9 @@ async function onDelete(e: MouseEvent) {
         :style="{ top: `${openedXY.y}px`, left: `${openedXY.x}px` }"
         class="fixed z-10"
       >
-        <div class="bg-neutral-8 rounded-md w-32 overflow-hidden">
+        <div class="dark:bg-neutral-8 rounded-md bg-neutral-200 w-32 overflow-hidden">
           <button
-            class="hover:bg-neutral-7 px-4 py-2 w-full"
+            class="dark:hover:bg-neutral-7 px-4 py-2 w-full hover:bg-neutral-300"
             @click="onDelete"
           >
             Delete
@@ -79,7 +79,7 @@ async function onDelete(e: MouseEvent) {
       </menu>
       <button
         :disabled="currentChat === null"
-        class="hover:bg-neutral-7 leading-0 px-4 py-3 rounded-full bg-neutral-800 flex gap-4 min-w-130px items-center disabled:op-50 disabled:pointer-events-none"
+        class="dark:hover:bg-neutral-7 leading-0 px-4 py-3 rounded-full bg-neutral-300 flex gap-4 min-w-130px items-center dark:bg-neutral-800 hover:bg-neutral-400 disabled:op-50 disabled:pointer-events-none"
         @click="onNewChatClick"
       >
         <i class="i-tabler-plus h-5 w-5" />

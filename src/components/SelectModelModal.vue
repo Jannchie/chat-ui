@@ -93,9 +93,9 @@ function closeModal() {
 
 <template>
   <Modal v-model="modelValue">
-    <div class="mx-4 rounded-xl bg-[#1a1a1a] max-w-md w-full shadow-lg overflow-hidden">
+    <div class="mx-4 rounded-xl bg-neutral-100 max-w-md w-full shadow-lg overflow-hidden dark:bg-[#1a1a1a]">
       <div class="p-4 border-b border-neutral-800 flex items-center justify-between">
-        <h3 class="text-lg text-white font-medium">
+        <h3 class="text-lg text-neutral-800 font-medium dark:text-white">
           Select Model
         </h3>
         <Btn
@@ -118,12 +118,12 @@ function closeModal() {
             ref="searchInputRef"
             v-model="searchQuery"
             type="text"
-            class="text-white p-2 pl-10 pr-8 outline-none rounded-lg bg-neutral-800 w-full transition-colors focus:bg-neutral-700 focus:ring-2 focus:ring-neutral-600 placeholder-neutral-500"
+            class="text-neutral-800 p-2 pl-10 pr-8 outline-none rounded-lg bg-neutral-200 w-full transition-colors dark:text-white dark:bg-neutral-800 focus:bg-neutral-300 focus:ring-2 focus:ring-neutral-600 dark:focus:bg-neutral-700 placeholder-neutral-500 dark:placeholder-neutral-500"
             placeholder="Search models..."
           >
           <button
             v-if="searchQuery"
-            class="text-neutral-400 transform transition-colors right-3 top-1/2 absolute hover:text-white -translate-y-1/2"
+            class="text-neutral-400 transform transition-colors right-3 top-1/2 absolute hover:text-neutral-600 -translate-y-1/2 dark:hover:text-white"
             @click="searchQuery = ''"
           >
             <i class="i-tabler-x text-sm" />
@@ -162,15 +162,15 @@ function closeModal() {
           <div
             v-for="(modelOption, index) in filteredModels"
             :key="index"
-            class="mb-1 p-3 rounded-lg flex gap-3 cursor-pointer transition-colors items-center hover:bg-neutral-800"
-            :class="{ 'bg-neutral-800': modelOption === selectedModel || index === highlightedIndex }"
+            class="mb-1 p-3 rounded-lg flex gap-3 cursor-pointer transition-colors items-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            :class="{ 'bg-neutral-200 dark:bg-neutral-800': modelOption === selectedModel || index === highlightedIndex }"
             @click="updateModel(modelOption)"
           >
-            <div class="rounded-full bg-neutral-800 flex flex-shrink-0 h-8 w-8 items-center justify-center">
+            <div class="rounded-full bg-neutral-200 flex flex-shrink-0 h-8 w-8 items-center justify-center dark:bg-neutral-800">
               <i class="i-tabler-cube text-purple-400" />
             </div>
             <div class="flex flex-col">
-              <span class="text-sm text-white font-medium truncate">{{ modelOption }}</span>
+              <span class="text-sm text-neutral-800 font-medium truncate dark:text-white">{{ modelOption }}</span>
               <span class="text-xs text-neutral-400">{{ platform }}</span>
             </div>
             <div class="ml-auto flex-shrink-0">
@@ -196,7 +196,7 @@ function closeModal() {
 
       <div class="p-4 border-t border-neutral-800 flex justify-end">
         <button
-          class="text-sm text-white font-medium px-4 py-2 rounded-lg bg-neutral-700 transition-colors hover:bg-neutral-600"
+          class="text-sm text-white font-medium px-4 py-2 rounded-lg bg-neutral-600 transition-colors dark:bg-neutral-700 hover:bg-neutral-700 dark:hover:bg-neutral-600"
           @click="closeModal"
         >
           Close

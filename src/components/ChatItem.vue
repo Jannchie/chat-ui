@@ -35,7 +35,7 @@ function onClick() {
     <div
       :class="{
         'bg-blue-500/30 text-blue-200 ': active,
-        'hover:bg-neutral-800': !active,
+        'hover:bg-neutral-200 dark:hover:bg-neutral-800': !active,
       }"
       class="py-1 pl-2 pr-1 rounded-full flex gap-2 items-center"
     >
@@ -46,10 +46,10 @@ function onClick() {
       <button
         v-if="hover || showMenu"
         :class="{
-          'hover:bg-neutral-900/25': active,
-          'hover:bg-neutral-700/25': !active,
-          'bg-neutral-900/25': showMenu && active,
-          'bg-neutral-700/25': showMenu && !active,
+          'hover:bg-neutral-300/25 dark:hover:bg-neutral-900/25': active,
+          'hover:bg-neutral-300/25 dark:hover:bg-neutral-700/25': !active,
+          'bg-neutral-300/25 dark:bg-neutral-900/25': showMenu && active,
+          'bg-neutral-300/25 dark:bg-neutral-700/25': showMenu && !active,
         }"
         class="leading-0 p-2 rounded-full"
         @click="onActionClick"

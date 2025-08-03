@@ -503,7 +503,7 @@ watchEffect(() => {
         <div class="mb-10 mt-20 flex gap-4">
           <div class="animate-fade-delay">
             <button
-              class="hover:bg-neutral-7 leading-0 p-4 rounded-xl bg-neutral-800 flex flex-row w-full shadow-sm transition-colors justify-between md:p-5 md:flex-col md:h-200px md:w-200px"
+              class="dark:hover:bg-neutral-7 leading-0 p-4 rounded-xl bg-neutral-200 flex flex-row w-full shadow-sm transition-colors justify-between md:p-5 dark:bg-neutral-800 hover:bg-neutral-300 md:flex-col md:h-200px md:w-200px"
               @click="router.push({ name: 'translate' })"
             >
               <div class="flex gap-2 items-center">
@@ -582,10 +582,10 @@ watchEffect(() => {
               <img
                 :src="image.dataUrl"
                 :alt="image.file.name"
-                class="border-neutral-6 border rounded-lg h-16 w-16 object-cover"
+                class="dark:border-neutral-6 border border-neutral-300 rounded-lg h-16 w-16 object-cover"
               >
               <button
-                class="hover:bg-neutral-7 rounded-full bg-neutral-800 opacity-0 flex h-6 w-6 transition-opacity items-center justify-center absolute group-hover:opacity-100 -right-2 -top-2"
+                class="dark:hover:bg-neutral-7 rounded-full bg-neutral-300 opacity-0 flex h-6 w-6 transition-opacity items-center justify-center absolute dark:bg-neutral-800 hover:bg-neutral-400 group-hover:opacity-100 -right-2 -top-2"
                 @click="uploadedImages = uploadedImages.filter((img: ImageFile) => img.id !== image.id)"
               >
                 <i class="i-tabler-x text-neutral-3 h-4 w-4" />
@@ -595,7 +595,7 @@ watchEffect(() => {
 
           <!-- Unified input panel -->
           <div
-            class="hover:bg-neutral-8 rounded-xl bg-[#1e1e1f] transition-all relative focus-within:bg-neutral-800"
+            class="dark:hover:bg-neutral-8 rounded-xl bg-neutral-200 transition-all relative dark:bg-[#1e1e1f] focus-within:bg-neutral-300 hover:bg-neutral-300 dark:focus-within:bg-neutral-800"
           >
             <!-- Textarea without border -->
             <textarea
@@ -604,7 +604,7 @@ watchEffect(() => {
               type="text"
               style="resize: none; scrollbar-width: none; max-height: 300px; height: auto;"
               :rows="rows"
-              class="text-lg text-[#e3e3e3] px-4 py-4 pb-12 outline-none border-none bg-transparent flex-grow-0 w-full"
+              class="text-lg text-neutral-800 px-4 py-4 pb-12 outline-none border-none bg-transparent flex-grow-0 w-full dark:text-[#e3e3e3]"
               placeholder="Input your question here"
               @keydown.stop.up="async (e) => {
                 if (!(input === '')) return

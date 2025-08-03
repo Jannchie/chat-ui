@@ -6,7 +6,7 @@ const shouldShow = computed(() => open.value)
 
 <template>
   <aside
-    class="px-3 bg-neutral-900 flex-shrink-0 flex-col w-16 w-284px hidden transition-all lg:flex"
+    class="px-3 bg-neutral-200 flex-shrink-0 flex-col w-16 w-284px hidden transition-all dark:bg-neutral-900 lg:flex"
     :class="{
       '-ml-284px': shouldShow,
       'ml-0': !shouldShow,
