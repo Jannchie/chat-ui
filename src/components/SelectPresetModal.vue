@@ -28,7 +28,7 @@ const show = defineModel<boolean>()
           :key="p"
           class="text-sm font-medium px-3 py-2 rounded-full flex gap-4 cursor-pointer transition-all items-center hover:bg-neutral-200 hover:shadow-sm dark:hover:bg-neutral-700"
           :class="{
-            'bg-neutral-400 dark:bg-neutral-800': platform === p,
+            'bg-blue-200 text-blue-500 dark:text-neutral-200 dark:bg-neutral-800': platform === p,
           }"
           @click="platform = p; currentPreset = p; show = false"
         >

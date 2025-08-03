@@ -34,7 +34,7 @@ function onClick() {
   >
     <div
       :class="{
-        'bg-blue-500/30 text-blue-200 ': active,
+        'bg-blue-500/30 dark:text-blue-200 text-blue-500': active,
         'hover:bg-neutral-200 dark:hover:bg-neutral-800': !active,
       }"
       class="py-1 pl-2 pr-1 rounded-full flex gap-2 items-center"
