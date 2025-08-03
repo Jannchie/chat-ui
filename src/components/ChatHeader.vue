@@ -103,14 +103,14 @@ const showSettingsModal = ref(false)
       <!-- Cache History Button -->
       <div class="flex items-center">
         <button
-          class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100"
+          class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-700"
           title="Cache History"
           @click="showCacheHistoryModal = true"
         >
           <i class="i-tabler-history text-neutral-400" />
         </button>
         <button
-          class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100"
+          class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-700"
           title="Settings"
           @click="showSettingsModal = true"
         >
