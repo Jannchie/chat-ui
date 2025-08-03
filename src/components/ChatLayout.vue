@@ -503,7 +503,7 @@ watchEffect(() => {
         <div class="mb-10 mt-20 flex gap-4">
           <div class="animate-fade-delay">
             <button
-              class="dark:hover:bg-neutral-7 leading-0 p-4 rounded-xl bg-neutral-200 flex flex-row w-full shadow-sm transition-colors justify-between md:p-5 dark:bg-neutral-800 hover:bg-neutral-300 md:flex-col md:h-200px md:w-200px"
+              class="dark:hover:bg-neutral-7 leading-0 p-4 rounded-xl bg-neutral-200 flex flex-row w-full shadow-sm transition-colors justify-between md:p-5 dark:bg-neutral-800 hover:bg-neutral-300 md:flex-col md:h-200px md:w-200px dark:hover:bg-neutral-700"
               @click="router.push({ name: 'translate' })"
             >
               <div class="flex gap-2 items-center">
