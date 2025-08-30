@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ImageFile } from '../composables/useHelloWorld'
+import type { ImageFile } from '../composables/chat-types'
 
 const props = defineProps<{
   modelValue: ImageFile[]

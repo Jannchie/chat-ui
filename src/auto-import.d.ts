@@ -318,11 +318,11 @@ declare global {
   export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
+  export type { ImageFile, ChatData, ImageContent, MessageContent, TextContent } from './composables/chat-types'
+  import('./composables/chat-types')
+  // @ts-ignore
   export type { Setting, RequestCacheEntry } from './composables/useDatabase'
   import('./composables/useDatabase')
-  // @ts-ignore
-  export type { ImageFile, ChatData, ImageContent, MessageContent, TextContent } from './composables/useHelloWorld'
-  import('./composables/useHelloWorld')
   // @ts-ignore
   export type { PromptOptimizationOptions } from './composables/usePromptOptimizer'
   import('./composables/usePromptOptimizer')

@@ -1,4 +1,6 @@
 import type { Table } from 'dexie'
+import type { ChatData } from './chat-types'
+
 import Dexie from 'dexie'
 
 export interface Setting {

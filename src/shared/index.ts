@@ -1,4 +1,4 @@
-import type { ChatData } from '../composables/useHelloWorld'
+import type { ChatData } from '../composables/chat-types'
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval'
 import OpenAI from 'openai'
 import { useDexieStorage } from '../composables/useDexieStorage'

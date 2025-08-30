@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatData } from '../composables/useHelloWorld'
+import type { ChatData } from '../composables/chat-types'
 
 const props = defineProps<{
   chatData: ChatData
