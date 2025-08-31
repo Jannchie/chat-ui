@@ -15,24 +15,10 @@ export interface StreamParser {
   setSentTime: (sentAt: number) => void
 }
 
-export type StreamEventType
-  = | 'response.created'
-    | 'response.output_item.added'
-    | 'response.content_part.added'
-    | 'response.output_text.delta'
-    | 'response.output_text.done'
-    | 'response.content_part.done'
-    | 'response.output_item.done'
-    | 'response.completed'
-    | 'chat.completion.chunk'
-
-export interface StreamEventHandlers {
-  [key: string]: (event: any) => void
-}
-
 export interface StreamState {
   currentMessage: ChatMessage | null
   textContent: string
+  reasoningContent: string
   sentAt: number
   model?: string
   usage?: ResponseUsage

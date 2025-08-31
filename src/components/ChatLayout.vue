@@ -266,6 +266,7 @@ async function onSubmit() {
       const result = await createStreamCompletion({
         model: languageModel,
         messages,
+        preset: platform.value,
         onUpdate: (updatedMessage: ChatMessage) => {
           // 首次响应时设置开始时间
           if (laststartedAtMS.value === 0) {

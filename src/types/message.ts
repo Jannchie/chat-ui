@@ -1,6 +1,3 @@
-import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
-import type { ResponseInput } from 'openai/resources/responses/responses'
-
 // Message content types
 export type MessageContent = string | Array<TextContent | ImageContent | FunctionCallContent | ToolCallContent>
 
@@ -53,6 +50,7 @@ export interface ChatMessage {
     sentAt?: number // 用户发送消息的时间
     edited?: boolean // 是否被编辑过
     model?: string // 使用的模型
+    preset?: string // 使用的平台/preset
 
     // 执行完毕后的 metadata
     firstTokenAt?: number // 收到第一个 token 的时间
@@ -72,9 +70,6 @@ export interface TransformOptions {
   apiType: 'completion' | 'responses' | 'custom'
   customTransformer?: MessageTransformer // 自定义转换器
 }
-
-// API Message 联合类型
-export type APIMessage = ChatCompletionMessageParam | ResponseInput
 
 // Transform 函数类型
 export type MessageTransformer<T = any> = (

@@ -10,6 +10,7 @@ export interface StreamOptions {
   onFinish?: (message: ChatMessage, usage?: any) => void
   onError?: (error: Error) => void
   maxRetries?: number
+  preset?: string // 添加 preset 信息
 }
 
 export interface UsageInfo {
@@ -37,6 +38,7 @@ export class AIStreamHandler {
       onFinish,
       onError,
       maxRetries = 3,
+      preset,
     } = options
 
     this.startTime = Date.now()
@@ -45,7 +47,8 @@ export class AIStreamHandler {
     // 创建初始的助手消息
     this.currentMessage = createChatMessage('assistant', '', {
       sentAt: this.startTime,
-      model: typeof model === 'string' ? model : 'unknown',
+      model: (model as any).modelId || (model as any).name || (typeof model === 'string' ? model : 'unknown'),
+      preset,
     })
 
     let retryCount = 0
@@ -61,20 +64,56 @@ export class AIStreamHandler {
         let fullContent = ''
         let usage: UsageInfo | undefined
 
-        // 处理流式响应
-        for await (const textPart of result.textStream) {
-          if (this.firstTokenTime === 0) {
-            this.firstTokenTime = Date.now()
-            // 更新首次响应时间
-            if (this.currentMessage?.metadata) {
-              this.currentMessage.metadata.firstTokenAt = this.firstTokenTime
+        let fullReasoning = ''
+
+        // 使用 fullStream 来处理所有类型的数据，包括 reasoning
+        try {
+          for await (const event of result.fullStream) {
+            if (event.type === 'text-delta') {
+              if (this.firstTokenTime === 0) {
+                this.firstTokenTime = Date.now()
+                // 更新首次响应时间
+                if (this.currentMessage?.metadata) {
+                  this.currentMessage.metadata.firstTokenAt = this.firstTokenTime
+                }
+              }
+
+              const textDelta = (event as any).text || ''
+              fullContent += textDelta
+              this.currentMessage = updateChatMessageContent(this.currentMessage!, fullContent)
+              onUpdate?.(this.currentMessage)
+            }
+            else if (event.type === 'reasoning-delta') {
+              const reasoningText = (event as any).text || ''
+              if (reasoningText) {
+                fullReasoning += reasoningText
+                this.currentMessage = {
+                  ...this.currentMessage!,
+                  reasoning: fullReasoning,
+                }
+                onUpdate?.(this.currentMessage!)
+              }
             }
           }
+        }
+        catch (error) {
+          console.warn('fullStream not available, falling back to textStream:', error)
 
-          fullContent += textPart
-          this.currentMessage = updateChatMessageContent(this.currentMessage!, fullContent)
+          // 回退到原来的 textStream 处理方式
+          for await (const textPart of result.textStream) {
+            if (this.firstTokenTime === 0) {
+              this.firstTokenTime = Date.now()
+              // 更新首次响应时间
+              if (this.currentMessage?.metadata) {
+                this.currentMessage.metadata.firstTokenAt = this.firstTokenTime
+              }
+            }
 
-          onUpdate?.(this.currentMessage)
+            fullContent += textPart
+            this.currentMessage = updateChatMessageContent(this.currentMessage!, fullContent)
+
+            onUpdate?.(this.currentMessage)
+          }
         }
 
         // 获取最终结果
@@ -103,6 +142,8 @@ export class AIStreamHandler {
           metadata: {
             ...this.currentMessage?.metadata,
             receivedAt,
+            model: this.currentMessage?.metadata?.model || (model as any).modelId || (model as any).name || (typeof model === 'string' ? model : 'unknown'),
+            preset: this.currentMessage?.metadata?.preset || preset,
             usage: usage
               ? {
                   input_tokens: usage.inputTokens,

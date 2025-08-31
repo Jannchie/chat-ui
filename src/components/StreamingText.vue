@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { refDebounced } from '@vueuse/core'
 import { computed, nextTick, toRef } from 'vue'
-import { useStreamingText } from '../composables/useStreamingText'
+import { splitContent } from '../utils/streamingText'
 
 interface StreamingTextProps {
   content: string
@@ -22,12 +22,6 @@ const emit = defineEmits<{
 const loading = toRef(props, 'loading')
 const debouncedLoading = refDebounced(loading, props.debounceDelay)
 
-// Use the streaming text composable - simplified
-const { splitContent } = useStreamingText({
-  fadeInClass: props.fadeInClass,
-})
-
-// Direct computation without extra wrappers
 const formattedContent = computed(() => splitContent(props.content))
 
 const contentFinal = computed(() => {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useStreamingText } from '../composables/useStreamingText'
 import { isKatexLoaded, isShikiLoaded, loadKatex, loadShiki, md } from '../utils'
+import { addFadeInToVNodes, splitContent } from '../utils/streamingText'
 
 const props = withDefaults(defineProps<{
   content: string
@@ -19,8 +19,6 @@ const streamMarkdownWrapperRef = ref<HTMLElement | null>(null)
 const loading = computed(() => props.loading)
 const showCopyTooltip = ref(false)
 
-// Use the streaming text composable
-const { editResult, splitContent } = useStreamingText()
 const debouncedLoading = refDebounced(loading, 1000)
 
 const formattedContent = computed(() => splitContent(content.value))
@@ -42,7 +40,7 @@ const contentVNodes = computedWithControl(() => [contentFinal.value, isShikiLoad
   const r = md.render(content, {
     sanitize: true,
   }) as unknown as VNode[]
-  return editResult(r, debouncedLoading.value)
+  return addFadeInToVNodes(r, debouncedLoading.value)
 })
 
 const reasoningVNodes = computedWithControl([

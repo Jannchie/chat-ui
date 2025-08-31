@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
 import { Tag } from '@roku-ui/vue'
-import { serviceUrl } from '../shared'
+import { platform, serviceUrl } from '../shared'
 import { getPlatformIcon } from '../utils'
 import MessageTimer from './MessageTimer.vue'
 
-defineProps<{ message: ChatMessage }>()
+const props = defineProps<{ message: ChatMessage }>()
 
 function formatDate(timestamp: number) {
   return new Intl.DateTimeFormat('sv-SE', {
@@ -18,7 +18,18 @@ function formatDate(timestamp: number) {
   }).format(new Date(timestamp))
 }
 
-const currentPlatform = computed(() => {
+const messagePlatform = computed(() => {
+  // 优先使用消息中保存的 preset
+  if (props.message.metadata?.preset) {
+    return props.message.metadata.preset
+  }
+
+  // 回退到当前的 platform
+  if (platform.value) {
+    return platform.value
+  }
+
+  // 最后基于 serviceUrl 推断
   const url = serviceUrl.value
   if (url?.includes('openai.com')) {
     return 'openai'
@@ -46,7 +57,7 @@ const currentPlatform = computed(() => {
       class="op-75 flex gap-1 items-center"
     >
       <span>·</span>
-      <component :is="() => getPlatformIcon(currentPlatform)" class="text-xs" />
+      <component :is="() => getPlatformIcon(messagePlatform)" class="text-xs" />
       <span>{{ message.metadata.model }}</span>
     </span>
     <MessageTimer :message="message" mode="compact" />

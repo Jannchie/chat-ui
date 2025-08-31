@@ -19,6 +19,7 @@ export class UnifiedStreamParser implements StreamParser {
   private state: StreamState = {
     currentMessage: null,
     textContent: '',
+    reasoningContent: '',
     sentAt: 0,
     model: undefined,
     usage: undefined,
@@ -46,6 +47,7 @@ export class UnifiedStreamParser implements StreamParser {
     this.state = {
       currentMessage: null,
       textContent: '',
+      reasoningContent: '',
       sentAt: 0,
       model: undefined,
       usage: undefined,
@@ -101,8 +103,13 @@ export class UnifiedStreamParser implements StreamParser {
   }
 
   private handleChatCompletionChunk(chunk: ChatCompletionChunk): void {
+    // 更新模型信息（如果提供的话）
+    if (chunk.model && !this.state.model) {
+      this.state.model = chunk.model
+    }
+
     if (!this.state.currentMessage) {
-      this.initializeMessage(chunk.model)
+      this.initializeMessage(chunk.model || this.state.model)
     }
 
     // 处理内容 delta
@@ -110,6 +117,12 @@ export class UnifiedStreamParser implements StreamParser {
     if (delta?.content) {
       this.recordTokenTime()
       this.state.textContent += delta.content
+      this.updateCurrentMessage()
+    }
+
+    // 处理 reasoning delta (DeepSeek 等模型支持的字段)
+    if ((delta as any)?.reasoning) {
+      this.state.reasoningContent += (delta as any).reasoning
       this.updateCurrentMessage()
     }
 
@@ -147,6 +160,17 @@ export class UnifiedStreamParser implements StreamParser {
   private handleResponseCreated(event: ResponseCreatedEvent): void {
     if (event.response?.model) {
       this.state.model = event.response.model
+      // 如果消息已经创建但模型信息更新了，需要更新消息的 metadata
+      if (this.state.currentMessage && !this.state.currentMessage.metadata?.model) {
+        this.state.currentMessage = {
+          ...this.state.currentMessage,
+          metadata: {
+            ...this.state.currentMessage.metadata,
+            model: this.state.model,
+          },
+        }
+        this.callbacks.onMessageUpdate(this.state.currentMessage)
+      }
     }
   }
 
@@ -238,6 +262,7 @@ export class UnifiedStreamParser implements StreamParser {
       },
     })
     this.state.textContent = ''
+    this.state.reasoningContent = ''
     this.callbacks.onMessageUpdate(this.state.currentMessage)
   }
 
@@ -250,6 +275,14 @@ export class UnifiedStreamParser implements StreamParser {
       this.state.currentMessage,
       this.state.textContent,
     )
+
+    // 更新 reasoning 内容
+    if (this.state.reasoningContent) {
+      this.state.currentMessage = {
+        ...this.state.currentMessage,
+        reasoning: this.state.reasoningContent,
+      }
+    }
     this.callbacks.onMessageUpdate(this.state.currentMessage)
   }
 
@@ -293,6 +326,7 @@ export class UnifiedStreamParser implements StreamParser {
       ...this.state.currentMessage,
       metadata: {
         ...this.state.currentMessage.metadata,
+        model: this.state.currentMessage.metadata?.model || this.state.model,
         firstTokenAt: this.state.firstTokenAt,
         receivedAt: Date.now(),
         usage: this.state.usage,

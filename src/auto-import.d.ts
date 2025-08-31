@@ -331,7 +331,4 @@ declare global {
   // @ts-ignore
   export type { RequestCacheKey } from './composables/useRequestCache'
   import('./composables/useRequestCache')
-  // @ts-ignore
-  export type { UseStreamingTextOptions } from './composables/useStreamingText'
-  import('./composables/useStreamingText')
 }

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { MessageContent } from '../types/message'
 import { ref } from 'vue'
-import { useStreamingText } from '../composables/useStreamingText'
 import { isKatexLoaded, isShikiLoaded, loadKatex, loadShiki, md } from '../utils'
+import { addFadeInToVNodes, splitContent } from '../utils/streamingText'
 
 const props = withDefaults(defineProps<{
   content: MessageContent
@@ -20,8 +20,6 @@ const showCopyTooltip = ref(false)
 const showImagePreview = ref<boolean>(false)
 const previewImageUrl = ref<string>('')
 
-// Use the streaming text composable
-const { editResult, splitContent } = useStreamingText()
 const debouncedLoading = refDebounced(loading, 1000)
 
 // Extract text content for markdown rendering
@@ -72,13 +70,17 @@ const contentVNodes = computedWithControl(() => [isShikiLoaded.value, isKatexLoa
   const r = md.render(content, {
     sanitize: true,
   }) as unknown as VNode[]
-  return editResult(r, debouncedLoading.value)
+  return addFadeInToVNodes(r, debouncedLoading.value)
 })
 
 const reasoningVNodes = computedWithControl([
   toRef(props, 'reasoning'),
 ], () => {
   const reasoningContent = props.reasoning ?? ''
+
+  if (!reasoningContent) {
+    return []
+  }
 
   // Check if reasoning contains code blocks and load Shiki if needed
   if (reasoningContent.includes('```') || reasoningContent.includes('`')) {
@@ -174,6 +176,9 @@ function formatToolCall(toolCall: any) {
         v-if="props.reasoning && props.reasoning.length > 0"
         class="dark:bg-neutral-1 text-xs mb-4 px-4 py-2 rounded-xl bg-neutral-200 min-w-full w-full overflow-auto prose prose-gray dark:bg-neutral-950 dark:prose-invert"
       >
+        <div class="text-xs text-gray-500 mb-2">
+          Reasoning ({{ props.reasoning.length }} chars):
+        </div>
         <StreamMarkdownReasoning />
       </div>
 
