@@ -1,19 +1,17 @@
 <script setup lang="ts">
-import { debouncedWatch, refDebounced } from '@vueuse/core'
-import { computed, nextTick } from 'vue'
+import { refDebounced } from '@vueuse/core'
+import { computed, nextTick, toRef } from 'vue'
 import { useStreamingText } from '../composables/useStreamingText'
 
 interface StreamingTextProps {
   content: string
   loading: boolean
   debounceDelay?: number
-  splitDelay?: number
   fadeInClass?: string
 }
 
 const props = withDefaults(defineProps<StreamingTextProps>(), {
   debounceDelay: 1000,
-  splitDelay: 300,
   fadeInClass: 'fade-in',
 })
 
@@ -21,31 +19,23 @@ const emit = defineEmits<{
   contentUpdated: [content: string]
 }>()
 
-const content = computed(() => props.content)
-const loading = computed(() => props.loading)
+const loading = toRef(props, 'loading')
 const debouncedLoading = refDebounced(loading, props.debounceDelay)
 
-// Use the streaming text composable
-const { createStreamingContent } = useStreamingText({
+// Use the streaming text composable - simplified
+const { splitContent } = useStreamingText({
   fadeInClass: props.fadeInClass,
 })
 
-const { formattedContent, contentFinal: baseFinal } = createStreamingContent(content, loading)
+// Direct computation without extra wrappers
+const formattedContent = computed(() => splitContent(props.content))
 
-// Add emit functionality to contentFinal
 const contentFinal = computed(() => {
-  const result = baseFinal.value
+  const result = props.loading ? formattedContent.value : props.content
   nextTick(() => {
     emit('contentUpdated', result)
   })
   return result
-})
-
-// Debounced content update watcher
-debouncedWatch([content], () => {
-  // Trigger re-computation when content changes
-}, {
-  debounce: props.splitDelay,
 })
 
 // Expose utilities for external use

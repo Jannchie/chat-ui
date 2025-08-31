@@ -1,9 +1,6 @@
-import type { Ref, VNode } from 'vue'
-import { computed } from 'vue'
+import type { VNode } from 'vue'
 
 export interface UseStreamingTextOptions {
-  debounceDelay?: number
-  splitDelay?: number
   fadeInClass?: string
 }
 
@@ -31,10 +28,7 @@ function splitContent(msg: string): string {
  * Provides utilities for text splitting and VNode manipulation
  */
 export function useStreamingText(options: UseStreamingTextOptions = {}) {
-  const {
-    debounceDelay = 1000,
-    fadeInClass = 'fade-in',
-  } = options
+  const { fadeInClass = 'fade-in' } = options
 
   /**
    * Add fade-in animation class to text nodes in VNode tree
@@ -60,64 +54,9 @@ export function useStreamingText(options: UseStreamingTextOptions = {}) {
     return children
   }
 
-  /**
-   * Create reactive streaming text state
-   */
-  function createStreamingState(initialContent = '', initialLoading = false) {
-    const content = ref(initialContent)
-    const loading = ref(initialLoading)
-    const debouncedLoading = refDebounced(loading, debounceDelay)
-
-    const formattedContent = computed(() => {
-      return splitContent(content.value)
-    })
-
-    const contentFinal = computed(() => {
-      return loading.value ? formattedContent.value : content.value
-    })
-
-    function updateContent(newContent: string) {
-      content.value = newContent
-    }
-
-    function setLoading(isLoading: boolean) {
-      loading.value = isLoading
-    }
-
-    return {
-      content: readonly(content),
-      loading: readonly(loading),
-      debouncedLoading: readonly(debouncedLoading),
-      formattedContent: readonly(formattedContent),
-      contentFinal: readonly(contentFinal),
-      updateContent,
-      setLoading,
-    }
-  }
-
-  /**
-   * Create streaming content computeds for a given content source
-   */
-  function createStreamingContent(content: Ref<string>, loading: Ref<boolean>) {
-    const formattedContent = computed(() => {
-      return splitContent(content.value)
-    })
-
-    const contentFinal = computed(() => {
-      return loading.value ? formattedContent.value : content.value
-    })
-
-    return {
-      formattedContent,
-      contentFinal,
-    }
-  }
-
   return {
     editResult,
     splitContent,
-    createStreamingState,
-    createStreamingContent,
     fadeInClass,
   }
 }
