@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { MessageContent } from '../types/message'
 import { ref } from 'vue'
+import { useStreamingText } from '../composables/useStreamingText'
 import { isKatexLoaded, isShikiLoaded, loadKatex, loadShiki, md } from '../utils'
 
 const props = withDefaults(defineProps<{
@@ -15,10 +16,13 @@ const props = withDefaults(defineProps<{
 
 const streamMarkdownWrapperRef = ref<HTMLElement | null>(null)
 const loading = computed(() => props.loading)
-const debouncedLoading = refDebounced(loading, 1000)
 const showCopyTooltip = ref(false)
 const showImagePreview = ref<boolean>(false)
 const previewImageUrl = ref<string>('')
+
+// Use the streaming text composable
+const { editResult, splitContent } = useStreamingText()
+const debouncedLoading = refDebounced(loading, 1000)
 
 // Extract text content for markdown rendering
 const textContent = computed(() => {
@@ -49,40 +53,6 @@ const nonTextContent = computed(() => {
   return []
 })
 
-function editResult(childrenRaw: VNode[]): VNode[] {
-  // eslint-disable-next-line unicorn/no-magic-array-flat-depth
-  const children = childrenRaw.flat(20)
-  for (const child of children) {
-    if (typeof child.children === 'string') {
-      child.props = {
-        ...child.props,
-      }
-      if (debouncedLoading.value) {
-        child.props.class = 'fade-in'
-      }
-    }
-    if (child.children && Array.isArray(child.children) && child.children.length > 0) {
-      editResult(child.children as VNode[])
-    }
-  }
-  return children
-}
-
-function splitContent(msg: string) {
-  const sentences = msg.split(/(?<=[。？！；、，\n])|(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=[.?!`])/g)
-
-  if (sentences.length > 0 && !/[.?!。？！；，、`\n]$/.test(sentences.at(-1)!)) {
-    sentences.pop()
-  }
-
-  if (sentences.length > 0 && /^\d+\./.test(sentences.at(-1)!)) {
-    sentences.pop()
-  }
-
-  const content = sentences.join('')
-  return content
-}
-
 const formatedContent = computed(() => {
   const msg = textContent.value
   return splitContent(msg)
@@ -109,7 +79,7 @@ const contentVNodes = computedWithControl(() => [isShikiLoaded.value, isKatexLoa
   const r = md.render(content, {
     sanitize: true,
   }) as unknown as VNode[]
-  return editResult(r)
+  return editResult(r, debouncedLoading.value)
 })
 
 const reasoningVNodes = computedWithControl([

@@ -35,6 +35,8 @@ declare module 'vue' {
     SelectPresetModal: typeof import('./components/SelectPresetModal.vue')['default']
     SettingsModal: typeof import('./components/SettingsModal.vue')['default']
     StreamContent: typeof import('./components/StreamContent.vue')['default']
+    StreamingText: typeof import('./components/StreamingText.vue')['default']
+    StreamingTextExample: typeof import('./components/StreamingTextExample.vue')['default']
     Translate: typeof import('./views/Translate.vue')['default']
     UserChatMessage: typeof import('./components/UserChatMessage.vue')['default']
     WordExplainPaper: typeof import('./components/WordExplainPaper.vue')['default']

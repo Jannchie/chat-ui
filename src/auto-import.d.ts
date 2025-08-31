@@ -99,6 +99,7 @@ declare global {
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
+  const streamingTextStyles: typeof import('./composables/useStreamingText')['streamingTextStyles']
   const syncRef: typeof import('@vueuse/core')['syncRef']
   const syncRefs: typeof import('@vueuse/core')['syncRefs']
   const templateRef: typeof import('@vueuse/core')['templateRef']
@@ -259,6 +260,7 @@ declare global {
   const useStepper: typeof import('@vueuse/core')['useStepper']
   const useStorage: typeof import('@vueuse/core')['useStorage']
   const useStorageAsync: typeof import('@vueuse/core')['useStorageAsync']
+  const useStreamingText: typeof import('./composables/useStreamingText')['useStreamingText']
   const useStyleTag: typeof import('@vueuse/core')['useStyleTag']
   const useSupported: typeof import('@vueuse/core')['useSupported']
   const useSwipe: typeof import('@vueuse/core')['useSwipe']
@@ -329,4 +331,7 @@ declare global {
   // @ts-ignore
   export type { RequestCacheKey } from './composables/useRequestCache'
   import('./composables/useRequestCache')
+  // @ts-ignore
+  export type { UseStreamingTextOptions } from './composables/useStreamingText'
+  import('./composables/useStreamingText')
 }
