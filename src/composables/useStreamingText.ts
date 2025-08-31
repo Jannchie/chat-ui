@@ -1,4 +1,5 @@
-import type { VNode } from 'vue'
+import type { Ref, VNode } from 'vue'
+import { computed } from 'vue'
 
 export interface UseStreamingTextOptions {
   debounceDelay?: number
@@ -94,10 +95,29 @@ export function useStreamingText(options: UseStreamingTextOptions = {}) {
     }
   }
 
+  /**
+   * Create streaming content computeds for a given content source
+   */
+  function createStreamingContent(content: Ref<string>, loading: Ref<boolean>) {
+    const formattedContent = computed(() => {
+      return splitContent(content.value)
+    })
+
+    const contentFinal = computed(() => {
+      return loading.value ? formattedContent.value : content.value
+    })
+
+    return {
+      formattedContent,
+      contentFinal,
+    }
+  }
+
   return {
     editResult,
     splitContent,
     createStreamingState,
+    createStreamingContent,
     fadeInClass,
   }
 }

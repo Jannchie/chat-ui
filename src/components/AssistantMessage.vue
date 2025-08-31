@@ -21,7 +21,7 @@ const showImagePreview = ref<boolean>(false)
 const previewImageUrl = ref<string>('')
 
 // Use the streaming text composable
-const { editResult, splitContent } = useStreamingText()
+const { editResult, createStreamingContent } = useStreamingText()
 const debouncedLoading = refDebounced(loading, 1000)
 
 // Extract text content for markdown rendering
@@ -53,15 +53,7 @@ const nonTextContent = computed(() => {
   return []
 })
 
-const formatedContent = computed(() => {
-  const msg = textContent.value
-  return splitContent(msg)
-})
-
-const contentFinal = computed(() => {
-  const msg = textContent.value
-  return props.loading ? formatedContent.value : msg
-})
+const { contentFinal } = createStreamingContent(textContent, loading)
 
 const contentVNodes = computedWithControl(() => [isShikiLoaded.value, isKatexLoaded.value, contentFinal.value], () => {
   const content = contentFinal.value ?? ''

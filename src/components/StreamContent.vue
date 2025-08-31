@@ -20,18 +20,10 @@ const loading = computed(() => props.loading)
 const showCopyTooltip = ref(false)
 
 // Use the streaming text composable
-const { editResult, splitContent } = useStreamingText()
+const { editResult, createStreamingContent } = useStreamingText()
 const debouncedLoading = refDebounced(loading, 1000)
 
-const formatedContent = computed(() => {
-  const msg = content.value
-  return splitContent(msg)
-})
-
-const contentFinal = computed(() => {
-  const msg = content.value
-  return props.loading ? formatedContent.value : msg
-})
+const { contentFinal } = createStreamingContent(content, loading)
 
 const contentVNodes = computedWithControl(() => [contentFinal.value, isShikiLoaded.value, isKatexLoaded.value], () => {
   const content = contentFinal.value ?? ''
