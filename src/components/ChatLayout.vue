@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import type { ImageFile } from '../composables/chat-types'
-import type { ChatMessage, ImageContent, MessageContent, TextContent, TransformOptions } from '../types/message'
-import OpenAI from 'openai'
+import type { ChatMessage, ImageContent, MessageContent, TextContent } from '../types/message'
+import { streamText } from 'ai'
 import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
-import { apiKey, client, model, platform, serviceUrl, useCurrentChat, useResponsesAPI } from '../shared'
+import { getProviderFromPlatform } from '../lib/ai-providers'
+import { createStreamCompletion } from '../lib/ai-stream-handler'
+import { chatMessagesToModelMessages, createChatMessage } from '../lib/message-converter'
+import { apiKey, model, platform, serviceUrl, useCurrentChat } from '../shared'
 import { generateId, isMobile, setChat } from '../utils'
-import { createUIMessage, transformMessages } from '../utils/messageTransform'
-import { createUnifiedStreamParser } from '../utils/streamParser'
 
 const router = useRouter()
 
-const lastUsage = ref<OpenAI.Completions.CompletionUsage | null>(null)
+const lastUsage = ref<{
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+} | null>(null)
 
 const conversation = shallowRef<ChatMessage[]>([])
 const currentChat = useCurrentChat()
@@ -31,13 +36,17 @@ const { cacheSuccessfulRequest } = useRequestCache()
 async function generateSummary(text: string, lockedModel?: string) {
   const modelToUse = lockedModel || model.value
 
-  let content: string | null = null
+  if (!modelToUse || !apiKey.value || !platform.value) {
+    return null
+  }
 
-  if (useResponsesAPI.value) {
-    // Use Responses API for summary
-    const resp = await client.value.responses.create({
-      model: modelToUse,
-      input: [
+  try {
+    const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
+    const languageModel = provider.getModel(modelToUse)
+
+    const result = await streamText({
+      model: languageModel,
+      messages: [
         {
           role: 'system',
           content: 'Please summarize the user\'s text and return the title of the text without adding any additional information. The title MUST in less than 4 words. Use the text language to summarize the text. Do not add any punctuation. Add "📝" emoji prefix to the summary.',
@@ -48,35 +57,26 @@ async function generateSummary(text: string, lockedModel?: string) {
         },
       ],
     })
-    content = resp.output_text
-  }
-  else {
-    // Use Chat Completions API for summary (original implementation)
-    const resp = await client.value.chat.completions.create({
+
+    let content = ''
+    for await (const textPart of result.textStream) {
+      content += textPart
+    }
+
+    // Cache successful summary request
+    cacheSuccessfulRequest({
+      preset: platform.value || 'openai',
+      serviceUrl: serviceUrl.value!,
       model: modelToUse,
-      messages: [
-        {
-          role: 'system',
-          content: 'Please summarize the user\'s text and return the title of the text without adding any additional information. The title MUST in less than 4 words. Use the text language to summarize the text. Do not add any punctuation.',
-        },
-        {
-          role: 'user',
-          content: `Summarize the following text in less than 4 words: ${text}`,
-        },
-      ],
+      apiKey: apiKey.value,
     })
-    content = resp.choices[0].message.content
+
+    return content
   }
-
-  // Cache successful summary request
-  cacheSuccessfulRequest({
-    preset: platform.value || 'openai',
-    serviceUrl: serviceUrl.value!,
-    model: modelToUse,
-    apiKey: apiKey.value,
-  })
-
-  return content
+  catch (error) {
+    console.error('Failed to generate summary:', error)
+    return null
+  }
 }
 
 const groupedConversation = computed(() => {
@@ -234,17 +234,12 @@ async function onSubmit() {
     uploadedImages.value = []
 
     // 创建用户消息和助手消息（带时间戳）
-    const userMessage = createUIMessage('user', messageContent, {
-      timestamp: Date.now(),
-      metadata: { sentAt: Date.now() },
+    const userMessage = createChatMessage('user', messageContent, {
+      sentAt: Date.now(),
     })
-    const assistantMessage = createUIMessage('assistant', '', {
-      timestamp: Date.now(),
-      reasoning: '',
-      metadata: {
-        sentAt: Date.now(),
-        model: currentModel,
-      },
+    const assistantMessage = createChatMessage('assistant', '', {
+      sentAt: Date.now(),
+      model: currentModel,
     })
 
     conversation.value = [...conversation.value, userMessage, assistantMessage]
@@ -255,144 +250,95 @@ async function onSubmit() {
         scrollToBottomSmoothly(el, 1000)
       }
     })
-    const lastMessage = conversation.value.at(-1)
 
-    // 使用新的转换系统
-    const transformOptions: TransformOptions = {
-      apiType: useResponsesAPI.value ? 'responses' : 'completion',
-    }
-
-    const apiMessages = transformMessages(
+    // 使用 AI SDK 进行流式处理
+    const messages = chatMessagesToModelMessages(
       conversation.value.slice(0, -1), // 排除最后一条空的助手消息
-      transformOptions,
-    ) as OpenAI.Chat.Completions.ChatCompletionMessageParam[]
+    )
 
-    let stream: AsyncIterable<any> | null = null
+    try {
+      const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
+      const languageModel = provider.getModel(currentModel)
 
-    const handleStreamError = (error: any) => {
-      if (error instanceof OpenAI.APIError) {
-        if (!lastMessage) {
-          return null
-        }
-        lastMessage.role = 'error'
-        switch (error.status) {
-          case 401: {
-            lastMessage.content = 'Invalid API Key.'
-            break
-          }
-          case 403: {
-            lastMessage.content = 'API Key has no permission.'
-            break
-          }
-          case 429: {
-            lastMessage.content = 'Rate limit exceeded.'
-            break
-          }
-          default: {
-            lastMessage.content = (error?.status ?? 0) >= 500 ? 'Server Error.' : 'Error.'
-          }
-        }
-        // 设置 receivedAt 以停止计时器
-        if (lastMessage.metadata) {
-          lastMessage.metadata.receivedAt = Date.now()
-        }
-        return null
-      }
-      else {
-        throw error
-      }
-    }
+      laststartedAtMS.value = 0
+      lastEndedAtMS.value = 0
 
-    if (useResponsesAPI.value) {
-      // 添加 Responses API 系统消息
-      const responsesMessages = [
-        {
-          role: 'system' as const,
-          content: 'Please answer the user\'s question. If the input text is already in the target language, just rewrite with the specified tone.',
+      const result = await createStreamCompletion({
+        model: languageModel,
+        messages,
+        onUpdate: (updatedMessage: ChatMessage) => {
+          // 首次响应时设置开始时间
+          if (laststartedAtMS.value === 0) {
+            laststartedAtMS.value = Date.now()
+          }
+
+          // 更新最后一个消息
+          const lastIndex = conversation.value.length - 1
+          if (lastIndex >= 0) {
+            conversation.value[lastIndex] = updatedMessage
+            conversation.value = [...conversation.value]
+          }
         },
-        ...apiMessages,
-      ]
+        onFinish: (finalMessage: ChatMessage, usage?: any) => {
+          lastEndedAtMS.value = Date.now()
 
-      stream = await (client.value as any).responses.create({
-        input: responsesMessages,
-        model: currentModel,
-        stream: true,
-      }).catch(handleStreamError)
-    }
-    else {
-      stream = await client.value.chat.completions.create({
-        messages: apiMessages,
-        model: currentModel,
-        stream: true,
-        stream_options: {
-          include_usage: true,
+          if (usage) {
+            lastUsage.value = {
+              prompt_tokens: usage.inputTokens,
+              completion_tokens: usage.outputTokens,
+              total_tokens: usage.totalTokens,
+            }
+
+            if (chat) {
+              chat.token.inTokens += usage.inputTokens
+              chat.token.outTokens += usage.outputTokens
+            }
+          }
+
+          // 确保最后一个消息被正确更新
+          const lastIndex = conversation.value.length - 1
+          if (lastIndex >= 0) {
+            conversation.value[lastIndex] = finalMessage
+            conversation.value = [...conversation.value]
+          }
+
+          // Cache successful request
+          cacheSuccessfulRequest({
+            preset: platform.value || 'openai',
+            serviceUrl: serviceUrl.value!,
+            model: currentModel,
+            apiKey: apiKey.value,
+          })
         },
-      }).catch(handleStreamError)
-    }
-    if (!stream) {
-      return
-    }
-    laststartedAtMS.value = 0
-    lastEndedAtMS.value = 0
-    let streamCompleted = false
-
-    // 使用统一的流式处理器
-    const parser = createUnifiedStreamParser({
-      onMessageUpdate: (message: ChatMessage) => {
-        // 首次响应时设置开始时间
-        if (laststartedAtMS.value === 0) {
-          laststartedAtMS.value = Date.now()
-        }
-
-        // 查找消息在会话中的索引并更新
-        const lastIndex = conversation.value.length - 1
-        if (lastIndex >= 0) {
-          conversation.value[lastIndex] = message
-          // 触发响应式更新
-          conversation.value = [...conversation.value]
-        }
-      },
-      onMessageComplete: (message: ChatMessage) => {
-        // 消息完成时更新最后一个消息
-        const lastIndex = conversation.value.length - 1
-        if (lastIndex >= 0) {
-          conversation.value[lastIndex] = message
-          conversation.value = [...conversation.value]
-        }
-      },
-      onUsageUpdate: (usage: any) => {
-        // 处理使用统计
-        lastEndedAtMS.value = Date.now()
-        lastUsage.value = {
-          prompt_tokens: usage.input_tokens || usage.prompt_tokens || 0,
-          completion_tokens: usage.output_tokens || usage.completion_tokens || 0,
-          total_tokens: usage.total_tokens
-            || (usage.input_tokens || usage.prompt_tokens || 0)
-            + (usage.output_tokens || usage.completion_tokens || 0),
-        }
-        if (chat) {
-          chat.token.inTokens += usage.input_tokens || usage.prompt_tokens || 0
-          chat.token.outTokens += usage.output_tokens || usage.completion_tokens || 0
-        }
-        streamCompleted = true
-      },
-    })
-
-    // 设置正确的请求发送时间
-    parser.setSentTime(assistantMessage.metadata!.sentAt!)
-
-    for await (const chunk of stream) {
-      parser.parseEvent(chunk)
-    }
-
-    // Cache successful request
-    if (streamCompleted) {
-      cacheSuccessfulRequest({
-        preset: platform.value || 'openai',
-        serviceUrl: serviceUrl.value!,
-        model: currentModel,
-        apiKey: apiKey.value,
+        onError: (error: Error) => {
+          const lastIndex = conversation.value.length - 1
+          if (lastIndex >= 0) {
+            const errorMessage = createChatMessage('error', error.message, {
+              sentAt: assistantMessage.metadata?.sentAt || Date.now(),
+              receivedAt: Date.now(),
+            })
+            conversation.value[lastIndex] = errorMessage
+            conversation.value = [...conversation.value]
+          }
+        },
       })
+
+      // 如果有错误，在这里处理
+      if (result.error) {
+        throw result.error
+      }
+    }
+    catch (error: any) {
+      console.error('Stream completion failed:', error)
+      const lastIndex = conversation.value.length - 1
+      if (lastIndex >= 0) {
+        const errorMessage = createChatMessage('error', 'Failed to get response from AI', {
+          sentAt: assistantMessage.metadata?.sentAt || Date.now(),
+          receivedAt: Date.now(),
+        })
+        conversation.value[lastIndex] = errorMessage
+        conversation.value = [...conversation.value]
+      }
     }
   }
   finally {

@@ -11,10 +11,15 @@
     "lint": "eslint . --fix"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.9",
+    "@ai-sdk/openai": "^2.0.23",
+    "@ai-sdk/openai-compatible": "^1.0.13",
+    "@ai-sdk/vue": "^2.0.28",
     "@roku-ui/preset": "^0.27.0",
     "@roku-ui/vue": "^0.27.0",
     "@vueuse/core": "^13.6.0",
     "@vueuse/integrations": "^13.6.0",
+    "ai": "^5.0.28",
     "dexie": "^4.0.11",
     "idb-keyval": "^6.2.2",
     "lru-cache": "^11.1.0",
