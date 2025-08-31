@@ -1,6 +1,5 @@
 import type { ChatData } from '../composables/chat-types'
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval'
-import OpenAI from 'openai'
 import { useDexieStorage } from '../composables/useDexieStorage'
 
 export const chatHistoryIDB = useIDBKeyval<ChatData[]>('chatHistory', [], {
@@ -24,10 +23,6 @@ export const currentPreset = useDexieStorage('currentPreset', 'openai')
 export const customServiceUrl = useDexieStorage('serviceUrl', 'https://api.openai.com/v1')
 export const platform = useDexieStorage('platform', 'openai')
 
-export const useResponsesAPI = computed(() => {
-  // OpenAI 使用 responses API，其他平台使用 completions API
-  return platform.value === 'openai'
-})
 export const serviceUrl = computed(() => {
   if (platform.value === 'custom') {
     return customServiceUrl.value
@@ -83,34 +78,6 @@ export const apiKey = computed({
   },
 })
 
-const defaultHeaders = computed(() => {
-  const headers: Record<string, string | null> = {
-    'x-stainless-timeout': null,
-    'x-stainless-os': null,
-    'x-stainless-version': null,
-    'x-stainless-package-version': null,
-    'x-stainless-runtime-version': null,
-    'x-stainless-runtime': null,
-    'x-stainless-arch': null,
-    'x-stainless-retry-count': null,
-    'x-stainless-lang': null,
-  }
-  if (platform.value === 'anthropic') {
-    headers['anthropic-dangerous-direct-browser-access'] = 'true'
-    headers['x-api-key'] = apiKey.value
-    headers['anthropic-version'] = '2023-06-01'
-  }
-  return headers
-})
-
-export const client = computed(() => {
-  return new OpenAI({
-    apiKey: apiKey.value,
-    baseURL: serviceUrl.value,
-    dangerouslyAllowBrowser: true,
-    defaultHeaders: defaultHeaders.value,
-  })
-})
 
 export function useCurrentChat() {
   const route = useRoute()

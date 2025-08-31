@@ -5,7 +5,7 @@ import StreamContent from '../components/StreamContent.vue'
 import WordExplainPaper from '../components/WordExplainPaper.vue'
 import { useDexieStorage } from '../composables/useDexieStorage'
 import { useRequestCache } from '../composables/useRequestCache'
-import { apiKey, client, currentPreset, model, serviceUrl } from '../shared'
+import { apiKey, currentPreset, model, serviceUrl } from '../shared'
 import { transformToChatCompletions } from '../utils/messageTransform'
 
 const router = useRouter()
@@ -164,40 +164,19 @@ watchEffect(async () => {
       return d
     })
 
-    const stream = await client.value.chat.completions.create({
-      model: model.value,
-      stream: true,
-      messages: transformToChatCompletions(filteredConversation),
-    })
+    // TODO: Implement using Vercel AI SDK
+    // Temporarily disabled for refactoring
+    loading.value = false
+    
+    // cacheSuccessfulRequest({
+    //   preset: currentPreset.value || 'openai',
+    //   serviceUrl: serviceUrl.value,
+    //   model: model.value,
+    //   apiKey: apiKey.value,
+    // })
 
-    let streamCompleted = false
-    for await (const chunk of stream) {
-      if (currentRequestId !== requestId) {
-        return
-      }
-      if (chunk.choices[0].delta.content) {
-        translateContent.value += chunk.choices[0].delta.content
-      }
-      if (chunk.usage) {
-        streamCompleted = true
-      }
-    }
-
-    if (currentRequestId === requestId) {
-      loading.value = false
-
-      if (streamCompleted || translateContent.value.trim()) {
-        cacheSuccessfulRequest({
-          preset: currentPreset.value || 'openai',
-          serviceUrl: serviceUrl.value,
-          model: model.value,
-          apiKey: apiKey.value,
-        })
-
-        // Save to history
-        saveToHistory(textDebounced.value, translateContent.value)
-      }
-    }
+    // // Save to history
+    // saveToHistory(textDebounced.value, translateContent.value)
   }
   catch (error) {
     console.error(error)

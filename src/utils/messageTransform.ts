@@ -1,17 +1,11 @@
-import type { ChatCompletionContentPart, ChatCompletionMessageParam } from 'openai/resources/chat/completions/completions.js'
-import type { ResponseInput } from 'openai/resources/responses/responses.js'
+import type { ChatCompletionContentPart, ChatCompletionMessageParam, ResponseInput } from '../types/openai-compat'
 import type {
   ChatMessage,
   MessageContent,
   TransformOptions,
 } from '../types/message'
+import { generateId } from './index'
 
-/**
- * 生成消息 ID
- */
-function generateMessageId(): string {
-  return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
-}
 
 /**
  * 创建新的 UI Message
@@ -27,7 +21,7 @@ export function createUIMessage(
   },
 ): ChatMessage {
   return {
-    id: options?.id || generateMessageId(),
+    id: options?.id || generateId(),
     role,
     content,
     timestamp: options?.timestamp || Date.now(),

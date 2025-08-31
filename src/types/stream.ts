@@ -1,7 +1,5 @@
-import type { ChatCompletionChunk } from 'openai/resources/chat/completions'
-import type { ResponseStreamEvent, ResponseUsage } from 'openai/resources/responses/responses'
-
 import type { ChatMessage } from './message'
+import type { ChatCompletionChunk, ResponseStreamEvent, ResponseUsage } from './openai-compat'
 
 export interface StreamCallbacks {
   onMessageUpdate: (message: ChatMessage) => void
@@ -27,16 +25,3 @@ export interface StreamState {
   lastTokenAt?: number
 }
 
-export type { ChatCompletionChunk } from 'openai/resources/chat/completions'
-export type {
-  ResponseCompletedEvent,
-  ResponseContentPartAddedEvent,
-  ResponseContentPartDoneEvent,
-  ResponseCreatedEvent,
-  ResponseOutputItemAddedEvent,
-  ResponseOutputItemDoneEvent,
-  ResponseStreamEvent,
-  ResponseTextDeltaEvent,
-  ResponseTextDoneEvent,
-  ResponseUsage,
-} from 'openai/resources/responses/responses'

@@ -20,7 +20,7 @@ describe('messagetransform', () => {
 
       expect(message.role).toBe('user')
       expect(message.content).toBe('Hello world')
-      expect(message.id).toMatch(/^msg_\d+_[a-z0-9]{9}$/)
+      expect(message.id).toMatch(/^[a-f0-9-]{36}$/)
       expect(message.timestamp).toBeTypeOf('number')
       expect(message.reasoning).toBeUndefined()
       expect(message.metadata).toBeUndefined()

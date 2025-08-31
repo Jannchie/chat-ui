@@ -3,7 +3,7 @@ import type { ChatMessage } from '../types/message'
 import { Paper, Tag } from '@roku-ui/vue'
 import { z } from 'zod'
 import { useRequestCache } from '../composables/useRequestCache'
-import { apiKey, client, model, platform, serviceUrl } from '../shared'
+import { apiKey, model, platform, serviceUrl } from '../shared'
 import { transformToChatCompletions } from '../utils/messageTransform'
 
 const props = withDefaults(defineProps<{
@@ -73,11 +73,8 @@ async function explainWords() {
   }
   loading.value = true
   try {
-    const resp = await client.value.chat.completions.create({
-      model: model.value,
-      messages: transformToChatCompletions(conversation.value),
-    })
-    const jsonStr = resp.choices[0].message.content
+    // TODO: Implement using Vercel AI SDK
+    const jsonStr = ''
     if (!jsonStr) {
       return
     }

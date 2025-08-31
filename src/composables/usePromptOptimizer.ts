@@ -1,6 +1,7 @@
-import type OpenAI from 'openai'
 import { ref } from 'vue'
-import { client, model, useResponsesAPI } from '../shared'
+import { streamText } from 'ai'
+import { getProviderFromPlatform } from '../lib/ai-providers'
+import { apiKey, model, platform, serviceUrl } from '../shared'
 
 export interface PromptOptimizationOptions {
   style?: 'professional' | 'casual' | 'concise' | 'detailed'
@@ -41,41 +42,28 @@ Return only the optimized prompt without any explanations or additional text.`
 
       const userMessage = `Original prompt: "${originalPrompt}"`
 
-      let optimizedContent: string | null = null
+      const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
+      const languageModel = provider.getModel(model.value)
 
-      if (useResponsesAPI.value) {
-        const response = await (client.value as any).responses.create({
-          model: model.value,
-          input: [
-            {
-              role: 'system',
-              content: systemMessage,
-            },
-            {
-              role: 'user',
-              content: userMessage,
-            },
-          ],
-        })
-        optimizedContent = response.output_text
-      }
-      else {
-        const response = await client.value.chat.completions.create({
-          model: model.value,
-          messages: [
-            {
-              role: 'system',
-              content: systemMessage,
-            },
-            {
-              role: 'user',
-              content: userMessage,
-            },
-          ] as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
-          temperature: 0.3,
-          max_tokens: 1000,
-        })
-        optimizedContent = response.choices[0]?.message?.content
+      const result = await streamText({
+        model: languageModel,
+        messages: [
+          {
+            role: 'system',
+            content: systemMessage,
+          },
+          {
+            role: 'user',
+            content: userMessage,
+          },
+        ],
+        temperature: 0.3,
+        maxRetries: 1,
+      })
+
+      let optimizedContent = ''
+      for await (const textPart of result.textStream) {
+        optimizedContent += textPart
       }
 
       return optimizedContent?.trim() || null
