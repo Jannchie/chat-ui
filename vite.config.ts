@@ -74,7 +74,6 @@ export default defineConfig({
         manualChunks: {
           'vendor-vue': ['vue', 'vue-router'],
           'vendor-ui': ['@vueuse/core', '@vueuse/integrations'],
-          'vendor-openai': ['openai'],
           'vendor-db': ['dexie', 'idb-keyval'],
         },
       },
@@ -86,7 +85,6 @@ export default defineConfig({
       'vue',
       'vue-router',
       '@vueuse/core',
-      'openai',
     ],
     exclude: ['shiki'],
   },
