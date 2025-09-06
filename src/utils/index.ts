@@ -1,7 +1,7 @@
 import markdownit from 'markdown-it'
 import todo from 'markdown-it-todo'
-import { chatHistoryIDB } from '../shared'
 import { v7 as uuidv7 } from 'uuid'
+import { chatHistoryIDB } from '../shared'
 import VNodePlugin from './render'
 
 export * from './platform'
