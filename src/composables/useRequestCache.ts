@@ -8,8 +8,9 @@ export interface RequestCacheKey {
   apiKey: string
 }
 
-const MAX_CACHE_SIZE = 100
-const TTL = 1000 * 60 * 30 // 30 minutes
+// Increase cache capacity and extend TTL to reduce unintended evictions
+const MAX_CACHE_SIZE = 32
+const TTL = 1000 * 60 * 60 * 24 * 30 // 30 days
 
 function generateCacheKey(key: RequestCacheKey): string {
   const { preset = '', serviceUrl, model, apiKey } = key
@@ -110,11 +111,13 @@ async function getRecentSuccessfulRequests(limit = 10): Promise<RequestCacheEntr
   try {
     await cleanupExpiredEntries()
 
+    // Order by timestamp to ensure true recency, then filter successes
     const entries = await db.requestCache
-      .filter(entry => entry.success)
+      .orderBy('timestamp')
+      .reverse()
       .toArray()
 
-    return entries.toReversed().slice(0, limit)
+    return entries.filter(entry => entry.success).slice(0, limit)
   }
   catch (error) {
     console.error('Error getting recent requests:', error)
@@ -126,12 +129,13 @@ async function getTopSuccessfulRequests(limit = 10): Promise<RequestCacheEntry[]
   try {
     await cleanupExpiredEntries()
 
+    // Order by accessCount descending (most used first)
     const entries = await db.requestCache
       .orderBy('accessCount')
-      .filter(entry => entry.success)
+      .reverse()
       .toArray()
 
-    return entries.toReversed().slice(0, limit)
+    return entries.filter(entry => entry.success).slice(0, limit)
   }
   catch (error) {
     console.error('Error getting top requests:', error)
