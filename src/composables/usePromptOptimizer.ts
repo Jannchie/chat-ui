@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { streamText } from 'ai'
+import { ref } from 'vue'
 import { getProviderFromPlatform } from '../lib/ai-providers'
 import { apiKey, model, platform, serviceUrl } from '../shared'
 

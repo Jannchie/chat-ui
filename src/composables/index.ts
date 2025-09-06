@@ -2,79 +2,82 @@ import { apiKey, currentPreset, platform, preset, serviceUrl } from '../shared'
 
 async function fetchModelsFromAPI(platformName: string, key: string): Promise<string[]> {
   const baseUrl = getAPIBaseURL(platformName)
-  
-  try {
-    switch (platformName) {
-      case 'openai':
-      case 'deepseek':
-      case 'pfn':
-      case 'custom': {
-        const response = await fetch(`${baseUrl}/models`, {
-          headers: {
-            'Authorization': `Bearer ${key}`,
-            'Content-Type': 'application/json',
-          },
-        })
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-        }
-        
-        const data = await response.json()
-        return data.data?.map((model: any) => model.id) || []
+
+  switch (platformName) {
+    case 'openai':
+    case 'deepseek':
+    case 'pfn':
+    case 'custom': {
+      const response = await fetch(`${baseUrl}/models`, {
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-      
-      case 'anthropic': {
-        // Anthropic doesn't have a public models API, return known models
-        return [
-          'claude-3-5-sonnet-20241022',
-          'claude-3-5-haiku-20241022', 
-          'claude-3-haiku-20240307',
-          'claude-3-opus-20240229'
-        ]
-      }
-      
-      case 'openrouter': {
-        const response = await fetch('https://openrouter.ai/api/v1/models', {
-          headers: {
-            'Authorization': `Bearer ${key}`,
-            'Content-Type': 'application/json',
-          },
-        })
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-        }
-        
-        const data = await response.json()
-        return data.data?.map((model: any) => model.id) || []
-      }
-      
-      default:
-        return []
+
+      const data = await response.json()
+      return data.data?.map((model: any) => model.id) || []
     }
-  }
-  catch (error) {
-    throw error
+
+    case 'anthropic': {
+      // Anthropic doesn't have a public models API, return known models
+      return [
+        'claude-3-5-sonnet-20241022',
+        'claude-3-5-haiku-20241022',
+        'claude-3-haiku-20240307',
+        'claude-3-opus-20240229',
+      ]
+    }
+
+    case 'openrouter': {
+      const response = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return data.data?.map((model: any) => model.id) || []
+    }
+
+    default: {
+      return []
+    }
   }
 }
 
 function getAPIBaseURL(platformName: string): string {
   switch (platformName) {
-    case 'openai':
+    case 'openai': {
       return 'https://api.openai.com/v1'
-    case 'anthropic':
+    }
+    case 'anthropic': {
       return 'https://api.anthropic.com/v1'
-    case 'openrouter':
+    }
+    case 'openrouter': {
       return 'https://openrouter.ai/api/v1'
-    case 'deepseek':
+    }
+    case 'deepseek': {
       return 'https://api.deepseek.com/v1'
-    case 'pfn':
+    }
+    case 'pfn': {
       return 'https://api.platform.preferredai.jp/v1'
-    case 'custom':
-      return serviceUrl.value.replace(/\/$/, '') // Remove trailing slash
-    default:
+    }
+    case 'custom': {
+      return serviceUrl.value.replace(/\/$/, '')
+    } // Remove trailing slash
+    default: {
       return ''
+    }
   }
 }
 
@@ -109,23 +112,29 @@ export function useModels() {
       if (!apiKey.value) {
         // If no API key, provide default models for preview
         switch (platform.value) {
-          case 'openai':
+          case 'openai': {
             models.value = ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo']
             break
-          case 'anthropic':
+          }
+          case 'anthropic': {
             models.value = ['claude-3-5-sonnet-20241022', 'claude-3-haiku-20240307', 'claude-3-opus-20240229']
             break
-          case 'openrouter':
+          }
+          case 'openrouter': {
             models.value = ['openai/gpt-4', 'anthropic/claude-3-sonnet', 'google/gemini-pro']
             break
-          case 'deepseek':
+          }
+          case 'deepseek': {
             models.value = ['deepseek-chat', 'deepseek-coder']
             break
-          case 'pfn':
+          }
+          case 'pfn': {
             models.value = ['plamo-beta']
             break
-          default:
+          }
+          default: {
             models.value = []
+          }
         }
         error.value = 'Enter API key to fetch real models'
         return

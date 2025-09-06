@@ -54,7 +54,6 @@ async function handlePaste(event: ClipboardEvent) {
   }
 }
 
-
 async function handleFiles(files: FileList | null) {
   if (!files) {
     return

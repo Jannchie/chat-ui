@@ -1,43 +1,16 @@
 <script setup lang="ts">
-import type { ChatMessage } from '../types/message'
 import { Paper, Tag } from '@roku-ui/vue'
 import { z } from 'zod'
 import { useRequestCache } from '../composables/useRequestCache'
 import { apiKey, model, platform, serviceUrl } from '../shared'
-import { transformToChatCompletions } from '../utils/messageTransform'
 
 const props = withDefaults(defineProps<{
   content?: string
   targetLang?: string
   translationLoading?: boolean
 }>(), {})
-const targetLang = computed(() => props.targetLang)
 const content = computed(() => props.content)
-const prompt = computed(() => {
-  return `Based on the content I provide, analyze and extract key difficult words that help in understanding the content, and explain them. Your explanation should be in the form of a JSON array of objects, including the following fields: word, part of speech, explanation in ${targetLang.value}, synonyms (if any) in the target language (${targetLang.value}). 
-
-Please respond with ONLY a valid JSON object in this exact format:
-{
-  "explains": [
-    {
-      "word": "example",
-      "pos": "noun",
-      "explain": "explanation in ${targetLang.value}",
-      "synonyms": ["synonym1", "synonym2"]
-    }
-  ]
-}
-
-The content I provide is: "${content.value}"`
-})
-const conversation = computed<ChatMessage[]>(() => {
-  return [{
-    id: 'user-message-1',
-    role: 'user',
-    content: prompt.value,
-    timestamp: Date.now(),
-  }]
-})
+// Prompt will be constructed when implementing the request
 const { cacheSuccessfulRequest } = useRequestCache()
 
 const Explains = z.array(z.object({
@@ -74,45 +47,50 @@ async function explainWords() {
   loading.value = true
   try {
     // TODO: Implement using Vercel AI SDK
-    const jsonStr = ''
-    if (!jsonStr) {
-      return
-    }
+    const jsonStr: string | null = null
 
-    // Try to extract JSON from the response
-    let parsedResponse
-    try {
+    if (typeof jsonStr === 'string') {
+      const str = jsonStr as string
+      // Try to extract JSON from the response
+      let parsedResponse: unknown
       // First try to parse as direct JSON
-      parsedResponse = JSON.parse(jsonStr)
-    }
-    catch {
-      // If that fails, try to extract JSON from markdown code blocks
-      const jsonMatch = jsonStr.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/)
-      if (jsonMatch) {
-        parsedResponse = JSON.parse(jsonMatch[1])
+      try {
+        parsedResponse = JSON.parse(str)
       }
-      else {
-        // Try to find JSON object in the text
-        const jsonObjectMatch = jsonStr.match(/\{[\s\S]*\}/)
-        if (jsonObjectMatch) {
-          parsedResponse = JSON.parse(jsonObjectMatch[0])
+      catch {
+        // If that fails, try to extract JSON from markdown code blocks
+        const jsonMatch = str.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/)
+        if (jsonMatch) {
+          parsedResponse = JSON.parse(jsonMatch[1])
         }
         else {
-          throw new Error('No valid JSON found in response')
+          // Try to find JSON object in the text
+          const jsonObjectMatch = str.match(/\{[\s\S]*\}/)
+          if (jsonObjectMatch) {
+            parsedResponse = JSON.parse(jsonObjectMatch[0])
+          }
+          else {
+            throw new Error('No valid JSON found in response')
+          }
         }
       }
+
+      const e = WordExplainsResp.parse(parsedResponse)
+      explains.value = e.explains
+
+      // Cache successful word explanation request
+      cacheSuccessfulRequest({
+        preset: platform.value || 'openai',
+        serviceUrl: serviceUrl.value,
+        model: model.value,
+        apiKey: apiKey.value,
+      })
     }
-
-    const e = WordExplainsResp.parse(parsedResponse)
-    explains.value = e.explains
-
-    // Cache successful word explanation request
-    cacheSuccessfulRequest({
-      preset: platform.value || 'openai',
-      serviceUrl: serviceUrl.value,
-      model: model.value,
-      apiKey: apiKey.value,
-    })
+    else {
+      // No response yet; keep loading state false and exit
+      loading.value = false
+      return
+    }
   }
   catch (error) {
     console.error('WordExplainPaper error:', error)

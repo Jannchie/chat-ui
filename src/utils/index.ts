@@ -1,6 +1,7 @@
 import markdownit from 'markdown-it'
 import todo from 'markdown-it-todo'
 import { chatHistoryIDB } from '../shared'
+import { v7 as uuidv7 } from 'uuid'
 import VNodePlugin from './render'
 
 export * from './platform'
@@ -9,7 +10,8 @@ export const isMobile = computed(() => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 })
 export function generateId() {
-  return globalThis.crypto.randomUUID()
+  // Always use UUIDv7 from external library to avoid custom implementations
+  return uuidv7()
 }
 
 export const md = markdownit({

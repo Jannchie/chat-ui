@@ -1,10 +1,9 @@
-import type { ImageFile } from './chat-types'
 import type { ChatMessage, MessageContent } from '../types/message'
-import { createStreamCompletion } from '../lib/ai-stream-handler'
+import type { ImageFile } from './chat-types'
 import { getProviderFromPlatform } from '../lib/ai-providers'
+import { createStreamCompletion } from '../lib/ai-stream-handler'
 import { chatMessagesToModelMessages, createChatMessage } from '../lib/message-converter'
 import { apiKey, model, platform, serviceUrl } from '../shared'
-import { generateId } from '../utils'
 
 export interface StreamChatOptions {
   onUpdate?: (message: ChatMessage) => void
@@ -19,7 +18,7 @@ export function useStreamChat() {
     completion_tokens: number
     total_tokens: number
   } | null>(null)
-  
+
   const lastStartedAtMS = ref(0)
   const lastEndedAtMS = ref(0)
 
@@ -31,7 +30,7 @@ export function useStreamChat() {
     conversation: ChatMessage[],
     input: string,
     uploadedImages: ImageFile[],
-    options: StreamChatOptions = {}
+    options: StreamChatOptions = {},
   ): Promise<{ message: ChatMessage, error?: Error }> {
     if ((input.trim() === '' && uploadedImages.length === 0) || streaming.value) {
       throw new Error('Invalid input or already streaming')
@@ -44,7 +43,7 @@ export function useStreamChat() {
     }
 
     streaming.value = true
-    
+
     try {
       // Create message content based on whether images are uploaded
       let messageContent: MessageContent
@@ -123,10 +122,7 @@ export function useStreamChat() {
             options.onFinish?.(finalMessage, usage)
           },
           onError: (error: Error) => {
-            const errorMessage = createChatMessage('error', error.message, {
-              sentAt: assistantMessage.metadata?.sentAt || Date.now(),
-              receivedAt: Date.now(),
-            })
+            // Surface error via callback; the caller handles error display
             options.onError?.(error)
           },
         })

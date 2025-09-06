@@ -2,7 +2,6 @@ import type { ModelMessage } from 'ai'
 import type { ChatMessage, MessageContent } from '../types/message'
 import { generateId } from '../utils'
 
-
 /**
  * 将 ChatMessage 数组转换为 AI SDK 的 ModelMessage 数组
  */

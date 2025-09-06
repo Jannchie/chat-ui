@@ -1,18 +1,18 @@
+function easeInOutQuad(time: number, start: number, change: number, duration: number): number {
+  time /= duration / 2
+  if (time < 1) {
+    return change / 2 * time * time + start
+  }
+  time--
+  return -change / 2 * (time * (time - 2) - 1) + start
+}
+
 export function useScrollControl() {
   const enableAutoScroll = ref(false)
 
-  function easeInOutQuad(time: number, start: number, change: number, duration: number): number {
-    time /= duration / 2
-    if (time < 1) {
-      return change / 2 * time * time + start
-    }
-    time--
-    return -change / 2 * (time * (time - 2) - 1) + start
-  }
-
   function scrollToBottomSmoothly(
     element: { scrollTop: number, scrollHeight: number, clientHeight: number },
-    duration: number
+    duration: number,
   ): void {
     const start = element.scrollTop
     const end = element.scrollHeight - element.clientHeight
@@ -48,7 +48,7 @@ export function useScrollControl() {
   }
 
   return {
-    enableAutoScroll: readonly(enableAutoScroll),
+    enableAutoScroll,
     scrollToBottom,
     scrollToBottomSmoothly,
     setupAutoScroll,

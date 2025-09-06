@@ -1,7 +1,7 @@
 import { streamText } from 'ai'
-import { useRequestCache } from './useRequestCache'
 import { getProviderFromPlatform } from '../lib/ai-providers'
 import { apiKey, model, platform, serviceUrl } from '../shared'
+import { useRequestCache } from './useRequestCache'
 
 export function useChatSummary() {
   const { cacheSuccessfulRequest } = useRequestCache()

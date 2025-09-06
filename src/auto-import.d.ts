@@ -39,6 +39,7 @@ declare global {
   const getAllSettings: typeof import('./composables/useDatabase')['getAllSettings']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getCurrentWatcher: typeof import('vue')['getCurrentWatcher']
   const getSetting: typeof import('./composables/useDatabase')['getSetting']
   const h: typeof import('vue')['h']
   const ignorableWatch: typeof import('@vueuse/core')['ignorableWatch']
@@ -49,6 +50,7 @@ declare global {
   const isReactive: typeof import('vue')['isReactive']
   const isReadonly: typeof import('vue')['isReadonly']
   const isRef: typeof import('vue')['isRef']
+  const isShallow: typeof import('vue')['isShallow']
   const makeDestructurable: typeof import('@vueuse/core')['makeDestructurable']
   const markRaw: typeof import('vue')['markRaw']
   const migrateFromLocalStorage: typeof import('./composables/useDatabase')['migrateFromLocalStorage']
@@ -143,6 +145,7 @@ declare global {
   const useBroadcastChannel: typeof import('@vueuse/core')['useBroadcastChannel']
   const useBrowserLocation: typeof import('@vueuse/core')['useBrowserLocation']
   const useCached: typeof import('@vueuse/core')['useCached']
+  const useChatSummary: typeof import('./composables/useChatSummary')['useChatSummary']
   const useClipboard: typeof import('@vueuse/core')['useClipboard']
   const useClipboardItems: typeof import('@vueuse/core')['useClipboardItems']
   const useCloned: typeof import('@vueuse/core')['useCloned']
@@ -249,6 +252,7 @@ declare global {
   const useScreenSafeArea: typeof import('@vueuse/core')['useScreenSafeArea']
   const useScriptTag: typeof import('@vueuse/core')['useScriptTag']
   const useScroll: typeof import('@vueuse/core')['useScroll']
+  const useScrollControl: typeof import('./composables/useScrollControl')['useScrollControl']
   const useScrollLock: typeof import('@vueuse/core')['useScrollLock']
   const useScrollToBottom: typeof import('./composables/useScrollToBottom')['useScrollToBottom']
   const useSessionStorage: typeof import('@vueuse/core')['useSessionStorage']
@@ -260,6 +264,7 @@ declare global {
   const useStepper: typeof import('@vueuse/core')['useStepper']
   const useStorage: typeof import('@vueuse/core')['useStorage']
   const useStorageAsync: typeof import('@vueuse/core')['useStorageAsync']
+  const useStreamChat: typeof import('./composables/useStreamChat')['useStreamChat']
   const useStreamingText: typeof import('./composables/useStreamingText')['useStreamingText']
   const useStyleTag: typeof import('@vueuse/core')['useStyleTag']
   const useSupported: typeof import('@vueuse/core')['useSupported']
@@ -274,6 +279,7 @@ declare global {
   const useThrottleFn: typeof import('@vueuse/core')['useThrottleFn']
   const useThrottledRefHistory: typeof import('@vueuse/core')['useThrottledRefHistory']
   const useTimeAgo: typeof import('@vueuse/core')['useTimeAgo']
+  const useTimeAgoIntl: typeof import('@vueuse/core')['useTimeAgoIntl']
   const useTimeout: typeof import('@vueuse/core')['useTimeout']
   const useTimeoutFn: typeof import('@vueuse/core')['useTimeoutFn']
   const useTimeoutPoll: typeof import('@vueuse/core')['useTimeoutPoll']
@@ -317,7 +323,7 @@ declare global {
 // for type re-export
 declare global {
   // @ts-ignore
-  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
+  export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
   export type { ImageFile, ChatData, ImageContent, MessageContent, TextContent } from './composables/chat-types'
@@ -331,4 +337,7 @@ declare global {
   // @ts-ignore
   export type { RequestCacheKey } from './composables/useRequestCache'
   import('./composables/useRequestCache')
+  // @ts-ignore
+  export type { StreamChatOptions } from './composables/useStreamChat'
+  import('./composables/useStreamChat')
 }

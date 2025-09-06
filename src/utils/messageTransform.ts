@@ -1,11 +1,10 @@
-import type { ChatCompletionContentPart, ChatCompletionMessageParam, ResponseInput } from '../types/openai-compat'
 import type {
   ChatMessage,
   MessageContent,
   TransformOptions,
 } from '../types/message'
+import type { ChatCompletionContentPart, ChatCompletionMessageParam, ResponseInput } from '../types/openai-compat'
 import { generateId } from './index'
-
 
 /**
  * 创建新的 UI Message
@@ -218,7 +217,7 @@ function convertContentToResponseInput(content: MessageContent, role: ChatMessag
       if (item.type === 'image_url') {
         return {
           type: 'input_image',
-          image_url: item.image_url?.url,
+          image_url: { url: item.image_url?.url || '' },
           detail: 'auto' as const,
         }
       }

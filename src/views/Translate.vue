@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import type { ChatMessage } from '../types/message'
 import { BtnGroup, ScrollArea, Select } from '@roku-ui/vue'
 import StreamContent from '../components/StreamContent.vue'
 import WordExplainPaper from '../components/WordExplainPaper.vue'
 import { useDexieStorage } from '../composables/useDexieStorage'
-import { useRequestCache } from '../composables/useRequestCache'
-import { apiKey, currentPreset, model, serviceUrl } from '../shared'
-import { transformToChatCompletions } from '../utils/messageTransform'
 
 const router = useRouter()
 function onHomeClick() {
@@ -49,50 +45,17 @@ const translationHistory = useDexieStorage<Array<{ id: string, source: string, t
 
 const textDebounced = useDebounce(text, 1000)
 
-const tonePrompt = computed(() => {
-  switch (tone.value) {
-    case 'neutral': {
-      return 'The tone should be neutral, neither too formal nor too informal, maintaining a balanced and straightforward style'
-    }
-    case 'formal': {
-      return 'The tone should be formal, suitable for official documents, academic papers, or professional communications, with a respectful and polished style'
-    }
-    case 'informal': {
-      return 'The tone should be informal, conversational, and relaxed, as if you were talking to a friend or family member in a casual setting'
-    }
-    case 'professional': {
-      return 'The tone should be professional, appropriate for business communications, reports, or interactions in a corporate environment, with a clear, precise, and respectful style'
-    }
-    case 'friendly': {
-      return 'The tone should be friendly, warm, and approachable, creating a sense of familiarity and comfort as if speaking to a close acquaintance'
-    }
-    default: {
-      return ''
-    }
-  }
-})
+// Tone prompt text will be constructed when wiring AI call
 
 const targetLanguage = computed(() => {
   return SUPPORTED_LANGUAGES.find(lang => lang.code === targetLang.value.id) || SUPPORTED_LANGUAGES[1]
 })
 
-const conversation = computed<ChatMessage[]>(() => [{
-  id: 'system-1',
-  role: 'system',
-  content: `Translate user's input to ${targetLanguage.value.name}. ${tonePrompt.value}. If the input text is already in ${targetLanguage.value.name}, just rewrite with ${tone.value} tone.`,
-  timestamp: Date.now(),
-}, {
-  id: 'user-1',
-  role: 'user',
-  content: `${textDebounced.value}`,
-  timestamp: Date.now(),
-}])
+// Conversation payload will be constructed when wiring the AI call
 
-const { cacheSuccessfulRequest } = useRequestCache()
 const translateContent = ref('')
 const loading = ref(false)
 const isTyping = ref(false)
-let requestId = 0
 
 // Language swap function
 function swapLanguages() {
@@ -121,23 +84,6 @@ function copyToClipboard(content: string) {
   navigator.clipboard.writeText(content)
 }
 
-// Save translation to history
-function saveToHistory(source: string, target: string) {
-  const historyItem = {
-    id: Date.now().toString(),
-    source,
-    target,
-    sourceLang: sourceLang.value.id,
-    targetLang: targetLang.value.id,
-    timestamp: Date.now(),
-  }
-  translationHistory.value.unshift(historyItem)
-  // Keep only last 50 translations
-  if (translationHistory.value.length > 50) {
-    translationHistory.value = translationHistory.value.slice(0, 50)
-  }
-}
-
 // Watch for typing indicator
 watch(text, () => {
   isTyping.value = true
@@ -156,18 +102,10 @@ watchEffect(async () => {
     loading.value = true
     translateContent.value = ''
 
-    const currentRequestId = ++requestId
-    const filteredConversation = conversation.value.filter(d => d.role !== 'error').map((d) => {
-      if (d.role === 'assistant') {
-        delete d.reasoning
-      }
-      return d
-    })
-
     // TODO: Implement using Vercel AI SDK
     // Temporarily disabled for refactoring
     loading.value = false
-    
+
     // cacheSuccessfulRequest({
     //   preset: currentPreset.value || 'openai',
     //   serviceUrl: serviceUrl.value,

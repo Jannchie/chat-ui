@@ -78,7 +78,6 @@ export const apiKey = computed({
   },
 })
 
-
 export function useCurrentChat() {
   const route = useRoute()
   const id = computed(() => {

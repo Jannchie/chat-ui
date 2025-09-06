@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { ImageFile } from '../composables/chat-types'
 import type { ChatMessage } from '../types/message'
-import ChatInput from './ChatInput.vue'
-import { useStreamChat } from '../composables/useStreamChat'
 import { useChatSummary } from '../composables/useChatSummary'
 import { useScrollControl } from '../composables/useScrollControl'
+import { useStreamChat } from '../composables/useStreamChat'
 import { useCurrentChat } from '../shared'
 import { generateId, isMobile, setChat } from '../utils'
+import ChatInput from './ChatInput.vue'
 
 const router = useRouter()
 
@@ -93,9 +93,9 @@ async function onSubmit() {
 
   const inputText = input.value
   const images = [...uploadedImages.value]
-  
+
   // Clear input immediately
-  inputHistory.value.commit()
+  inputHistory.commit()
   input.value = ''
   uploadedImages.value = []
 
@@ -130,7 +130,7 @@ async function onSubmit() {
           if (chat) {
             chat.conversation = conversation.value
             setChat(toRaw(chat))
-            
+
             // Generate title if needed
             if (!chat.title) {
               const aiMessage = conversation.value
@@ -152,7 +152,7 @@ async function onSubmit() {
           // Handle error
           console.error('Chat error:', error)
         },
-      }
+      },
     )
 
     // Update conversation with new messages
@@ -191,7 +191,6 @@ async function onEnter(e: KeyboardEvent) {
     if (e.target) {
       nextTick(() => {
         const totalRows = target.value.split('\n').length
-        const targetRows = Math.min(totalRows, 3)
         target.selectionStart = selectStart + 1
         target.selectionEnd = selectStart + 1
         const lineHeight = Number.parseInt(globalThis.getComputedStyle(target).lineHeight)
@@ -287,7 +286,7 @@ watchEffect(() => {
       </div>
 
       <!-- Stats display -->
-      <div class="text-sm rounded-md op50 flex flex-col h-20px shadow-sm items-center z-10 px-4">
+      <div class="text-sm px-4 rounded-md op50 flex flex-col h-20px shadow-sm items-center z-10">
         <!-- Performance metrics -->
         <div
           v-if="lastUsage && lastTimeUsageMS > 0"
@@ -324,7 +323,7 @@ watchEffect(() => {
         @enter="onEnter"
       />
 
-      <div class="animate-fade-delay text-xs color-[#6d6d6d] pb-3 pt-1 flex gap-2 animate-delay-500 dark:color-[#c4c7c5] px-4">
+      <div class="animate-fade-delay text-xs color-[#6d6d6d] px-4 pb-3 pt-1 flex gap-2 animate-delay-500 dark:color-[#c4c7c5]">
         <span>
           Jannchie's Web UI for Chat Services
         </span>
