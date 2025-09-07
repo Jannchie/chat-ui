@@ -653,7 +653,7 @@ watchEffect(() => {
                   class="color-[#c4c7c5] rounded-lg flex h-8 w-8 transition-all items-center justify-center"
                   :class="{
                     'opacity-50 cursor-not-allowed': streaming || !sttSupported || sttTranscribing,
-                    'hover:bg-neutral-7': !streaming && sttSupported && !sttTranscribing,
+                    'hover:bg-neutral-700': !streaming && sttSupported && !sttTranscribing,
                     'bg-red-500/20': isRecording,
                   }"
                   @click="onMicClick"
@@ -679,7 +679,7 @@ watchEffect(() => {
                   :disabled="streaming || (!input.trim() && uploadedImages.length === 0)"
                   :class="{
                     'opacity-50 cursor-not-allowed': streaming || (!input.trim() && uploadedImages.length === 0),
-                    'hover:bg-neutral-7': !streaming && (input.trim() || uploadedImages.length > 0),
+                    'hover:bg-neutral-700': !streaming && (input.trim() || uploadedImages.length > 0),
                   }"
                   class="color-[#c4c7c5] rounded-lg flex h-8 w-8 transition-all items-center justify-center"
                   @click="onSubmit"
