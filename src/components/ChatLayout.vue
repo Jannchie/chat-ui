@@ -610,7 +610,7 @@ watchEffect(() => {
               type="text"
               style="resize: none; scrollbar-width: none; max-height: 300px; height: auto;"
               :rows="rows"
-              class="text-lg text-neutral-800 px-4 py-4 pb-12 outline-none border-none bg-transparent flex-grow-0 w-full dark:text-[#e3e3e3]"
+              class="text-lg text-neutral-800 px-4 py-4 outline-none border-none bg-transparent flex-grow-0 w-full dark:text-[#e3e3e3]"
               placeholder="Input your question here"
               @keydown.stop.up="async (e) => {
                 if (!(input === '')) return
@@ -628,8 +628,8 @@ watchEffect(() => {
               @keypress.stop.prevent.enter="onEnter"
             />
 
-            <!-- Bottom buttons -->
-            <div class="flex items-center bottom-2 left-2 right-2 justify-between absolute">
+            <!-- Bottom buttons (stacked below textarea) -->
+            <div class="px-4 pb-3 flex items-center justify-between">
               <!-- Image upload button - bottom left -->
               <div>
                 <ImageUpload v-model="uploadedImages" />

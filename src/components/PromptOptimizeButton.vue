@@ -51,7 +51,7 @@ const variantClasses = {
 
 const hoverClasses = {
   default: 'hover:bg-blue-500/30',
-  ghost: 'hover:bg-neutral-200 dark:hover:bg-neutral-7',
+  ghost: 'hover:bg-neutral-200 dark:hover:bg-neutral-6',
   outline: 'hover:bg-neutral-200 dark:hover:bg-neutral-7',
 }
 
