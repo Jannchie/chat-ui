@@ -46,13 +46,13 @@ const iconSizeClasses = {
 const variantClasses = {
   default: 'bg-blue-500/20 text-blue-400',
   ghost: 'color-[#c4c7c5]',
-  outline: 'border border-neutral-6 color-[#c4c7c5]',
+  outline: 'border border-neutral-600 color-[#c4c7c5]',
 }
 
 const hoverClasses = {
   default: 'hover:bg-blue-500/30',
-  ghost: 'hover:bg-neutral-200 dark:hover:bg-neutral-6',
-  outline: 'hover:bg-neutral-200 dark:hover:bg-neutral-7',
+  ghost: 'hover:bg-neutral-200 dark:hover:bg-neutral-700',
+  outline: 'hover:bg-neutral-200 dark:hover:bg-neutral-700',
 }
 
 async function handleOptimize(withOptions = false) {
