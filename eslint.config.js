@@ -5,5 +5,6 @@ export default jannchie({
 }, {
   rules: {
     'antfu/no-top-level-await': 'off',
+    'unicorn/no-array-reverse': 'off',
   },
 })

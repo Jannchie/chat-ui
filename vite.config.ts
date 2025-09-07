@@ -8,12 +8,6 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  esbuild: {
-    // Suppress noisy CSS parser warnings from esbuild during CSS minify
-    logOverride: {
-      'css-syntax-error': 'silent',
-    },
-  },
   plugins: [
     vue(),
     vueJsx(),

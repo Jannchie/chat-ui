@@ -4,6 +4,7 @@ import type { ChatMessage, ImageContent, MessageContent, TextContent } from '../
 import { streamText } from 'ai'
 import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
+import { useSpeechToText } from '../composables/useSpeechToText'
 import { getProviderFromPlatform } from '../lib/ai-providers'
 import { createStreamCompletion } from '../lib/ai-stream-handler'
 import { chatMessagesToModelMessages, createChatMessage } from '../lib/message-converter'
@@ -160,6 +161,64 @@ function getNumberOfLines(textarea: HTMLTextAreaElement) {
 }
 watch(currentChat, () => {
   textareaRef.value?.focus()
+})
+
+// Speech-to-text (OpenAI Whisper) support
+const {
+  isSupported: sttSupported,
+  isRecording,
+  transcribing: sttTranscribing,
+  audioBlob,
+  error: sttError,
+  startRecording,
+  stopRecording,
+  transcribeWithWhisper,
+  reset: resetStt,
+} = useSpeechToText()
+
+async function onMicClick() {
+  // Only enable for OpenAI preset as requested
+  if (platform.value !== 'openai') {
+    console.warn('Speech-to-text is currently enabled for OpenAI preset only.')
+    return
+  }
+  if (!sttSupported.value) {
+    console.error('Browser does not support MediaRecorder / microphone.')
+    return
+  }
+  // Phase 1: start -> stop
+  if (!isRecording.value && !audioBlob.value) {
+    await startRecording()
+    return
+  }
+  if (isRecording.value) {
+    stopRecording()
+  }
+}
+
+// Auto-transcribe after recording stops
+watch([audioBlob, isRecording], async ([blob, recording]) => {
+  if (
+    platform.value === 'openai'
+    && blob
+    && !recording
+    && !sttTranscribing.value
+  ) {
+    const text = await transcribeWithWhisper({
+      apiKey: apiKey.value!,
+      serviceUrl: serviceUrl.value || 'https://api.openai.com/v1',
+      model: 'whisper-1',
+    })
+    if (text) {
+      input.value = input.value ? `${input.value.trim()}\n${text}` : text
+      nextTick(() => textareaRef.value?.focus())
+    }
+    if (sttError.value) {
+      console.error('Transcription error:', sttError.value)
+    }
+    // Reset state so the mic is ready for the next recording
+    resetStt()
+  }
 })
 const laststartedAtMS = ref(0)
 const lastEndedAtMS = ref(0)
@@ -442,7 +501,7 @@ watchEffect(() => {
             Hi there!
           </div>
           <div class="animate-fade-delay text-2xl lg:text-4xl md:text-3xl">
-            <div class="op-25">
+            <div class="op-50">
               What can I help you today?
             </div>
           </div>
@@ -578,6 +637,31 @@ watchEffect(() => {
 
               <!-- Prompt optimize and send buttons - bottom right -->
               <div class="flex gap-2 items-center">
+                <!-- Speech-to-Text (OpenAI Whisper) button -->
+                <button
+                  v-if="platform === 'openai'"
+                  :disabled="streaming || !sttSupported || sttTranscribing"
+                  :title="
+                    !sttSupported
+                      ? 'Browser does not support microphone.'
+                      : sttTranscribing
+                        ? 'Transcribing audio...'
+                        : isRecording
+                          ? 'Click to stop recording'
+                          : 'Click to start recording'
+                  "
+                  class="color-[#c4c7c5] rounded-lg flex h-8 w-8 transition-all items-center justify-center"
+                  :class="{
+                    'opacity-50 cursor-not-allowed': streaming || !sttSupported || sttTranscribing,
+                    'hover:bg-neutral-7': !streaming && sttSupported && !sttTranscribing,
+                    'bg-red-500/20': isRecording,
+                  }"
+                  @click="onMicClick"
+                >
+                  <i v-if="sttTranscribing" class="i-tabler-loader-2 h-4 w-4 animate-spin" />
+                  <i v-else-if="isRecording" class="i-tabler-player-stop h-5 w-5" />
+                  <i v-else class="i-tabler-microphone h-5 w-5" />
+                </button>
                 <!-- Prompt optimize button -->
                 <PromptOptimizeButton
                   v-model="input"

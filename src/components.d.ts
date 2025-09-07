@@ -19,7 +19,6 @@ declare module 'vue' {
     ChatInput: typeof import('./components/ChatInput.vue')['default']
     ChatItem: typeof import('./components/ChatItem.vue')['default']
     ChatLayout: typeof import('./components/ChatLayout.vue')['default']
-    ChatLayoutNew: typeof import('./components/ChatLayoutNew.vue')['default']
     ChatMessage: typeof import('./components/ChatMessage.vue')['default']
     ErrorChatMessage: typeof import('./components/ErrorChatMessage.vue')['default']
     ImagePreviewModal: typeof import('./components/ImagePreviewModal.vue')['default']
