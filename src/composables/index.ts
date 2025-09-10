@@ -7,6 +7,7 @@ async function fetchModelsFromAPI(platformName: string, key: string): Promise<st
     case 'openai':
     case 'deepseek':
     case 'pfn':
+    case 'zhipu':
     case 'custom': {
       const response = await fetch(`${baseUrl}/models`, {
         headers: {
@@ -72,6 +73,9 @@ function getAPIBaseURL(platformName: string): string {
     case 'pfn': {
       return 'https://api.platform.preferredai.jp/v1'
     }
+    case 'zhipu': {
+      return 'https://api.z.ai/api/paas/v4/'
+    }
     case 'custom': {
       return serviceUrl.value.replace(/\/$/, '')
     } // Remove trailing slash
@@ -130,6 +134,10 @@ export function useModels() {
           }
           case 'pfn': {
             models.value = ['plamo-beta']
+            break
+          }
+          case 'zhipu': {
+            models.value = ['glm-4-flash', 'glm-4-air', 'glm-4-airx', 'glm-4', 'glm-4-plus']
             break
           }
           default: {

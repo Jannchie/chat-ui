@@ -43,6 +43,9 @@ export const serviceUrl = computed(() => {
     case 'pfn': {
       return 'https://api.platform.preferredai.jp/v1'
     }
+    case 'zhipu': {
+      return 'https://api.z.ai/api/paas/v4/'
+    }
     default: {
       return 'https://api.openai.com/v1/'
     }

@@ -89,6 +89,20 @@ export function createAIProvider(platform: string, config: ProviderConfig): AIPr
       }
     }
 
+    case 'zhipu': {
+      const zhipu = createOpenAICompatible({
+        name: 'zhipu',
+        apiKey: config.apiKey,
+        baseURL: config.baseURL || 'https://api.z.ai/api/paas/v4/',
+      })
+
+      return {
+        name: 'Zhipu AI',
+        models: [],
+        getModel: (modelId: string) => zhipu(modelId),
+      }
+    }
+
     case 'custom': {
       const custom = createOpenAICompatible({
         name: 'custom',

@@ -333,9 +333,9 @@ async function onSubmit() {
           }
 
           // 更新最后一个消息
-          const lastIndex = conversation.value.length - 1
-          if (lastIndex >= 0) {
-            conversation.value[lastIndex] = updatedMessage
+          const lastAssistantIndex = [...conversation.value].map(m => m.role).lastIndexOf('assistant')
+          if (lastAssistantIndex !== -1) {
+            conversation.value[lastAssistantIndex] = updatedMessage
             conversation.value = [...conversation.value]
           }
         },
@@ -355,10 +355,10 @@ async function onSubmit() {
             }
           }
 
-          // 确保最后一个消息被正确更新
-          const lastIndex = conversation.value.length - 1
-          if (lastIndex >= 0) {
-            conversation.value[lastIndex] = finalMessage
+          // 确保最后一个助手消息被正确更新
+          const lastAssistantIndex = [...conversation.value].map(m => m.role).lastIndexOf('assistant')
+          if (lastAssistantIndex !== -1) {
+            conversation.value[lastAssistantIndex] = finalMessage
             conversation.value = [...conversation.value]
           }
 
@@ -371,45 +371,56 @@ async function onSubmit() {
           })
         },
         onError: (error: Error) => {
+          console.error('AI request error:', error)
           const lastIndex = conversation.value.length - 1
           if (lastIndex >= 0) {
             const errorMessage = createChatMessage('error', error.message, {
               sentAt: assistantMessage.metadata?.sentAt || Date.now(),
               receivedAt: Date.now(),
             })
-            conversation.value[lastIndex] = errorMessage
-            conversation.value = [...conversation.value]
+            // Append error log instead of replacing assistant placeholder,
+            // so the stream can continue retrying and the timer/spinner remains.
+            conversation.value = [
+              ...conversation.value.slice(0, lastIndex + 1),
+              errorMessage,
+            ]
           }
         },
       })
 
       // 如果有错误，在这里处理
       if (result.error) {
-        throw result.error
+        console.error('Stream completion failed:', result.error)
+        // 将错误作为独立消息追加进历史，保留助手占位以便 UI 正常
+        conversation.value = [...conversation.value, result.message]
+        return
+      }
+
+      // 成功完成，更新最终消息
+      const lastAssistantIndex = [...conversation.value].map(m => m.role).lastIndexOf('assistant')
+      if (lastAssistantIndex !== -1) {
+        conversation.value[lastAssistantIndex] = result.message
+        conversation.value = [...conversation.value]
       }
     }
     catch (error: any) {
       console.error('Stream completion failed:', error)
-      const lastIndex = conversation.value.length - 1
-      if (lastIndex >= 0) {
-        const errorMessage = createChatMessage('error', 'Failed to get response from AI', {
-          sentAt: assistantMessage.metadata?.sentAt || Date.now(),
-          receivedAt: Date.now(),
-        })
-        conversation.value[lastIndex] = errorMessage
-        conversation.value = [...conversation.value]
-      }
+      const errorMessage = createChatMessage('error', error?.message || 'Failed to get response from AI', {
+        sentAt: assistantMessage.metadata?.sentAt || Date.now(),
+        receivedAt: Date.now(),
+      })
+      conversation.value = [...conversation.value, errorMessage]
     }
   }
   finally {
     streaming.value = false
 
-    // 确保最后一条消息有正确的 receivedAt 字段以停止计时器
-    const lastIndex = conversation.value.length - 1
-    if (lastIndex >= 0) {
-      const lastMessage = conversation.value[lastIndex]
-      if (lastMessage.role === 'assistant' && lastMessage.metadata && !lastMessage.metadata.receivedAt) {
-        lastMessage.metadata.receivedAt = Date.now()
+    // 确保最后一个助手消息具有 receivedAt 字段以停止计时器
+    const lastAssistantIndex = [...conversation.value].map(m => m.role).lastIndexOf('assistant')
+    if (lastAssistantIndex !== -1) {
+      const lastAssistant = conversation.value[lastAssistantIndex]
+      if (lastAssistant.metadata && !lastAssistant.metadata.receivedAt) {
+        lastAssistant.metadata.receivedAt = Date.now()
         conversation.value = [...conversation.value]
       }
     }

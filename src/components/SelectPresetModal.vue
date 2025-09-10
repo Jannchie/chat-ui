@@ -8,6 +8,7 @@ const presets = [
   'anthropic',
   'pfn',
   'openrouter',
+  'zhipu',
   'custom',
 ]
 

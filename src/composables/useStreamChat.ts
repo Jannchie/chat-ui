@@ -136,7 +136,7 @@ export function useStreamChat() {
       }
       catch (error: any) {
         console.error('Stream completion failed:', error)
-        const errorMessage = createChatMessage('error', 'Failed to get response from AI', {
+        const errorMessage = createChatMessage('error', error?.message || 'Failed to get response from AI', {
           sentAt: assistantMessage.metadata?.sentAt || Date.now(),
           receivedAt: Date.now(),
         })
