@@ -8,6 +8,7 @@ const props = withDefaults(defineProps<{
   content: MessageContent
   reasoning?: string
   loading: boolean
+  thinking?: boolean
   model?: string
 }>(), {
   reasoning: '',
@@ -172,6 +173,15 @@ function formatToolCall(toolCall: any) {
 <template>
   <div class="relative">
     <div>
+      <!-- Thinking indicator -->
+      <div
+        v-if="props.thinking && !textContent"
+        class="text-xs mb-4 px-4 py-3 rounded-xl bg-neutral-200 flex gap-2 min-w-full w-full items-center dark:bg-neutral-800"
+      >
+        <i class="i-tabler-brain h-4 w-4 dark:text-neutral-200" />
+        <span class="dark:text-neutral-200">AI is thinking...</span>
+      </div>
+
       <div
         v-if="props.reasoning && props.reasoning.length > 0"
         class="dark:bg-neutral-1 text-xs mb-4 px-4 py-2 rounded-xl bg-neutral-200 min-w-full w-full overflow-auto prose prose-gray dark:bg-neutral-950 dark:prose-invert"

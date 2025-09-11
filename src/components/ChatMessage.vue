@@ -7,6 +7,7 @@ import MessageMetadataTop from './MessageMetadataTop.vue'
 const props = defineProps<{
   message: ChatMessage
   loading: boolean
+  thinking?: boolean
 }>()
 const message = computed(() => props.message)
 
@@ -61,6 +62,7 @@ const assistantContent = computed(() => message.value.content)
           :content="assistantContent"
           :reasoning="props.message.reasoning"
           :loading="loading"
+          :thinking="props.thinking"
           :model="props.message.metadata?.model"
         />
         <UserChatMessage
@@ -106,6 +108,7 @@ const assistantContent = computed(() => message.value.content)
           :content="assistantContent"
           :reasoning="message.reasoning"
           :loading="loading"
+          :thinking="props.thinking"
           :model="message.metadata?.model"
         />
         <UserChatMessage

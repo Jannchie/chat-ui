@@ -137,6 +137,7 @@ const scrollArea = ref<HTMLElement | null>(null)
 const input = ref('')
 const inputHistory = useManualRefHistory(input)
 const streaming = ref(false)
+const thinking = ref(false)
 const uploadedImages = ref<ImageFile[]>([])
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const rows = ref(1)
@@ -310,6 +311,13 @@ async function onSubmit() {
       }
     })
 
+    // 延迟设置思考状态，如果 500ms 内没有收到响应，则显示思考提示
+    setTimeout(() => {
+      if (streaming.value && !laststartedAtMS.value) {
+        thinking.value = true
+      }
+    }, 500)
+
     // 使用 AI SDK 进行流式处理
     const messages = chatMessagesToModelMessages(
       conversation.value.slice(0, -1), // 排除最后一条空的助手消息
@@ -332,6 +340,11 @@ async function onSubmit() {
             laststartedAtMS.value = Date.now()
           }
 
+          // 如果正在思考中，收到内容后取消思考状态
+          if (thinking.value) {
+            thinking.value = false
+          }
+
           // 更新最后一个消息
           const lastAssistantIndex = [...conversation.value].map(m => m.role).lastIndexOf('assistant')
           if (lastAssistantIndex !== -1) {
@@ -341,6 +354,7 @@ async function onSubmit() {
         },
         onFinish: (finalMessage: ChatMessage, usage?: any) => {
           lastEndedAtMS.value = Date.now()
+          thinking.value = false
 
           if (usage) {
             lastUsage.value = {
@@ -372,6 +386,7 @@ async function onSubmit() {
         },
         onError: (error: Error) => {
           console.error('AI request error:', error)
+          thinking.value = false
           const lastIndex = conversation.value.length - 1
           if (lastIndex >= 0) {
             const errorMessage = createChatMessage('error', error.message, {
@@ -414,6 +429,7 @@ async function onSubmit() {
   }
   finally {
     streaming.value = false
+    thinking.value = false
 
     // 确保最后一个助手消息具有 receivedAt 字段以停止计时器
     const lastAssistantIndex = [...conversation.value].map(m => m.role).lastIndexOf('assistant')
@@ -552,6 +568,7 @@ watchEffect(() => {
             :key="j"
             :message="c"
             :loading="streaming && groupedConversation.length - 1 === i"
+            :thinking="thinking && groupedConversation.length - 1 === i && c.role === 'assistant'"
           />
         </template>
       </div>
