@@ -179,7 +179,7 @@ function formatToolCall(toolCall: any) {
         class="text-xs mb-4 px-4 py-3 rounded-xl bg-neutral-200 flex gap-2 min-w-full w-full items-center dark:bg-neutral-800"
       >
         <i class="i-tabler-brain h-4 w-4 dark:text-neutral-200" />
-        <span class="dark:text-neutral-200">AI is thinking...</span>
+        <span class="animate-gradient-text">AI is thinking...</span>
       </div>
 
       <div
@@ -303,5 +303,46 @@ code:not(pre code) {
   background-color: #222 !important; /* 暗色模式：深色背景 */
   border: 1px solid #444;
   color: #e5e7eb !important; /* 暗色模式：浅色文字 */
+}
+
+/* 灰色到白色的渐变文本动画 */
+.animate-gradient-text {
+  animation: gradient-text 1s linear infinite;
+  background: linear-gradient(90deg,
+    #606368 0%,
+    #a6a9af 15%,
+    #ffffff 30%,
+    #ffffff 50%,
+    #a6a9af 70%,
+    #606368 85%,
+    #606368 100%
+  );
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes gradient-text {
+  0% {
+    background-position: 300% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 暗色模式下的渐变动画 */
+:root[data-scheme="dark"] .animate-gradient-text {
+  background: linear-gradient(90deg,
+    #6b7280 0%,
+    #4b5563 15%,
+    #e5e7eb 30%,
+    #e5e7eb 50%,
+    #374151 70%,
+    #6b7280 85%,
+    #6b7280 100%
+  );
+  background-size: 300% 100%;
 }
 </style>
