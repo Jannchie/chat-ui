@@ -308,19 +308,8 @@ code:not(pre code) {
 /* 灰色到白色的渐变文本动画 */
 .animate-gradient-text {
   animation: gradient-text 1s linear infinite;
-  background: linear-gradient(90deg,
-    #606368 0%,
-    #a6a9af 15%,
-    #ffffff 30%,
-    #ffffff 50%,
-    #a6a9af 70%,
-    #606368 85%,
-    #606368 100%
-  );
-  background-size: 300% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #52525b;
+  display: inline-block;
 }
 
 @keyframes gradient-text {
@@ -334,15 +323,42 @@ code:not(pre code) {
 
 /* 暗色模式下的渐变动画 */
 :root[data-scheme="dark"] .animate-gradient-text {
-  background: linear-gradient(90deg,
-    #6b7280 0%,
-    #4b5563 15%,
-    #e5e7eb 30%,
-    #e5e7eb 50%,
-    #374151 70%,
-    #6b7280 85%,
-    #6b7280 100%
-  );
-  background-size: 300% 100%;
+  color: #e5e7eb;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .animate-gradient-text {
+    color: transparent;
+    background: linear-gradient(90deg,
+      #606368 0%,
+      #a6a9af 15%,
+      #ffffff 30%,
+      #ffffff 50%,
+      #a6a9af 70%,
+      #606368 85%,
+      #606368 100%
+    );
+    background-size: 300% 100%;
+    background-position: 0% 50%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  :root[data-scheme="dark"] .animate-gradient-text {
+    color: transparent;
+    background: linear-gradient(90deg,
+      #9ca3af 0%,
+      #d1d5db 25%,
+      #f9fafb 50%,
+      #d1d5db 75%,
+      #9ca3af 100%
+    );
+    background-size: 300% 100%;
+    background-position: 0% 50%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 }
 </style>
