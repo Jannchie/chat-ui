@@ -305,11 +305,47 @@ code:not(pre code) {
   color: #e5e7eb !important; /* 暗色模式：浅色文字 */
 }
 
+:root {
+  --thinking-text-fallback-color: #52525b;
+  --thinking-text-gradient: linear-gradient(90deg,
+    #606368 0%,
+    #a6a9af 15%,
+    #ffffff 30%,
+    #ffffff 50%,
+    #a6a9af 70%,
+    #606368 85%,
+    #606368 100%
+  );
+}
+
+:root[data-scheme="dark"] {
+  --thinking-text-fallback-color: #e5e7eb;
+  --thinking-text-gradient: linear-gradient(90deg,
+    #9ca3af 0%,
+    #d1d5db 25%,
+    #f9fafb 50%,
+    #d1d5db 75%,
+    #9ca3af 100%
+  );
+}
+
 /* 灰色到白色的渐变文本动画 */
 .animate-gradient-text {
   animation: gradient-text 1s linear infinite;
-  color: #52525b;
+  color: var(--thinking-text-fallback-color);
   display: inline-block;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .animate-gradient-text {
+    color: transparent;
+    background: var(--thinking-text-gradient);
+    background-size: 300% 100%;
+    background-position: 0% 50%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 @keyframes gradient-text {
@@ -318,47 +354,6 @@ code:not(pre code) {
   }
   100% {
     background-position: 0% 50%;
-  }
-}
-
-/* 暗色模式下的渐变动画 */
-:root[data-scheme="dark"] .animate-gradient-text {
-  color: #e5e7eb;
-}
-
-@supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .animate-gradient-text {
-    color: transparent;
-    background: linear-gradient(90deg,
-      #606368 0%,
-      #a6a9af 15%,
-      #ffffff 30%,
-      #ffffff 50%,
-      #a6a9af 70%,
-      #606368 85%,
-      #606368 100%
-    );
-    background-size: 300% 100%;
-    background-position: 0% 50%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  :root[data-scheme="dark"] .animate-gradient-text {
-    color: transparent;
-    background: linear-gradient(90deg,
-      #9ca3af 0%,
-      #d1d5db 25%,
-      #f9fafb 50%,
-      #d1d5db 75%,
-      #9ca3af 100%
-    );
-    background-size: 300% 100%;
-    background-position: 0% 50%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
   }
 }
 </style>
