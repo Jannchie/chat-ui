@@ -1,6 +1,9 @@
 import type { ChatData } from '../composables/chat-types'
+import type { ReasoningEffort } from '../types/ai'
 import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval'
 import { useDexieStorage } from '../composables/useDexieStorage'
+
+export type { ReasoningEffort } from '../types/ai'
 
 export const chatHistoryIDB = useIDBKeyval<ChatData[]>('chatHistory', [], {
   shallow: true,
@@ -22,6 +25,7 @@ export const preset = useDexieStorage<Record<string, Preset>>('preset', {})
 export const currentPreset = useDexieStorage('currentPreset', 'openai')
 export const customServiceUrl = useDexieStorage('serviceUrl', 'https://api.openai.com/v1')
 export const platform = useDexieStorage('platform', 'openai')
+export const openaiReasoningEffort = useDexieStorage<ReasoningEffort>('openaiReasoningEffort', 'normal')
 
 export const serviceUrl = computed(() => {
   if (platform.value === 'custom') {

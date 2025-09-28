@@ -1,4 +1,5 @@
 import type { LanguageModel, ModelMessage } from 'ai'
+import type { ProviderOptions } from '../types/ai'
 import type { ChatMessage } from '../types/message'
 import { streamText } from 'ai'
 import { createChatMessage, updateChatMessageContent } from './message-converter'
@@ -10,6 +11,7 @@ export interface StreamOptions {
   onFinish?: (message: ChatMessage, usage?: UsageInfo) => void
   onError?: (error: Error) => void
   preset?: string
+  providerOptions?: ProviderOptions
 }
 
 export interface UsageInfo {
@@ -37,6 +39,7 @@ export class AIStreamHandler {
       onUpdate,
       onFinish,
       preset,
+      providerOptions,
     } = options
 
     this.startTime = Date.now()
@@ -60,6 +63,7 @@ export class AIStreamHandler {
         // No internal retries
         maxRetries: 0,
         abortSignal: this.abortController?.signal,
+        providerOptions,
         onError: (event) => {
           console.error('Stream internal error:', event.error)
           streamError = event.error instanceof Error ? event.error : new Error(String(event.error))

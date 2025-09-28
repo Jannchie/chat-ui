@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { ImageFile } from '../composables/chat-types'
+import type { ProviderOptions, ReasoningEffort } from '../types/ai'
 import type { ChatMessage, ImageContent, MessageContent, TextContent } from '../types/message'
+import { Select } from '@roku-ui/vue'
 import { streamText } from 'ai'
 import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
@@ -8,7 +10,7 @@ import { useSpeechToText } from '../composables/useSpeechToText'
 import { getProviderFromPlatform } from '../lib/ai-providers'
 import { createStreamCompletion } from '../lib/ai-stream-handler'
 import { chatMessagesToModelMessages, createChatMessage } from '../lib/message-converter'
-import { apiKey, model, platform, serviceUrl, useCurrentChat } from '../shared'
+import { apiKey, model, openaiReasoningEffort, platform, serviceUrl, useCurrentChat } from '../shared'
 import { generateId, isMobile, setChat } from '../utils'
 
 const router = useRouter()
@@ -21,6 +23,59 @@ const lastUsage = ref<{
 
 const conversation = shallowRef<ChatMessage[]>([])
 const currentChat = useCurrentChat()
+
+interface ReasoningEffortOption {
+  value: ReasoningEffort
+  label: string
+}
+
+const reasoningEffortOptions: ReasoningEffortOption[] = [
+  { value: 'minimal', label: 'Minimal' },
+  { value: 'low', label: 'Low' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'high', label: 'High' },
+]
+const supportedEffortValues = new Set<ReasoningEffort>(
+  reasoningEffortOptions.map(option => option.value),
+)
+const defaultReasoningEffortOption = reasoningEffortOptions.find(option => option.value === 'normal')
+  ?? reasoningEffortOptions[0]
+
+watchEffect(() => {
+  if (!supportedEffortValues.has(openaiReasoningEffort.value)) {
+    openaiReasoningEffort.value = 'normal'
+  }
+})
+
+const showReasoningEffortSelector = computed(() => {
+  return platform.value === 'openai'
+    && typeof model.value === 'string'
+    && model.value.includes('gpt-5')
+})
+
+const selectedReasoningEffort = computed<ReasoningEffortOption | undefined>({
+  get() {
+    return reasoningEffortOptions.find(option => option.value === openaiReasoningEffort.value)
+      ?? defaultReasoningEffortOption
+  },
+  set(option) {
+    const target = option ?? defaultReasoningEffortOption
+    if (target && supportedEffortValues.has(target.value)) {
+      openaiReasoningEffort.value = target.value
+    }
+  },
+})
+
+const reasoningProviderOptions = computed<ProviderOptions | undefined>(() => {
+  if (!showReasoningEffortSelector.value) {
+    return
+  }
+  return {
+    openai: {
+      reasoningEffort: openaiReasoningEffort.value,
+    },
+  } as ProviderOptions
+})
 
 watch([currentChat], () => {
   if (currentChat.value) {
@@ -57,6 +112,7 @@ async function generateSummary(text: string, lockedModel?: string) {
           content: `Summarize the following text in less than 4 words: ${text}`,
         },
       ],
+      providerOptions: reasoningProviderOptions.value,
     })
 
     let content = ''
@@ -334,6 +390,7 @@ async function onSubmit() {
         model: languageModel,
         messages,
         preset: platform.value,
+        providerOptions: reasoningProviderOptions.value,
         onUpdate: (updatedMessage: ChatMessage) => {
           // 首次响应时设置开始时间
           if (laststartedAtMS.value === 0) {
@@ -665,6 +722,24 @@ watchEffect(() => {
 
               <!-- Prompt optimize and send buttons - bottom right -->
               <div class="flex gap-2 items-center">
+                <div
+                  v-if="showReasoningEffortSelector"
+                  class="text-xs text-neutral-500 flex gap-2 items-center dark:text-neutral-400"
+                >
+                  <span>
+                    Effort
+                  </span>
+                  <Select
+                    v-model="selectedReasoningEffort"
+                    :options="reasoningEffortOptions"
+                    label-key="label"
+                    color="surface"
+                    rounded="sm"
+                    size="sm"
+                    none-text="Select effort"
+                    class="effort-select w-24"
+                  />
+                </div>
                 <!-- Speech-to-Text (OpenAI Whisper) button -->
                 <button
                   v-if="platform === 'openai'"
