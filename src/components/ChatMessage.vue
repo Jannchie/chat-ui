@@ -8,6 +8,10 @@ const props = defineProps<{
   message: ChatMessage
   loading: boolean
   thinking?: boolean
+  showRegenerate?: boolean
+}>()
+const emit = defineEmits<{
+  (event: 'regenerate'): void
 }>()
 const message = computed(() => props.message)
 
@@ -18,6 +22,49 @@ const contentAsString = computed(() => messageContentToString(message.value.cont
 
 // For assistant messages, use original content structure
 const assistantContent = computed(() => message.value.content)
+const showCopyTooltip = ref(false)
+let copyTooltipTimeout: NodeJS.Timeout | undefined
+
+const clipboardSupported = computed(() => {
+  return typeof navigator !== 'undefined'
+    && Boolean(navigator.clipboard)
+    && typeof navigator.clipboard.writeText === 'function'
+})
+
+function clearCopyTooltipTimeout() {
+  if (copyTooltipTimeout !== undefined) {
+    globalThis.clearTimeout(copyTooltipTimeout)
+    copyTooltipTimeout = undefined
+  }
+}
+
+async function copyAssistantContent(): Promise<void> {
+  if (props.message.role !== 'assistant' || !clipboardSupported.value) {
+    return
+  }
+
+  const content = contentAsString.value
+  if (!content) {
+    return
+  }
+
+  try {
+    await navigator.clipboard.writeText(content)
+    showCopyTooltip.value = true
+    clearCopyTooltipTimeout()
+    copyTooltipTimeout = globalThis.setTimeout(() => {
+      showCopyTooltip.value = false
+      copyTooltipTimeout = undefined
+    }, 2000)
+  }
+  catch (error) {
+    console.error(`Failed to copy content: ${error}`)
+  }
+}
+
+onBeforeUnmount(() => {
+  clearCopyTooltipTimeout()
+})
 </script>
 
 <template>
@@ -71,10 +118,42 @@ const assistantContent = computed(() => message.value.content)
         />
       </div>
       <!-- 移动端底部元数据 - 显示执行完毕后的性能指标 -->
-      <div class="mt-3 min-h-6">
+      <div class="mt-3 flex gap-2 min-h-6 items-center">
         <Transition name="fade">
           <MessageMetadataBottom v-if="props.message.role === 'assistant' && !loading" :message="message" />
         </Transition>
+        <div
+          v-if="props.message.role === 'assistant'"
+          class="ml-auto flex gap-1 items-center"
+        >
+          <button
+            type="button"
+            class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center relative dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            :class="{ 'opacity-50 cursor-not-allowed': !clipboardSupported }"
+            :disabled="!clipboardSupported"
+            aria-label="Copy response"
+            title="Copy response"
+            @click="copyAssistantContent"
+          >
+            <i class="i-tabler-copy h-4 w-4" />
+            <span
+              v-if="showCopyTooltip"
+              class="text-xs text-white px-2 py-1 rounded bg-black/70 pointer-events-none whitespace-nowrap translate-y-8 absolute dark:text-black dark:bg-white/70"
+            >
+              Copied!
+            </span>
+          </button>
+          <button
+            v-if="props.showRegenerate"
+            type="button"
+            class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            aria-label="Regenerate response"
+            title="Regenerate response"
+            @click="emit('regenerate')"
+          >
+            <i class="i-tabler-refresh h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
     <!-- 桌面端保持原有的左右结构 -->
@@ -121,10 +200,42 @@ const assistantContent = computed(() => message.value.content)
         />
 
         <!-- 桌面端底部元数据 - 显示执行完毕后的性能指标 -->
-        <div class="mt-3 min-h-6">
+        <div class="mt-3 flex gap-2 min-h-6 items-center">
           <Transition name="fade">
             <MessageMetadataBottom v-if="message.role === 'assistant' && !loading" :message="message" />
           </Transition>
+          <div
+            v-if="message.role === 'assistant'"
+            class="ml-auto flex gap-1 items-center"
+          >
+            <button
+              type="button"
+              class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center relative dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              :class="{ 'opacity-50 cursor-not-allowed': !clipboardSupported }"
+              :disabled="!clipboardSupported"
+              aria-label="Copy response"
+              title="Copy response"
+              @click="copyAssistantContent"
+            >
+              <i class="i-tabler-copy h-4 w-4" />
+              <span
+                v-if="showCopyTooltip"
+                class="text-xs text-white mt-1 px-2 py-1 rounded bg-black/70 pointer-events-none whitespace-nowrap top-full absolute dark:text-black dark:bg-white/70"
+              >
+                Copied!
+              </span>
+            </button>
+            <button
+              v-if="props.showRegenerate"
+              type="button"
+              class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              aria-label="Regenerate response"
+              title="Regenerate response"
+              @click="emit('regenerate')"
+            >
+              <i class="i-tabler-refresh h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -17,7 +17,6 @@ const props = withDefaults(defineProps<{
 
 const streamMarkdownWrapperRef = ref<HTMLElement | null>(null)
 const loading = computed(() => props.loading)
-const showCopyTooltip = ref(false)
 const showImagePreview = ref<boolean>(false)
 const previewImageUrl = ref<string>('')
 
@@ -128,19 +127,6 @@ debouncedWatch([toRef(props, 'reasoning')], () => {
   debounce: 300,
 })
 
-// Enhanced copy functionality with tooltip feedback
-function copyContentToClipboard() {
-  const markdownContent = contentFinal.value
-  navigator.clipboard.writeText(markdownContent).then(() => {
-    showCopyTooltip.value = true
-    setTimeout(() => {
-      showCopyTooltip.value = false
-    }, 2000)
-  }).catch((error) => {
-    console.error(`Failed to copy content: ${error}`)
-  })
-}
-
 function openImagePreview(imageUrl: string) {
   previewImageUrl.value = imageUrl
   showImagePreview.value = true
@@ -190,24 +176,6 @@ function formatToolCall(toolCall: any) {
           Reasoning ({{ props.reasoning.length }} chars):
         </div>
         <StreamMarkdownReasoning />
-      </div>
-
-      <div class="mb-2 relative">
-        <div class="right-0 top-0 absolute z-10">
-          <button
-            class="p-1.5 rounded bg-transparent opacity-50 flex h-8 w-8 transition-all duration-200 items-center justify-center hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
-            aria-label="Copy markdown content"
-            @click="copyContentToClipboard"
-          >
-            <i class="i-tabler-copy dark:text-neutral-4 text-neutral-500 h-5 w-5" />
-            <div
-              v-if="showCopyTooltip"
-              class="text-xs text-white px-2 py-1 rounded bg-black/70 pointer-events-none whitespace-nowrap right-0 absolute dark:text-black dark:bg-white/70 -bottom-7"
-            >
-              Copied!
-            </div>
-          </button>
-        </div>
       </div>
 
       <!-- Render non-text content first -->

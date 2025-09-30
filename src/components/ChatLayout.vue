@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ImageFile } from '../composables/chat-types'
+import type { ChatData, ImageFile } from '../composables/chat-types'
 import type { ProviderOptions, ReasoningEffort } from '../types/ai'
 import type { ChatMessage, ImageContent, MessageContent, TextContent } from '../types/message'
 import { Select } from '@roku-ui/vue'
@@ -23,6 +23,12 @@ const lastUsage = ref<{
 
 const conversation = shallowRef<ChatMessage[]>([])
 const currentChat = useCurrentChat()
+
+const lastAssistantMessageId = computed<string | null>(() => {
+  const reversed = [...conversation.value].reverse()
+  const lastAssistant = reversed.find(message => message.role === 'assistant')
+  return lastAssistant ? lastAssistant.id : null
+})
 
 interface ReasoningEffortOption {
   value: ReasoningEffort
@@ -279,6 +285,171 @@ watch([audioBlob, isRecording], async ([blob, recording]) => {
 })
 const laststartedAtMS = ref(0)
 const lastEndedAtMS = ref(0)
+
+interface StreamAssistantParams {
+  chat: ChatData | null
+  assistantMessage: ChatMessage
+  currentModel: string
+}
+
+function updateChatConversation(chatData: ChatData | null, newConversation: ChatMessage[]): ChatData | null {
+  if (!chatData) {
+    return null
+  }
+  const rawChat = toRaw(chatData)
+  const updatedChat: ChatData = {
+    ...rawChat,
+    conversation: newConversation,
+  }
+  setChat(updatedChat)
+  return updatedChat
+}
+
+async function streamAssistantResponse({
+  chat,
+  assistantMessage,
+  currentModel,
+}: StreamAssistantParams): Promise<void> {
+  streaming.value = true
+  thinking.value = false
+  lastUsage.value = null
+  laststartedAtMS.value = 0
+  lastEndedAtMS.value = 0
+
+  const thinkingTimeout = globalThis.setTimeout(() => {
+    if (streaming.value && !laststartedAtMS.value) {
+      thinking.value = true
+    }
+  }, 500)
+
+  try {
+    const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
+    const languageModel = provider.getModel(currentModel)
+
+    const messages = chatMessagesToModelMessages(
+      conversation.value.slice(0, -1),
+    )
+
+    const result = await createStreamCompletion({
+      model: languageModel,
+      messages,
+      preset: platform.value,
+      providerOptions: reasoningProviderOptions.value,
+      onUpdate: (updatedMessage: ChatMessage) => {
+        if (laststartedAtMS.value === 0) {
+          laststartedAtMS.value = Date.now()
+        }
+
+        if (thinking.value) {
+          thinking.value = false
+        }
+
+        const lastAssistantIndex = [...conversation.value].map(message => message.role).lastIndexOf('assistant')
+        if (lastAssistantIndex !== -1) {
+          conversation.value[lastAssistantIndex] = updatedMessage
+          conversation.value = [...conversation.value]
+        }
+      },
+      onFinish: (finalMessage: ChatMessage, usage?: any) => {
+        lastEndedAtMS.value = Date.now()
+        thinking.value = false
+
+        if (usage) {
+          lastUsage.value = {
+            prompt_tokens: usage.inputTokens,
+            completion_tokens: usage.outputTokens,
+            total_tokens: usage.totalTokens,
+          }
+
+          if (chat) {
+            chat.token.inTokens += usage.inputTokens
+            chat.token.outTokens += usage.outputTokens
+          }
+        }
+
+        const lastAssistantIndex = [...conversation.value].map(message => message.role).lastIndexOf('assistant')
+        if (lastAssistantIndex !== -1) {
+          conversation.value[lastAssistantIndex] = finalMessage
+          conversation.value = [...conversation.value]
+        }
+
+        cacheSuccessfulRequest({
+          preset: platform.value || 'openai',
+          serviceUrl: serviceUrl.value!,
+          model: currentModel,
+          apiKey: apiKey.value,
+        })
+      },
+      onError: (error: Error) => {
+        console.error('AI request error:', error)
+        thinking.value = false
+        const lastIndex = conversation.value.length - 1
+        if (lastIndex >= 0) {
+          const errorMessage = createChatMessage('error', error.message, {
+            sentAt: assistantMessage.metadata?.sentAt || Date.now(),
+            receivedAt: Date.now(),
+          })
+          conversation.value = [
+            ...conversation.value.slice(0, lastIndex + 1),
+            errorMessage,
+          ]
+        }
+      },
+    })
+
+    if (result.error) {
+      console.error('Stream completion failed:', result.error)
+      conversation.value = [...conversation.value, result.message]
+      return
+    }
+
+    const lastAssistantIndex = [...conversation.value].map(message => message.role).lastIndexOf('assistant')
+    if (lastAssistantIndex !== -1) {
+      conversation.value[lastAssistantIndex] = result.message
+      conversation.value = [...conversation.value]
+    }
+  }
+  catch (error: unknown) {
+    console.error('Stream completion failed:', error)
+    const message = error instanceof Error ? error.message : 'Failed to get response from AI'
+    const errorMessage = createChatMessage('error', message, {
+      sentAt: assistantMessage.metadata?.sentAt || Date.now(),
+      receivedAt: Date.now(),
+    })
+    conversation.value = [...conversation.value, errorMessage]
+  }
+  finally {
+    globalThis.clearTimeout(thinkingTimeout)
+    streaming.value = false
+    thinking.value = false
+
+    const lastAssistantIndex = [...conversation.value].map(message => message.role).lastIndexOf('assistant')
+    if (lastAssistantIndex !== -1) {
+      const lastAssistant = conversation.value[lastAssistantIndex]
+      if (lastAssistant.metadata && !lastAssistant.metadata.receivedAt) {
+        lastAssistant.metadata.receivedAt = Date.now()
+        conversation.value = [...conversation.value]
+      }
+    }
+
+    if (chat) {
+      chat.conversation = conversation.value
+      const rawChat = toRaw(chat)
+      setChat(rawChat)
+      if (!rawChat.title) {
+        const aiMessage = conversation.value
+          .filter(message => message.role === 'assistant')
+          .map(message => message.content)
+          .join('\n')
+        const summary = await generateSummary(aiMessage, currentModel)
+        setChat({
+          ...rawChat,
+          title: summary,
+        })
+      }
+    }
+  }
+}
 async function onSubmit() {
   if ((input.value.trim() === '' && uploadedImages.value.length === 0) || streaming.value) {
     return
@@ -315,203 +486,115 @@ async function onSubmit() {
     })
   }
 
-  try {
-    // Create message content based on whether images are uploaded
-    let messageContent: MessageContent
-    if (uploadedImages.value.length > 0) {
-      const contentArray: Array<TextContent | ImageContent> = []
+  // Create message content based on whether images are uploaded
+  let messageContent: MessageContent
+  if (uploadedImages.value.length > 0) {
+    const contentArray: Array<TextContent | ImageContent> = []
 
-      // Add text content if exists
-      if (input.value.trim()) {
-        contentArray.push({
-          type: 'text',
-          text: input.value.trim(),
-        })
-      }
-
-      // Add image content
-      for (const image of uploadedImages.value) {
-        contentArray.push({
-          type: 'image_url',
-          image_url: {
-            url: image.dataUrl,
-          },
-        })
-      }
-
-      messageContent = contentArray
-    }
-    else {
-      messageContent = `${input.value.trim()}\n`
+    if (input.value.trim()) {
+      contentArray.push({
+        type: 'text',
+        text: input.value.trim(),
+      })
     }
 
-    inputHistory.commit()
-    input.value = ''
-    uploadedImages.value = []
-
-    // 创建用户消息和助手消息（带时间戳）
-    const userMessage = createChatMessage('user', messageContent, {
-      sentAt: Date.now(),
-    })
-    const assistantMessage = createChatMessage('assistant', '', {
-      sentAt: Date.now(),
-      model: currentModel,
-    })
-
-    conversation.value = [...conversation.value, userMessage, assistantMessage]
-    setChat(toRaw({ ...chat, conversation: conversation.value }))
-    nextTick(() => {
-      const el = scrollArea.value
-      if (el) {
-        scrollToBottomSmoothly(el, 1000)
-      }
-    })
-
-    // 延迟设置思考状态，如果 500ms 内没有收到响应，则显示思考提示
-    setTimeout(() => {
-      if (streaming.value && !laststartedAtMS.value) {
-        thinking.value = true
-      }
-    }, 500)
-
-    // 使用 AI SDK 进行流式处理
-    const messages = chatMessagesToModelMessages(
-      conversation.value.slice(0, -1), // 排除最后一条空的助手消息
-    )
-
-    try {
-      const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
-      const languageModel = provider.getModel(currentModel)
-
-      laststartedAtMS.value = 0
-      lastEndedAtMS.value = 0
-
-      const result = await createStreamCompletion({
-        model: languageModel,
-        messages,
-        preset: platform.value,
-        providerOptions: reasoningProviderOptions.value,
-        onUpdate: (updatedMessage: ChatMessage) => {
-          // 首次响应时设置开始时间
-          if (laststartedAtMS.value === 0) {
-            laststartedAtMS.value = Date.now()
-          }
-
-          // 如果正在思考中，收到内容后取消思考状态
-          if (thinking.value) {
-            thinking.value = false
-          }
-
-          // 更新最后一个消息
-          const lastAssistantIndex = [...conversation.value].map(m => m.role).lastIndexOf('assistant')
-          if (lastAssistantIndex !== -1) {
-            conversation.value[lastAssistantIndex] = updatedMessage
-            conversation.value = [...conversation.value]
-          }
-        },
-        onFinish: (finalMessage: ChatMessage, usage?: any) => {
-          lastEndedAtMS.value = Date.now()
-          thinking.value = false
-
-          if (usage) {
-            lastUsage.value = {
-              prompt_tokens: usage.inputTokens,
-              completion_tokens: usage.outputTokens,
-              total_tokens: usage.totalTokens,
-            }
-
-            if (chat) {
-              chat.token.inTokens += usage.inputTokens
-              chat.token.outTokens += usage.outputTokens
-            }
-          }
-
-          // 确保最后一个助手消息被正确更新
-          const lastAssistantIndex = [...conversation.value].map(m => m.role).lastIndexOf('assistant')
-          if (lastAssistantIndex !== -1) {
-            conversation.value[lastAssistantIndex] = finalMessage
-            conversation.value = [...conversation.value]
-          }
-
-          // Cache successful request
-          cacheSuccessfulRequest({
-            preset: platform.value || 'openai',
-            serviceUrl: serviceUrl.value!,
-            model: currentModel,
-            apiKey: apiKey.value,
-          })
-        },
-        onError: (error: Error) => {
-          console.error('AI request error:', error)
-          thinking.value = false
-          const lastIndex = conversation.value.length - 1
-          if (lastIndex >= 0) {
-            const errorMessage = createChatMessage('error', error.message, {
-              sentAt: assistantMessage.metadata?.sentAt || Date.now(),
-              receivedAt: Date.now(),
-            })
-            // Append error log instead of replacing assistant placeholder,
-            // so the stream can continue retrying and the timer/spinner remains.
-            conversation.value = [
-              ...conversation.value.slice(0, lastIndex + 1),
-              errorMessage,
-            ]
-          }
+    for (const image of uploadedImages.value) {
+      contentArray.push({
+        type: 'image_url',
+        image_url: {
+          url: image.dataUrl,
         },
       })
-
-      // 如果有错误，在这里处理
-      if (result.error) {
-        console.error('Stream completion failed:', result.error)
-        // 将错误作为独立消息追加进历史，保留助手占位以便 UI 正常
-        conversation.value = [...conversation.value, result.message]
-        return
-      }
-
-      // 成功完成，更新最终消息
-      const lastAssistantIndex = [...conversation.value].map(m => m.role).lastIndexOf('assistant')
-      if (lastAssistantIndex !== -1) {
-        conversation.value[lastAssistantIndex] = result.message
-        conversation.value = [...conversation.value]
-      }
     }
-    catch (error: any) {
-      console.error('Stream completion failed:', error)
-      const errorMessage = createChatMessage('error', error?.message || 'Failed to get response from AI', {
-        sentAt: assistantMessage.metadata?.sentAt || Date.now(),
-        receivedAt: Date.now(),
-      })
-      conversation.value = [...conversation.value, errorMessage]
-    }
+
+    messageContent = contentArray
   }
-  finally {
-    streaming.value = false
-    thinking.value = false
-
-    // 确保最后一个助手消息具有 receivedAt 字段以停止计时器
-    const lastAssistantIndex = [...conversation.value].map(m => m.role).lastIndexOf('assistant')
-    if (lastAssistantIndex !== -1) {
-      const lastAssistant = conversation.value[lastAssistantIndex]
-      if (lastAssistant.metadata && !lastAssistant.metadata.receivedAt) {
-        lastAssistant.metadata.receivedAt = Date.now()
-        conversation.value = [...conversation.value]
-      }
-    }
-
-    if (chat) {
-      chat.conversation = conversation.value
-      chat = toRaw(chat)
-      setChat(chat)
-      if (!chat.title) {
-        const aiMessage = conversation.value.filter(d => d.role === 'assistant').map(d => d.content).join('\n')
-        const summary = await generateSummary(aiMessage, currentModel)
-        setChat({
-          ...chat,
-          title: summary,
-        })
-      }
-    }
+  else {
+    messageContent = `${input.value.trim()}\n`
   }
+
+  inputHistory.commit()
+  input.value = ''
+  uploadedImages.value = []
+
+  const userMessage = createChatMessage('user', messageContent, {
+    sentAt: Date.now(),
+  })
+  const assistantMessage = createChatMessage('assistant', '', {
+    sentAt: Date.now(),
+    model: currentModel,
+  })
+
+  conversation.value = [...conversation.value, userMessage, assistantMessage]
+  chat = updateChatConversation(chat, conversation.value) ?? chat
+
+  nextTick(() => {
+    const el = scrollArea.value
+    if (el) {
+      scrollToBottomSmoothly(el, 1000)
+    }
+  })
+
+  await streamAssistantResponse({
+    chat,
+    assistantMessage,
+    currentModel,
+  })
+}
+
+async function regenerateLastAssistantMessage(): Promise<void> {
+  if (streaming.value) {
+    return
+  }
+
+  const targetAssistantId = lastAssistantMessageId.value
+  if (!targetAssistantId) {
+    return
+  }
+
+  const assistantIndex = conversation.value.findIndex(message => message.id === targetAssistantId)
+  if (assistantIndex === -1) {
+    return
+  }
+
+  const currentModel = model.value
+  if (!currentModel) {
+    console.error('Please select a model first')
+    return
+  }
+
+  let chat = currentChat.value
+  if (!chat) {
+    console.error('No active chat to regenerate')
+    return
+  }
+
+  streaming.value = true
+
+  const truncatedConversation = conversation.value.slice(0, assistantIndex)
+  conversation.value = [...truncatedConversation]
+  chat = updateChatConversation(chat, conversation.value) ?? chat
+
+  const assistantMessage = createChatMessage('assistant', '', {
+    sentAt: Date.now(),
+    model: currentModel,
+  })
+
+  conversation.value = [...conversation.value, assistantMessage]
+  chat = updateChatConversation(chat, conversation.value) ?? chat
+
+  nextTick(() => {
+    const el = scrollArea.value
+    if (el) {
+      scrollToBottomSmoothly(el, 1000)
+    }
+  })
+
+  await streamAssistantResponse({
+    chat,
+    assistantMessage,
+    currentModel,
+  })
 }
 const lastTimeUsageMS = computed(() => {
   return lastEndedAtMS.value - laststartedAtMS.value
@@ -626,6 +709,8 @@ watchEffect(() => {
             :message="c"
             :loading="streaming && groupedConversation.length - 1 === i"
             :thinking="thinking && groupedConversation.length - 1 === i && c.role === 'assistant'"
+            :show-regenerate="c.role === 'assistant' && !streaming && lastAssistantMessageId === c.id"
+            @regenerate="regenerateLastAssistantMessage"
           />
         </template>
       </div>
