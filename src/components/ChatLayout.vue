@@ -4,12 +4,23 @@ import type { ProviderOptions, ReasoningEffort } from '../types/ai'
 import type { ChatMessage, ImageContent, MessageContent, TextContent } from '../types/message'
 import { Select } from '@roku-ui/vue'
 import { streamText } from 'ai'
+import { toRaw } from 'vue'
 import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
 import { useSpeechToText } from '../composables/useSpeechToText'
 import { getProviderFromPlatform } from '../lib/ai-providers'
 import { createStreamCompletion } from '../lib/ai-stream-handler'
-import { chatMessagesToModelMessages, createChatMessage } from '../lib/message-converter'
+import {
+  addAssistantMessageVersion,
+  chatMessagesToModelMessages,
+  createChatMessage,
+  ensureAssistantMessageStructure,
+  mergeChatMessageMetadata,
+  normalizeChatMessages,
+  setAssistantMessageActiveVersion,
+  updateChatMessageContent,
+  updateChatMessageReasoning,
+} from '../lib/message-converter'
 import { apiKey, model, openaiReasoningEffort, platform, serviceUrl, useCurrentChat } from '../shared'
 import { generateId, isMobile, setChat } from '../utils'
 
@@ -90,7 +101,32 @@ watch([currentChat], () => {
 })
 
 watchEffect(() => {
-  conversation.value = currentChat.value ? currentChat.value.conversation : []
+  const chat = currentChat.value
+  if (!chat) {
+    conversation.value = []
+    return
+  }
+
+  const needsNormalization = chat.conversation.some((message) => {
+    if (message.role !== 'assistant') {
+      return false
+    }
+    return !Array.isArray(message.versions)
+      || message.versions.length === 0
+      || message.activeVersionIndex === undefined
+  })
+
+  if (needsNormalization) {
+    const normalized = normalizeChatMessages(chat.conversation)
+    conversation.value = normalized
+    setChat({
+      ...toRaw(chat),
+      conversation: normalized,
+    })
+    return
+  }
+
+  conversation.value = [...chat.conversation]
 })
 
 const { cacheSuccessfulRequest } = useRequestCache()
@@ -296,11 +332,13 @@ function updateChatConversation(chatData: ChatData | null, newConversation: Chat
   if (!chatData) {
     return null
   }
+  const normalizedConversation = normalizeChatMessages(newConversation)
   const rawChat = toRaw(chatData)
   const updatedChat: ChatData = {
     ...rawChat,
-    conversation: newConversation,
+    conversation: normalizedConversation,
   }
+  conversation.value = normalizedConversation
   setChat(updatedChat)
   return updatedChat
 }
@@ -321,6 +359,32 @@ async function streamAssistantResponse({
       thinking.value = true
     }
   }, 500)
+
+  const assistantIndex = conversation.value.findIndex(message => message.id === assistantMessage.id)
+  const resolvedAssistantIndex = assistantIndex === -1
+    ? [...conversation.value].map(message => message.id).lastIndexOf(assistantMessage.id)
+    : assistantIndex
+
+  function commitAssistantUpdate(updater: (message: ChatMessage) => ChatMessage) {
+    if (resolvedAssistantIndex === -1) {
+      return
+    }
+    const currentMessage = conversation.value[resolvedAssistantIndex]
+    const updated = ensureAssistantMessageStructure(updater(ensureAssistantMessageStructure(currentMessage)))
+    conversation.value[resolvedAssistantIndex] = updated
+    conversation.value = [...conversation.value]
+  }
+
+  function applyStreamMessage(streamMessage: ChatMessage) {
+    commitAssistantUpdate((baseMessage) => {
+      let next = updateChatMessageContent(baseMessage, streamMessage.content)
+      next = updateChatMessageReasoning(next, streamMessage.reasoning)
+      if (streamMessage.metadata) {
+        next = mergeChatMessageMetadata(next, streamMessage.metadata)
+      }
+      return next
+    })
+  }
 
   try {
     const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
@@ -344,11 +408,7 @@ async function streamAssistantResponse({
           thinking.value = false
         }
 
-        const lastAssistantIndex = [...conversation.value].map(message => message.role).lastIndexOf('assistant')
-        if (lastAssistantIndex !== -1) {
-          conversation.value[lastAssistantIndex] = updatedMessage
-          conversation.value = [...conversation.value]
-        }
+        applyStreamMessage(updatedMessage)
       },
       onFinish: (finalMessage: ChatMessage, usage?: any) => {
         lastEndedAtMS.value = Date.now()
@@ -367,11 +427,7 @@ async function streamAssistantResponse({
           }
         }
 
-        const lastAssistantIndex = [...conversation.value].map(message => message.role).lastIndexOf('assistant')
-        if (lastAssistantIndex !== -1) {
-          conversation.value[lastAssistantIndex] = finalMessage
-          conversation.value = [...conversation.value]
-        }
+        applyStreamMessage(finalMessage)
 
         cacheSuccessfulRequest({
           preset: platform.value || 'openai',
@@ -400,13 +456,6 @@ async function streamAssistantResponse({
     if (result.error) {
       console.error('Stream completion failed:', result.error)
       conversation.value = [...conversation.value, result.message]
-      return
-    }
-
-    const lastAssistantIndex = [...conversation.value].map(message => message.role).lastIndexOf('assistant')
-    if (lastAssistantIndex !== -1) {
-      conversation.value[lastAssistantIndex] = result.message
-      conversation.value = [...conversation.value]
     }
   }
   catch (error: unknown) {
@@ -433,17 +482,15 @@ async function streamAssistantResponse({
     }
 
     if (chat) {
-      chat.conversation = conversation.value
-      const rawChat = toRaw(chat)
-      setChat(rawChat)
-      if (!rawChat.title) {
+      const updatedChat = updateChatConversation(chat, conversation.value) ?? chat
+      if (!updatedChat.title) {
         const aiMessage = conversation.value
           .filter(message => message.role === 'assistant')
           .map(message => message.content)
           .join('\n')
         const summary = await generateSummary(aiMessage, currentModel)
         setChat({
-          ...rawChat,
+          ...updatedChat,
           title: summary,
         })
       }
@@ -528,6 +575,16 @@ async function onSubmit() {
   conversation.value = [...conversation.value, userMessage, assistantMessage]
   chat = updateChatConversation(chat, conversation.value) ?? chat
 
+  const normalizedAssistantIndex = [...conversation.value].map(message => message.role).lastIndexOf('assistant')
+  const normalizedAssistantMessage = normalizedAssistantIndex === -1
+    ? ensureAssistantMessageStructure(assistantMessage)
+    : ensureAssistantMessageStructure(conversation.value[normalizedAssistantIndex])
+
+  if (normalizedAssistantIndex !== -1) {
+    conversation.value[normalizedAssistantIndex] = normalizedAssistantMessage
+    conversation.value = [...conversation.value]
+  }
+
   nextTick(() => {
     const el = scrollArea.value
     if (el) {
@@ -537,7 +594,7 @@ async function onSubmit() {
 
   await streamAssistantResponse({
     chat,
-    assistantMessage,
+    assistantMessage: normalizedAssistantMessage,
     currentModel,
   })
 }
@@ -571,16 +628,24 @@ async function regenerateLastAssistantMessage(): Promise<void> {
 
   streaming.value = true
 
-  const truncatedConversation = conversation.value.slice(0, assistantIndex)
-  conversation.value = [...truncatedConversation]
-  chat = updateChatConversation(chat, conversation.value) ?? chat
+  const trimmedConversation = conversation.value.slice(0, assistantIndex + 1)
+  if (trimmedConversation.length !== conversation.value.length) {
+    conversation.value = trimmedConversation
+    chat = updateChatConversation(chat, conversation.value) ?? chat
+  }
 
-  const assistantMessage = createChatMessage('assistant', '', {
-    sentAt: Date.now(),
-    model: currentModel,
+  const baseMessage = ensureAssistantMessageStructure(conversation.value[assistantIndex])
+  const assistantMessage = addAssistantMessageVersion(baseMessage, {
+    content: '',
+    metadata: {
+      sentAt: Date.now(),
+      model: currentModel,
+      preset: platform.value,
+    },
   })
 
-  conversation.value = [...conversation.value, assistantMessage]
+  conversation.value[assistantIndex] = assistantMessage
+  conversation.value = [...conversation.value]
   chat = updateChatConversation(chat, conversation.value) ?? chat
 
   nextTick(() => {
@@ -595,6 +660,37 @@ async function regenerateLastAssistantMessage(): Promise<void> {
     assistantMessage,
     currentModel,
   })
+}
+
+function changeAssistantMessageVersion({ messageId, index }: { messageId: string, index: number }): void {
+  const targetIndex = conversation.value.findIndex(message => message.id === messageId)
+  if (targetIndex === -1) {
+    return
+  }
+
+  const updatedMessage = setAssistantMessageActiveVersion(conversation.value[targetIndex], index)
+  conversation.value[targetIndex] = updatedMessage
+  conversation.value = [...conversation.value]
+
+  const chat = currentChat.value
+  if (chat) {
+    updateChatConversation(chat, conversation.value)
+  }
+
+  const metadata = updatedMessage.metadata
+  if (metadata?.usage) {
+    lastUsage.value = {
+      prompt_tokens: metadata.usage.input_tokens,
+      completion_tokens: metadata.usage.output_tokens,
+      total_tokens: metadata.usage.total_tokens,
+    }
+  }
+  if (metadata?.sentAt) {
+    laststartedAtMS.value = metadata.sentAt
+  }
+  if (metadata?.receivedAt) {
+    lastEndedAtMS.value = metadata.receivedAt
+  }
 }
 const lastTimeUsageMS = computed(() => {
   return lastEndedAtMS.value - laststartedAtMS.value
@@ -710,6 +806,7 @@ watchEffect(() => {
             :loading="streaming && groupedConversation.length - 1 === i"
             :thinking="thinking && groupedConversation.length - 1 === i && c.role === 'assistant'"
             :show-regenerate="c.role === 'assistant' && !streaming && lastAssistantMessageId === c.id"
+            @change-version="changeAssistantMessageVersion"
             @regenerate="regenerateLastAssistantMessage"
           />
         </template>

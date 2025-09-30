@@ -12,6 +12,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   (event: 'regenerate'): void
+  (event: 'changeVersion', payload: { messageId: string, index: number }): void
 }>()
 const message = computed(() => props.message)
 
@@ -23,12 +24,37 @@ const contentAsString = computed(() => messageContentToString(message.value.cont
 // For assistant messages, use original content structure
 const assistantContent = computed(() => message.value.content)
 const showCopyTooltip = ref(false)
-let copyTooltipTimeout: NodeJS.Timeout | undefined
+let copyTooltipTimeout: ReturnType<typeof globalThis.setTimeout> | undefined
 
 const clipboardSupported = computed(() => {
   return typeof navigator !== 'undefined'
     && Boolean(navigator.clipboard)
     && typeof navigator.clipboard.writeText === 'function'
+})
+
+const versionCount = computed(() => {
+  if (props.message.role !== 'assistant') {
+    return 0
+  }
+  return props.message.versions?.length ?? 0
+})
+
+const activeVersionIndex = computed(() => {
+  if (props.message.role !== 'assistant') {
+    return 0
+  }
+  return props.message.activeVersionIndex ?? 0
+})
+
+const hasMultipleVersions = computed(() => {
+  return versionCount.value > 1
+})
+
+const versionLabel = computed(() => {
+  if (versionCount.value === 0) {
+    return ''
+  }
+  return `${activeVersionIndex.value + 1}/${versionCount.value}`
 })
 
 function clearCopyTooltipTimeout() {
@@ -65,6 +91,28 @@ async function copyAssistantContent(): Promise<void> {
 onBeforeUnmount(() => {
   clearCopyTooltipTimeout()
 })
+
+function changeAssistantVersion(targetIndex: number) {
+  if (props.message.role !== 'assistant' || versionCount.value === 0) {
+    return
+  }
+  const clamped = Math.min(Math.max(targetIndex, 0), versionCount.value - 1)
+  if (clamped === activeVersionIndex.value) {
+    return
+  }
+  emit('changeVersion', {
+    messageId: props.message.id,
+    index: clamped,
+  })
+}
+
+function viewPreviousVersion() {
+  changeAssistantVersion(activeVersionIndex.value - 1)
+}
+
+function viewNextVersion() {
+  changeAssistantVersion(activeVersionIndex.value + 1)
+}
 </script>
 
 <template>
@@ -126,6 +174,34 @@ onBeforeUnmount(() => {
           v-if="props.message.role === 'assistant'"
           class="ml-auto flex gap-1 items-center"
         >
+          <div
+            v-if="hasMultipleVersions"
+            class="text-xs text-neutral-500 flex gap-1 items-center dark:text-neutral-300"
+          >
+            <button
+              type="button"
+              class="rounded-md flex h-6 w-6 transition-colors items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              :class="{ 'opacity-50 cursor-not-allowed': activeVersionIndex === 0 }"
+              :disabled="activeVersionIndex === 0"
+              aria-label="Previous version"
+              title="Previous version"
+              @click="viewPreviousVersion"
+            >
+              <i class="i-tabler-chevron-left h-4 w-4" />
+            </button>
+            <span class="text-xs font-mono px-1 text-center">{{ versionLabel }}</span>
+            <button
+              type="button"
+              class="rounded-md flex h-6 w-6 transition-colors items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              :class="{ 'opacity-50 cursor-not-allowed': activeVersionIndex >= versionCount - 1 }"
+              :disabled="activeVersionIndex >= versionCount - 1"
+              aria-label="Next version"
+              title="Next version"
+              @click="viewNextVersion"
+            >
+              <i class="i-tabler-chevron-right h-4 w-4" />
+            </button>
+          </div>
           <button
             type="button"
             class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center relative dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
@@ -208,6 +284,34 @@ onBeforeUnmount(() => {
             v-if="message.role === 'assistant'"
             class="ml-auto flex gap-1 items-center"
           >
+            <div
+              v-if="hasMultipleVersions"
+              class="text-xs text-neutral-500 flex gap-1 items-center dark:text-neutral-300"
+            >
+              <button
+                type="button"
+                class="rounded-md flex h-6 w-6 transition-colors items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                :class="{ 'opacity-50 cursor-not-allowed': activeVersionIndex === 0 }"
+                :disabled="activeVersionIndex === 0"
+                aria-label="Previous version"
+                title="Previous version"
+                @click="viewPreviousVersion"
+              >
+                <i class="i-tabler-chevron-left h-4 w-4" />
+              </button>
+              <span class="text-xs font-mono px-1 text-center">{{ versionLabel }}</span>
+              <button
+                type="button"
+                class="rounded-md flex h-6 w-6 transition-colors items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                :class="{ 'opacity-50 cursor-not-allowed': activeVersionIndex >= versionCount - 1 }"
+                :disabled="activeVersionIndex >= versionCount - 1"
+                aria-label="Next version"
+                title="Next version"
+                @click="viewNextVersion"
+              >
+                <i class="i-tabler-chevron-right h-4 w-4" />
+              </button>
+            </div>
             <button
               type="button"
               class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center relative dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"

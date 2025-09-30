@@ -2,7 +2,13 @@ import type { LanguageModel, ModelMessage } from 'ai'
 import type { ProviderOptions } from '../types/ai'
 import type { ChatMessage } from '../types/message'
 import { streamText } from 'ai'
-import { createChatMessage, updateChatMessageContent } from './message-converter'
+import {
+  createChatMessage,
+  ensureAssistantMessageStructure,
+  mergeChatMessageMetadata,
+  updateChatMessageContent,
+  updateChatMessageReasoning,
+} from './message-converter'
 
 export interface StreamOptions {
   model: LanguageModel
@@ -48,11 +54,11 @@ export class AIStreamHandler {
     // reset per-call state
 
     // Create the initial assistant message placeholder
-    this.currentMessage = createChatMessage('assistant', '', {
+    this.currentMessage = ensureAssistantMessageStructure(createChatMessage('assistant', '', {
       sentAt: this.startTime,
       model: (model as any).modelId || (model as any).name || (typeof model === 'string' ? model : 'unknown'),
       preset,
-    })
+    }))
 
     try {
       let streamError: Error | null = null
@@ -97,10 +103,7 @@ export class AIStreamHandler {
             const reasoningText = 'text' in event && typeof (event as any).text === 'string' ? (event as any).text : ''
             if (reasoningText) {
               fullReasoning += reasoningText
-              this.currentMessage = {
-                ...this.currentMessage!,
-                reasoning: fullReasoning,
-              }
+              this.currentMessage = updateChatMessageReasoning(this.currentMessage!, fullReasoning)
               onUpdate?.(this.currentMessage!)
             }
           }
@@ -164,23 +167,19 @@ export class AIStreamHandler {
         ? (usage.outputTokens / ((receivedAt - this.firstTokenTime) / 1000))
         : undefined
 
-      this.currentMessage = {
-        ...this.currentMessage,
-        metadata: {
-          ...this.currentMessage?.metadata,
-          receivedAt,
-          model: this.currentMessage?.metadata?.model || (model as any).modelId || (model as any).name || (typeof model === 'string' ? model : 'unknown'),
-          preset: this.currentMessage?.metadata?.preset || preset,
-          usage: usage
-            ? {
-                input_tokens: usage.inputTokens,
-                output_tokens: usage.outputTokens,
-                total_tokens: usage.totalTokens,
-              }
-            : undefined,
-          tokenSpeed,
-        },
-      }
+      this.currentMessage = mergeChatMessageMetadata(this.currentMessage!, {
+        receivedAt,
+        model: this.currentMessage?.metadata?.model || (model as any).modelId || (model as any).name || (typeof model === 'string' ? model : 'unknown'),
+        preset: this.currentMessage?.metadata?.preset || preset,
+        usage: usage
+          ? {
+              input_tokens: usage.inputTokens,
+              output_tokens: usage.outputTokens,
+              total_tokens: usage.totalTokens,
+            }
+          : undefined,
+        tokenSpeed,
+      })
 
       // Only call finish when there was no streaming error
       onFinish?.(this.currentMessage, usage)

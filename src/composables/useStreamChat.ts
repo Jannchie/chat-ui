@@ -2,7 +2,12 @@ import type { ChatMessage, MessageContent } from '../types/message'
 import type { ImageFile } from './chat-types'
 import { getProviderFromPlatform } from '../lib/ai-providers'
 import { createStreamCompletion } from '../lib/ai-stream-handler'
-import { chatMessagesToModelMessages, createChatMessage } from '../lib/message-converter'
+import {
+  chatMessagesToModelMessages,
+  createChatMessage,
+  ensureAssistantMessageStructure,
+  normalizeChatMessages,
+} from '../lib/message-converter'
 import { apiKey, model, platform, serviceUrl } from '../shared'
 
 export interface StreamChatOptions {
@@ -35,6 +40,8 @@ export function useStreamChat() {
     if ((input.trim() === '' && uploadedImages.length === 0) || streaming.value) {
       throw new Error('Invalid input or already streaming')
     }
+
+    const normalizedConversation = normalizeChatMessages(conversation)
 
     // Lock the current model to prevent accidental switching during message sending
     const currentModel = model.value
@@ -78,12 +85,12 @@ export function useStreamChat() {
       const userMessage = createChatMessage('user', messageContent, {
         sentAt: Date.now(),
       })
-      const assistantMessage = createChatMessage('assistant', '', {
+      const assistantMessage = ensureAssistantMessageStructure(createChatMessage('assistant', '', {
         sentAt: Date.now(),
         model: currentModel,
-      })
+      }))
 
-      const updatedConversation = [...conversation, userMessage, assistantMessage]
+      const updatedConversation = [...normalizedConversation, userMessage, assistantMessage]
 
       // Use AI SDK for streaming
       const messages = chatMessagesToModelMessages(
