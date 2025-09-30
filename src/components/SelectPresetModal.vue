@@ -5,6 +5,7 @@ import { getPlatformIcon, getPlatformName } from '../utils'
 
 const presets = [
   'openai',
+  'deepseek',
   'anthropic',
   'pfn',
   'openrouter',
