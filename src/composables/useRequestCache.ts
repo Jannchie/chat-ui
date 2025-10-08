@@ -42,8 +42,10 @@ async function cacheSuccessfulRequest(key: RequestCacheKey) {
   const now = Date.now()
 
   try {
+  // caching request
     // Check if entry already exists
     const existingEntry = await db.requestCache.where('cacheKey').equals(cacheKey).first()
+    // existingEntry inspected
 
     existingEntry
       ? await db.requestCache.update(existingEntry.id!, {
@@ -61,6 +63,8 @@ async function cacheSuccessfulRequest(key: RequestCacheKey) {
           accessCount: 1,
           lastAccessed: now,
         })
+
+    await db.requestCache.count()
 
     // Cleanup and maintain cache size
     await cleanupExpiredEntries()

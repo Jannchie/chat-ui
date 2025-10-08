@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
-import { Tag } from '@roku-ui/vue'
+// removed Tag import to render a simpler edited indicator without outline
 import { platform, serviceUrl } from '../shared'
 import { getPlatformIcon } from '../utils'
 import MessageTimer from './MessageTimer.vue'
@@ -61,14 +61,6 @@ const messagePlatform = computed(() => {
       <span>{{ message.metadata.model }}</span>
     </span>
     <MessageTimer :message="message" mode="compact" />
-    <Tag
-      v-if="message.metadata?.edited"
-      size="sm"
-      variant="light"
-      color="blue"
-      style="opacity: 0.5;"
-    >
-      Edited
-    </Tag>
+    <span v-if="message.metadata?.edited" class="text-xs op-50">Edited</span>
   </div>
 </template>

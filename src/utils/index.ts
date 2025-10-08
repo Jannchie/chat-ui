@@ -1,6 +1,8 @@
+import type { ChatData } from '../composables/chat-types'
 import markdownit from 'markdown-it'
 import todo from 'markdown-it-todo'
 import { v7 as uuidv7 } from 'uuid'
+import { computed, ref, toRaw } from 'vue'
 import { chatHistoryIDB } from '../shared'
 import VNodePlugin from './render'
 

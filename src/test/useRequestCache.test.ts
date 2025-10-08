@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useRequestCache } from '../composables/useRequestCache'
+import 'fake-indexeddb/auto'
 
 describe('userequestcache', () => {
   const { cacheSuccessfulRequest, getCachedRequest, getRecentSuccessfulRequests, getTopSuccessfulRequests, clearCache, getCacheSize } = useRequestCache()

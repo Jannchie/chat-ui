@@ -49,18 +49,18 @@ interface ReasoningEffortOption {
 const reasoningEffortOptions: ReasoningEffortOption[] = [
   { value: 'minimal', label: 'Minimal' },
   { value: 'low', label: 'Low' },
-  { value: 'normal', label: 'Normal' },
+  { value: 'medium', label: 'medium' },
   { value: 'high', label: 'High' },
 ]
 const supportedEffortValues = new Set<ReasoningEffort>(
   reasoningEffortOptions.map(option => option.value),
 )
-const defaultReasoningEffortOption = reasoningEffortOptions.find(option => option.value === 'normal')
+const defaultReasoningEffortOption = reasoningEffortOptions.find(option => option.value === 'medium')
   ?? reasoningEffortOptions[0]
 
 watchEffect(() => {
   if (!supportedEffortValues.has(openaiReasoningEffort.value)) {
-    openaiReasoningEffort.value = 'normal'
+    openaiReasoningEffort.value = 'medium'
   }
 })
 
@@ -662,6 +662,79 @@ async function regenerateLastAssistantMessage(): Promise<void> {
   })
 }
 
+async function editUserMessage({ messageId, content }: { messageId: string, content: string }): Promise<void> {
+  if (streaming.value) {
+    console.warn('Cannot edit messages while streaming.')
+    return
+  }
+
+  const chat = currentChat.value
+  if (!chat) {
+    console.error('No active chat to edit.')
+    return
+  }
+
+  const targetIndex = conversation.value.findIndex(message => message.id === messageId)
+  if (targetIndex === -1) {
+    return
+  }
+
+  const targetMessage = conversation.value[targetIndex]
+  if (targetMessage.role !== 'user' || typeof targetMessage.content !== 'string') {
+    return
+  }
+
+  const sanitized = content.trim()
+  if (!sanitized) {
+    return
+  }
+
+  const currentModel = model.value
+  if (!currentModel) {
+    console.error('Please select a model first')
+    return
+  }
+
+  const updatedContent = `${sanitized}\n`
+  let updatedMessage = updateChatMessageContent(targetMessage, updatedContent)
+  updatedMessage = mergeChatMessageMetadata(updatedMessage, {
+    sentAt: Date.now(),
+    edited: true,
+  })
+
+  const trimmedConversation = [
+    ...conversation.value.slice(0, targetIndex),
+    updatedMessage,
+  ]
+
+  conversation.value = trimmedConversation
+
+  let activeChat = updateChatConversation(chat, conversation.value) ?? chat
+
+  streaming.value = true
+
+  const assistantMessage = createChatMessage('assistant', '', {
+    sentAt: Date.now(),
+    model: currentModel,
+  })
+
+  conversation.value = [...conversation.value, assistantMessage]
+  activeChat = updateChatConversation(activeChat, conversation.value) ?? activeChat
+
+  nextTick(() => {
+    const el = scrollArea.value
+    if (el) {
+      scrollToBottomSmoothly(el, 1000)
+    }
+  })
+
+  await streamAssistantResponse({
+    chat: activeChat,
+    assistantMessage,
+    currentModel,
+  })
+}
+
 function changeAssistantMessageVersion({ messageId, index }: { messageId: string, index: number }): void {
   const targetIndex = conversation.value.findIndex(message => message.id === messageId)
   if (targetIndex === -1) {
@@ -806,8 +879,10 @@ watchEffect(() => {
             :loading="streaming && groupedConversation.length - 1 === i"
             :thinking="thinking && groupedConversation.length - 1 === i && c.role === 'assistant'"
             :show-regenerate="c.role === 'assistant' && !streaming && lastAssistantMessageId === c.id"
+            :allow-user-edit="!streaming"
             @change-version="changeAssistantMessageVersion"
             @regenerate="regenerateLastAssistantMessage"
+            @edit-message="editUserMessage"
           />
         </template>
       </div>
