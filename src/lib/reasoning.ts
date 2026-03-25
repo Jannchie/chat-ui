@@ -16,7 +16,17 @@ export interface ResolveReasoningCapabilityOptions {
 }
 
 const ALL_REASONING_EFFORTS: ReasoningEffort[] = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh']
-const OPENAI_REASONING_EFFORTS: ReasoningEffort[] = ['minimal', 'low', 'medium', 'high']
+const OPENAI_GPT_5_REASONING_EFFORTS: ReasoningEffort[] = ['minimal', 'low', 'medium', 'high']
+const OPENAI_GPT_5_1_REASONING_EFFORTS: ReasoningEffort[] = ['none', 'low', 'medium', 'high']
+const OPENAI_GPT_5_2_PLUS_REASONING_EFFORTS: ReasoningEffort[] = ['none', 'low', 'medium', 'high', 'xhigh']
+const OPENAI_GPT_5_PRO_REASONING_EFFORTS: ReasoningEffort[] = ['high']
+const OPENAI_GPT_5_2_PLUS_PRO_REASONING_EFFORTS: ReasoningEffort[] = ['medium', 'high', 'xhigh']
+const OPENAI_GPT_5_2_PLUS_MODEL_REGEXP = /^gpt-5\.[234](?:$|-)(?!.*-pro(?:$|-))/
+const OPENAI_GPT_5_2_PLUS_PRO_MODEL_REGEXP = /^gpt-5\.[234]-pro(?:$|-)/
+const OPENAI_GPT_5_1_MODEL_REGEXP = /^gpt-5\.1(?:$|-)/
+const OPENAI_GPT_5_PRO_MODEL_REGEXP = /^gpt-5-pro(?:$|-)/
+const OPENAI_GPT_5_2_PLUS_CODEX_MODEL_REGEXP = /^gpt-5\.[234]-codex(?:$|-)/
+const OPENAI_GPT_5_MODEL_REGEXP = /^gpt-5(?:$|-)/
 const OPENROUTER_REASONING_EFFORTS: ReasoningEffort[] = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh']
 
 const DEFAULT_REASONING_CAPABILITY: ReasoningCapability = {
@@ -50,15 +60,45 @@ function stripProviderPrefix(modelId?: string | null): string {
   return slashIndex === -1 ? normalized : normalized.slice(slashIndex + 1)
 }
 
-function isOpenAIReasoningModel(modelId?: string | null): boolean {
+function getOpenAIReasoningEfforts(modelId?: string | null): ReasoningEffort[] {
   const normalized = stripProviderPrefix(modelId)
   if (!normalized || normalized.startsWith('gpt-5-chat')) {
-    return false
+    return []
   }
-  return normalized.startsWith('o')
-    || normalized.startsWith('gpt-5')
-    || normalized.startsWith('codex-')
-    || normalized.startsWith('computer-use')
+
+  if (OPENAI_GPT_5_2_PLUS_MODEL_REGEXP.test(normalized)) {
+    return OPENAI_GPT_5_2_PLUS_REASONING_EFFORTS
+  }
+
+  if (OPENAI_GPT_5_2_PLUS_PRO_MODEL_REGEXP.test(normalized)) {
+    return OPENAI_GPT_5_2_PLUS_PRO_REASONING_EFFORTS
+  }
+
+  if (OPENAI_GPT_5_1_MODEL_REGEXP.test(normalized)) {
+    return OPENAI_GPT_5_1_REASONING_EFFORTS
+  }
+
+  if (OPENAI_GPT_5_PRO_MODEL_REGEXP.test(normalized)) {
+    return OPENAI_GPT_5_PRO_REASONING_EFFORTS
+  }
+
+  if (OPENAI_GPT_5_2_PLUS_CODEX_MODEL_REGEXP.test(normalized)) {
+    return ['low', 'medium', 'high', 'xhigh']
+  }
+
+  if (OPENAI_GPT_5_MODEL_REGEXP.test(normalized)) {
+    return OPENAI_GPT_5_REASONING_EFFORTS
+  }
+
+  if (normalized.startsWith('o')) {
+    return OPENAI_GPT_5_REASONING_EFFORTS
+  }
+
+  if (normalized.startsWith('codex-') || normalized.startsWith('computer-use')) {
+    return OPENAI_GPT_5_REASONING_EFFORTS
+  }
+
+  return []
 }
 
 function isAnthropicThinkingModel(modelId?: string | null): boolean {
@@ -80,14 +120,18 @@ export function resolveReasoningCapability(options: ResolveReasoningCapabilityOp
 
   switch (normalizedPlatform) {
     case 'openai': {
-      if (!isOpenAIReasoningModel(modelId)) {
+      const allowedEfforts = getOpenAIReasoningEfforts(modelId)
+      if (allowedEfforts.length === 0) {
         return DEFAULT_REASONING_CAPABILITY
       }
       return {
         supportsReasoning: true,
         selectorKind: 'effort',
-        allowedEfforts: OPENAI_REASONING_EFFORTS,
-        defaultEffort: 'medium',
+        allowedEfforts,
+        defaultEffort:
+          allowedEfforts.includes('medium')
+            ? 'medium'
+            : allowedEfforts[0]!,
       }
     }
 
@@ -150,7 +194,7 @@ export function buildReasoningProviderOptions(options: {
       }
       return {
         openai: {
-          reasoningEffort: selectedEffort as Extract<ReasoningEffort, 'minimal' | 'low' | 'medium' | 'high'>,
+          reasoningEffort: selectedEffort,
         },
       } as ProviderOptions
     }

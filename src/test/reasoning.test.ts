@@ -6,10 +6,10 @@ import {
 } from '../lib/reasoning'
 
 describe('reasoning capability', () => {
-  it('detects openai reasoning models using ai sdk compatible rules', () => {
+  it('maps the base gpt-5 family to minimal through high', () => {
     const capability = resolveReasoningCapability({
       platform: 'openai',
-      modelId: 'gpt-5-mini',
+      modelId: 'gpt-5',
     })
 
     expect(capability.supportsReasoning).toBe(true)
@@ -20,6 +20,35 @@ describe('reasoning capability', () => {
       'medium',
       'high',
     ])
+  })
+
+  it('maps gpt-5.4 to none through xhigh without minimal', () => {
+    const capability = resolveReasoningCapability({
+      platform: 'openai',
+      modelId: 'gpt-5.4',
+    })
+
+    expect(capability.supportsReasoning).toBe(true)
+    expect(capability.selectorKind).toBe('effort')
+    expect(capability.allowedEfforts).toEqual([
+      'none',
+      'low',
+      'medium',
+      'high',
+      'xhigh',
+    ])
+  })
+
+  it('maps gpt-5-pro to a fixed high effort', () => {
+    const capability = resolveReasoningCapability({
+      platform: 'openai',
+      modelId: 'gpt-5-pro',
+    })
+
+    expect(capability.supportsReasoning).toBe(true)
+    expect(capability.selectorKind).toBe('effort')
+    expect(capability.allowedEfforts).toEqual(['high'])
+    expect(capability.defaultEffort).toBe('high')
   })
 
   it('hides reasoning for non reasoning openai models', () => {
@@ -83,18 +112,18 @@ describe('reasoning provider options', () => {
   it('builds openai reasoning options', () => {
     const capability = resolveReasoningCapability({
       platform: 'openai',
-      modelId: 'o3',
+      modelId: 'gpt-5.4',
     })
 
     expect(
       buildReasoningProviderOptions({
         platform: 'openai',
-        effort: 'high',
+        effort: 'xhigh',
         capability,
       }),
     ).toEqual({
       openai: {
-        reasoningEffort: 'high',
+        reasoningEffort: 'xhigh',
       },
     })
   })
