@@ -21,13 +21,55 @@ const OPENAI_GPT_5_1_REASONING_EFFORTS: ReasoningEffort[] = ['none', 'low', 'med
 const OPENAI_GPT_5_2_PLUS_REASONING_EFFORTS: ReasoningEffort[] = ['none', 'low', 'medium', 'high', 'xhigh']
 const OPENAI_GPT_5_PRO_REASONING_EFFORTS: ReasoningEffort[] = ['high']
 const OPENAI_GPT_5_2_PLUS_PRO_REASONING_EFFORTS: ReasoningEffort[] = ['medium', 'high', 'xhigh']
-const OPENAI_GPT_5_2_PLUS_MODEL_REGEXP = /^gpt-5\.[234](?:$|-)(?!.*-pro(?:$|-))/
-const OPENAI_GPT_5_2_PLUS_PRO_MODEL_REGEXP = /^gpt-5\.[234]-pro(?:$|-)/
-const OPENAI_GPT_5_1_MODEL_REGEXP = /^gpt-5\.1(?:$|-)/
-const OPENAI_GPT_5_PRO_MODEL_REGEXP = /^gpt-5-pro(?:$|-)/
-const OPENAI_GPT_5_2_PLUS_CODEX_MODEL_REGEXP = /^gpt-5\.[234]-codex(?:$|-)/
-const OPENAI_GPT_5_MODEL_REGEXP = /^gpt-5(?:$|-)/
+const OPENAI_GPT_5_MODEL_REGEXP = /^gpt-5(?:-\d{4}-\d{2}-\d{2})?$/
+const OPENAI_GPT_5_1_MODEL_REGEXP = /^gpt-5\.1(?:-\d{4}-\d{2}-\d{2})?$/
+const OPENAI_GPT_5_2_MODEL_REGEXP = /^gpt-5\.2(?:-\d{4}-\d{2}-\d{2})?$/
+const OPENAI_GPT_5_4_MODEL_REGEXP = /^gpt-5\.4(?:-\d{4}-\d{2}-\d{2})?$/
+const OPENAI_GPT_5_PRO_MODEL_REGEXP = /^gpt-5-pro(?:-\d{4}-\d{2}-\d{2})?$/
+const OPENAI_GPT_5_2_PRO_MODEL_REGEXP = /^gpt-5\.2-pro(?:-\d{4}-\d{2}-\d{2})?$/
+const OPENAI_GPT_5_4_PRO_MODEL_REGEXP = /^gpt-5\.4-pro(?:-\d{4}-\d{2}-\d{2})?$/
+const OPENAI_GPT_5_2_CODEX_MODEL_REGEXP = /^gpt-5\.2-codex(?:-\d{4}-\d{2}-\d{2})?$/
+const OPENAI_GPT_5_3_CODEX_MODEL_REGEXP = /^gpt-5\.3-codex(?:-\d{4}-\d{2}-\d{2})?$/
 const OPENROUTER_REASONING_EFFORTS: ReasoningEffort[] = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh']
+
+const OPENAI_REASONING_RULES = [
+  {
+    pattern: OPENAI_GPT_5_MODEL_REGEXP,
+    efforts: OPENAI_GPT_5_REASONING_EFFORTS,
+  },
+  {
+    pattern: OPENAI_GPT_5_1_MODEL_REGEXP,
+    efforts: OPENAI_GPT_5_1_REASONING_EFFORTS,
+  },
+  {
+    pattern: OPENAI_GPT_5_2_MODEL_REGEXP,
+    efforts: OPENAI_GPT_5_2_PLUS_REASONING_EFFORTS,
+  },
+  {
+    pattern: OPENAI_GPT_5_4_MODEL_REGEXP,
+    efforts: OPENAI_GPT_5_2_PLUS_REASONING_EFFORTS,
+  },
+  {
+    pattern: OPENAI_GPT_5_PRO_MODEL_REGEXP,
+    efforts: OPENAI_GPT_5_PRO_REASONING_EFFORTS,
+  },
+  {
+    pattern: OPENAI_GPT_5_2_PRO_MODEL_REGEXP,
+    efforts: OPENAI_GPT_5_2_PLUS_PRO_REASONING_EFFORTS,
+  },
+  {
+    pattern: OPENAI_GPT_5_4_PRO_MODEL_REGEXP,
+    efforts: OPENAI_GPT_5_2_PLUS_PRO_REASONING_EFFORTS,
+  },
+  {
+    pattern: OPENAI_GPT_5_2_CODEX_MODEL_REGEXP,
+    efforts: ['low', 'medium', 'high', 'xhigh'] satisfies ReasoningEffort[],
+  },
+  {
+    pattern: OPENAI_GPT_5_3_CODEX_MODEL_REGEXP,
+    efforts: ['low', 'medium', 'high', 'xhigh'] satisfies ReasoningEffort[],
+  },
+] as const
 
 const DEFAULT_REASONING_CAPABILITY: ReasoningCapability = {
   supportsReasoning: false,
@@ -62,40 +104,14 @@ function stripProviderPrefix(modelId?: string | null): string {
 
 function getOpenAIReasoningEfforts(modelId?: string | null): ReasoningEffort[] {
   const normalized = stripProviderPrefix(modelId)
-  if (!normalized || normalized.startsWith('gpt-5-chat')) {
+  if (!normalized) {
     return []
   }
 
-  if (OPENAI_GPT_5_2_PLUS_MODEL_REGEXP.test(normalized)) {
-    return OPENAI_GPT_5_2_PLUS_REASONING_EFFORTS
-  }
-
-  if (OPENAI_GPT_5_2_PLUS_PRO_MODEL_REGEXP.test(normalized)) {
-    return OPENAI_GPT_5_2_PLUS_PRO_REASONING_EFFORTS
-  }
-
-  if (OPENAI_GPT_5_1_MODEL_REGEXP.test(normalized)) {
-    return OPENAI_GPT_5_1_REASONING_EFFORTS
-  }
-
-  if (OPENAI_GPT_5_PRO_MODEL_REGEXP.test(normalized)) {
-    return OPENAI_GPT_5_PRO_REASONING_EFFORTS
-  }
-
-  if (OPENAI_GPT_5_2_PLUS_CODEX_MODEL_REGEXP.test(normalized)) {
-    return ['low', 'medium', 'high', 'xhigh']
-  }
-
-  if (OPENAI_GPT_5_MODEL_REGEXP.test(normalized)) {
-    return OPENAI_GPT_5_REASONING_EFFORTS
-  }
-
-  if (normalized.startsWith('o')) {
-    return OPENAI_GPT_5_REASONING_EFFORTS
-  }
-
-  if (normalized.startsWith('codex-') || normalized.startsWith('computer-use')) {
-    return OPENAI_GPT_5_REASONING_EFFORTS
+  for (const rule of OPENAI_REASONING_RULES) {
+    if (rule.pattern.test(normalized)) {
+      return [...rule.efforts]
+    }
   }
 
   return []

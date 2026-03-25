@@ -39,6 +39,22 @@ describe('reasoning capability', () => {
     ])
   })
 
+  it('maps gpt-5.4 snapshots to the same effort set', () => {
+    const capability = resolveReasoningCapability({
+      platform: 'openai',
+      modelId: 'gpt-5.4-2026-03-05',
+    })
+
+    expect(capability.supportsReasoning).toBe(true)
+    expect(capability.allowedEfforts).toEqual([
+      'none',
+      'low',
+      'medium',
+      'high',
+      'xhigh',
+    ])
+  })
+
   it('maps gpt-5-pro to a fixed high effort', () => {
     const capability = resolveReasoningCapability({
       platform: 'openai',
@@ -51,10 +67,43 @@ describe('reasoning capability', () => {
     expect(capability.defaultEffort).toBe('high')
   })
 
+  it('maps gpt-5.2-codex to low through xhigh', () => {
+    const capability = resolveReasoningCapability({
+      platform: 'openai',
+      modelId: 'gpt-5.2-codex',
+    })
+
+    expect(capability.supportsReasoning).toBe(true)
+    expect(capability.allowedEfforts).toEqual([
+      'low',
+      'medium',
+      'high',
+      'xhigh',
+    ])
+  })
+
   it('hides reasoning for non reasoning openai models', () => {
     const capability = resolveReasoningCapability({
       platform: 'openai',
       modelId: 'gpt-4.1',
+    })
+
+    expect(capability.supportsReasoning).toBe(false)
+    expect(capability.selectorKind).toBe('none')
+    expect(capability.allowedEfforts).toEqual([])
+  })
+
+  it.each([
+    'gpt-5-mini',
+    'gpt-5.4-mini',
+    'gpt-5.1-chat-latest',
+    'gpt-5.1-codex',
+    'o3',
+    'computer-use-preview',
+  ])('hides reasoning when the official model page does not declare effort enums: %s', (modelId) => {
+    const capability = resolveReasoningCapability({
+      platform: 'openai',
+      modelId,
     })
 
     expect(capability.supportsReasoning).toBe(false)
@@ -99,10 +148,10 @@ describe('reasoning capability', () => {
   it('falls back to the capability default when preference is invalid', () => {
     const capability = resolveReasoningCapability({
       platform: 'openai',
-      modelId: 'o3',
+      modelId: 'gpt-5.4',
     })
 
-    expect(resolveReasoningEffortPreference(capability, 'xhigh')).toBe(
+    expect(resolveReasoningEffortPreference(capability, 'minimal')).toBe(
       'medium',
     )
   })
