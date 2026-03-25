@@ -28,21 +28,33 @@ loadShiki()
 }
 
 .input-section:before {
-    content: "";
-    position: absolute;
-    top: -50px;
-    width: 100%;
-    height: 100px;
-    pointer-events: none;
-    background: -webkit-gradient(linear,left top,left bottom,from(#f5f5f500),color-stop(60%,#f5f5f5));
-    background: -webkit-linear-gradient(top,#f5f5f500,#f5f5f5 60%);
-    background: linear-gradient(180deg,#f5f5f500,#f5f5f5 60%);
+  content: "";
+  position: absolute;
+  top: -50px;
+  width: 100%;
+  height: 100px;
+  pointer-events: none;
+  background: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(#f5f5f500),
+    color-stop(60%, #f5f5f5)
+  );
+  background: -webkit-linear-gradient(top, #f5f5f500, #f5f5f5 60%);
+  background: linear-gradient(180deg, #f5f5f500, #f5f5f5 60%);
 }
 
 :root[data-scheme="dark"] .input-section:before {
-    background: -webkit-gradient(linear,left top,left bottom,from(#13131400),color-stop(60%,#131314));
-    background: -webkit-linear-gradient(top,#13131400,#131314 60%);
-    background: linear-gradient(180deg,#13131400,#131314 60%);
+  background: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(#13131400),
+    color-stop(60%, #131314)
+  );
+  background: -webkit-linear-gradient(top, #13131400, #131314 60%);
+  background: linear-gradient(180deg, #13131400, #131314 60%);
 }
 pre {
   background-color: #1e1e1e;
@@ -72,7 +84,19 @@ textarea::placeholder {
   --gradient-color-1: #004183;
   --gradient-color-2: #0a57a5;
   --gradient-color-3: #c71d86;
-  background: linear-gradient(74deg, var(--gradient-color-1), var(--gradient-color-2), var(--gradient-color-3), var(--gradient-color-3), var(--gradient-color-2), var(--gradient-color-1), var(--gradient-color-2), var(--gradient-color-3), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  background: linear-gradient(
+    74deg,
+    var(--gradient-color-1),
+    var(--gradient-color-2),
+    var(--gradient-color-3),
+    var(--gradient-color-3),
+    var(--gradient-color-2),
+    var(--gradient-color-1),
+    var(--gradient-color-2),
+    var(--gradient-color-3),
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0)
+  );
   background-size: 400% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -124,10 +148,12 @@ textarea::placeholder {
   position: absolute;
 }
 
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
-.fade-enter-to, .fade-leave-from {
+.fade-enter-to,
+.fade-leave-from {
   opacity: 1;
 }
 p {
@@ -138,16 +164,16 @@ p {
 }
 
 .fade-in {
-    opacity: 0;
-    animation: fadeIn 1s forwards;
+  opacity: 0;
+  animation: fadeIn 1s forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>

@@ -37,12 +37,15 @@ function handleKeyDown(event: KeyboardEvent) {
   switch (event.key) {
     case 'ArrowDown': {
       event.preventDefault()
-      highlightedIndex.value = (highlightedIndex.value + 1) % filteredModels.value.length
+      highlightedIndex.value
+        = (highlightedIndex.value + 1) % filteredModels.value.length
       break
     }
     case 'ArrowUp': {
       event.preventDefault()
-      highlightedIndex.value = (highlightedIndex.value - 1 + filteredModels.value.length) % filteredModels.value.length
+      highlightedIndex.value
+        = (highlightedIndex.value - 1 + filteredModels.value.length)
+        % filteredModels.value.length
       break
     }
     case 'Enter': {
@@ -93,8 +96,12 @@ function closeModal() {
 
 <template>
   <Modal v-model="modelValue">
-    <div class="mx-4 rounded-xl bg-neutral-100 max-w-md w-full shadow-lg overflow-hidden dark:bg-[#1a1a1a]">
-      <div class="p-4 border-b border-neutral-800 flex items-center justify-between">
+    <div
+      class="mx-4 rounded-xl bg-neutral-100 max-w-md w-full shadow-lg overflow-hidden dark:bg-[#1a1a1a]"
+    >
+      <div
+        class="p-4 border-b border-neutral-800 flex items-center justify-between"
+      >
         <h3 class="text-lg text-neutral-800 font-medium dark:text-white">
           Select Model
         </h3>
@@ -113,7 +120,9 @@ function closeModal() {
       <!-- Search bar -->
       <div class="p-4 border-b border-neutral-800">
         <div class="relative">
-          <i class="i-tabler-search text-neutral-400 transform left-3 top-1/2 absolute -translate-y-1/2" />
+          <i
+            class="i-tabler-search text-neutral-400 transform left-3 top-1/2 absolute -translate-y-1/2"
+          />
           <input
             ref="searchInputRef"
             v-model="searchQuery"
@@ -133,10 +142,7 @@ function closeModal() {
 
       <div class="p-2 max-h-96 overflow-y-auto">
         <!-- Loading State -->
-        <div
-          v-if="isLoading"
-          class="text-neutral-400 p-8 text-center"
-        >
+        <div v-if="isLoading" class="text-neutral-400 p-8 text-center">
           <i class="i-tabler-loader-2 text-2xl animate-spin" />
           <p class="mt-2">
             Loading models...
@@ -144,16 +150,14 @@ function closeModal() {
         </div>
 
         <!-- Error State -->
-        <div
-          v-else-if="error"
-          class="text-neutral-400 p-4 text-center"
-        >
+        <div v-else-if="error" class="text-neutral-400 p-4 text-center">
           <i class="i-tabler-alert-circle text-xl text-red-400" />
           <p class="text-red-400 mt-2">
             {{ error }}
           </p>
           <p class="text-sm text-neutral-500 mt-2">
-            Please configure your API key in the header to fetch available models.
+            Please configure your API key in the header to fetch available
+            models.
           </p>
         </div>
 
@@ -163,14 +167,21 @@ function closeModal() {
             v-for="(modelOption, index) in filteredModels"
             :key="index"
             class="mb-1 p-3 rounded-lg flex gap-3 cursor-pointer transition-colors items-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
-            :class="{ 'bg-neutral-200 dark:bg-neutral-800': modelOption === selectedModel || index === highlightedIndex }"
+            :class="{
+              'bg-neutral-200 dark:bg-neutral-800':
+                modelOption === selectedModel || index === highlightedIndex,
+            }"
             @click="updateModel(modelOption)"
           >
-            <div class="rounded-full bg-neutral-200 flex flex-shrink-0 h-8 w-8 items-center justify-center dark:bg-neutral-800">
+            <div
+              class="rounded-full bg-neutral-200 flex flex-shrink-0 h-8 w-8 items-center justify-center dark:bg-neutral-800"
+            >
               <i class="i-tabler-cube text-purple-400" />
             </div>
             <div class="flex flex-col">
-              <span class="text-sm text-neutral-800 font-medium truncate dark:text-white">{{ modelOption }}</span>
+              <span
+                class="text-sm text-neutral-800 font-medium truncate dark:text-white"
+              >{{ modelOption }}</span>
               <span class="text-xs text-neutral-400">{{ platform }}</span>
             </div>
             <div class="ml-auto flex-shrink-0">
@@ -183,10 +194,7 @@ function closeModal() {
         </div>
 
         <!-- No Models Found -->
-        <div
-          v-else
-          class="text-neutral-400 p-4 text-center"
-        >
+        <div v-else class="text-neutral-400 p-4 text-center">
           <i class="i-tabler-info-circle text-xl" />
           <p class="mt-2">
             No Models Found

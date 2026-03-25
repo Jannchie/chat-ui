@@ -15,7 +15,9 @@ const displayLimit = ref(5)
 const showAll = ref(false)
 
 const displayedChats = computed(() => {
-  return showAll.value ? chatHistory.value : chatHistory.value.slice(0, displayLimit.value)
+  return showAll.value
+    ? chatHistory.value
+    : chatHistory.value.slice(0, displayLimit.value)
 })
 
 function toggleShowMore() {
@@ -27,14 +29,20 @@ const mouse = useMouse({
 })
 provide('openedMenuChat', openedMenuChat)
 const menuRef = ref<HTMLElement | null>(null)
-const hasMoreChats = computed(() => chatHistory.value.length > displayLimit.value)
+const hasMoreChats = computed(
+  () => chatHistory.value.length > displayLimit.value,
+)
 const openedXY = ref({ x: 0, y: 0 })
-watch([openedMenuChat], () => {
-  if (!openedMenuChat.value) {
-    return
-  }
-  openedXY.value = { x: mouse.x.value, y: mouse.y.value }
-}, { immediate: true })
+watch(
+  [openedMenuChat],
+  () => {
+    if (!openedMenuChat.value) {
+      return
+    }
+    openedXY.value = { x: mouse.x.value, y: mouse.y.value }
+  },
+  { immediate: true },
+)
 onClickOutside(menuRef, (e) => {
   if (!openedMenuChat.value) {
     return
@@ -68,7 +76,9 @@ async function onDelete(e: MouseEvent) {
         :style="{ top: `${openedXY.y}px`, left: `${openedXY.x}px` }"
         class="fixed z-10"
       >
-        <div class="dark:bg-neutral-8 rounded-md bg-neutral-200 w-32 overflow-hidden">
+        <div
+          class="dark:bg-neutral-8 rounded-md bg-neutral-200 w-32 overflow-hidden"
+        >
           <button
             class="dark:hover:bg-neutral-7 px-4 py-2 w-full hover:bg-neutral-300"
             @click="onDelete"
@@ -83,9 +93,7 @@ async function onDelete(e: MouseEvent) {
         @click="onNewChatClick"
       >
         <i class="i-tabler-plus h-5 w-5" />
-        <span class="text-sm flex-grow-1">
-          New Chat
-        </span>
+        <span class="text-sm flex-grow-1"> New Chat </span>
       </button>
     </div>
     <div class="my-2 px-4 flex items-center justify-between">
@@ -96,7 +104,11 @@ async function onDelete(e: MouseEvent) {
         class="text-xs dark:text-blue-200"
         @click="toggleShowMore"
       >
-        {{ showAll ? 'Show Less' : `Show More (${chatHistory.length - displayLimit})` }}
+        {{
+          showAll
+            ? "Show Less"
+            : `Show More (${chatHistory.length - displayLimit})`
+        }}
       </button>
     </div>
     <div class="flex-grow basis-0 overflow-x-hidden overflow-y-auto">

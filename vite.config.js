@@ -5,6 +5,18 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+
+function manualChunks(id) {
+  if (id.includes('node_modules/vue/') || id.includes('node_modules/vue-router/')) {
+    return 'vendor-vue'
+  }
+  if (id.includes('node_modules/@vueuse/core/') || id.includes('node_modules/@vueuse/integrations/')) {
+    return 'vendor-ui'
+  }
+  if (id.includes('node_modules/dexie/') || id.includes('node_modules/idb-keyval/')) {
+    return 'vendor-db'
+  }
+}
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -16,15 +28,8 @@ export default defineConfig({
       dts: './src/components.d.ts',
     }),
     AutoImport({
-      imports: [
-        'vue',
-        '@vueuse/core',
-        'vue-router',
-      ],
-      dirs: [
-        './src/composables',
-        './src/locale',
-      ],
+      imports: ['vue', '@vueuse/core', 'vue-router'],
+      dirs: ['./src/composables', './src/locale'],
       dts: './src/auto-import.d.ts',
     }),
     VitePWA({
@@ -36,7 +41,8 @@ export default defineConfig({
       manifest: {
         name: 'Jannchie\'s Chat UI',
         short_name: 'Chat UI',
-        description: 'A chat application built with modern styles and technologies.',
+        description:
+          'A chat application built with modern styles and technologies.',
         theme_color: '#131314',
         icons: [
           {
@@ -70,21 +76,13 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-vue': ['vue', 'vue-router'],
-          'vendor-ui': ['@vueuse/core', '@vueuse/integrations'],
-          'vendor-db': ['dexie', 'idb-keyval'],
-        },
+        manualChunks,
       },
     },
     chunkSizeWarningLimit: 1000,
   },
   optimizeDeps: {
-    include: [
-      'vue',
-      'vue-router',
-      '@vueuse/core',
-    ],
+    include: ['vue', 'vue-router', '@vueuse/core'],
     exclude: ['shiki'],
   },
 })

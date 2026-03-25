@@ -1,6 +1,12 @@
 import type { streamText } from 'ai'
 
-export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high'
+export type ReasoningEffort
+  = | 'none'
+  | 'minimal'
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'xhigh'
 
 type StreamTextOptions = Parameters<typeof streamText>[0]
 

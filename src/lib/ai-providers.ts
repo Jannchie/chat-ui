@@ -15,7 +15,10 @@ export interface AIProvider {
   getModel: (modelId: string) => LanguageModel
 }
 
-export function createAIProvider(platform: string, config: ProviderConfig): AIProvider {
+export function createAIProvider(
+  platform: string,
+  config: ProviderConfig,
+): AIProvider {
   switch (platform) {
     case 'openai': {
       const openai = createOpenAI({

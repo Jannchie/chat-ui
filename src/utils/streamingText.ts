@@ -1,17 +1,25 @@
 import type { VNode } from 'vue'
 
+const SENTENCE_SPLIT_REGEXP
+  = /(?<=[。？！；、，\n])|(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=[.?!`])/g
+const SENTENCE_END_REGEXP = /[.?!。？！；，、`\n]$/
+const ORDERED_LIST_PREFIX_REGEXP = /^\d+\./
+
 /**
  * Smart content splitting to avoid displaying incomplete sentences
  * Supports both English and Chinese punctuation
  */
 export function splitContent(msg: string): string {
-  const sentences = msg.split(/(?<=[。？！；、，\n])|(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=[.?!`])/g)
+  const sentences = msg.split(SENTENCE_SPLIT_REGEXP)
 
-  if (sentences.length > 0 && !/[.?!。？！；，、`\n]$/.test(sentences.at(-1)!)) {
+  if (
+    sentences.length > 0
+    && !SENTENCE_END_REGEXP.test(sentences.at(-1)!)
+  ) {
     sentences.pop()
   }
 
-  if (sentences.length > 0 && /^\d+\./.test(sentences.at(-1)!)) {
+  if (sentences.length > 0 && ORDERED_LIST_PREFIX_REGEXP.test(sentences.at(-1)!)) {
     sentences.pop()
   }
 
@@ -22,7 +30,11 @@ export function splitContent(msg: string): string {
  * Add fade-in animation class to text nodes in VNode tree
  * This is the core function that enables streaming text animation
  */
-export function addFadeInToVNodes(childrenRaw: VNode[], loading: boolean, fadeInClass = 'fade-in'): VNode[] {
+export function addFadeInToVNodes(
+  childrenRaw: VNode[],
+  loading: boolean,
+  fadeInClass = 'fade-in',
+): VNode[] {
   // eslint-disable-next-line unicorn/no-magic-array-flat-depth
   const children = childrenRaw.flat(20)
   for (const child of children) {
@@ -35,7 +47,11 @@ export function addFadeInToVNodes(childrenRaw: VNode[], loading: boolean, fadeIn
         child.props.class = `${existingClass} ${fadeInClass}`.trim()
       }
     }
-    if (child.children && Array.isArray(child.children) && child.children.length > 0) {
+    if (
+      child.children
+      && Array.isArray(child.children)
+      && child.children.length > 0
+    ) {
       addFadeInToVNodes(child.children as VNode[], loading, fadeInClass)
     }
   }

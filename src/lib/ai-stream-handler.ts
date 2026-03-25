@@ -10,6 +10,8 @@ import {
   updateChatMessageReasoning,
 } from './message-converter'
 
+const LAST_ERROR_REGEXP = /Last error: (.+)/
+
 export interface StreamOptions {
   model: LanguageModel
   messages: ModelMessage[]
@@ -39,14 +41,8 @@ export class AIStreamHandler {
   private abortController: AbortController | null = null
 
   async streamCompletion(options: StreamOptions): Promise<StreamResult> {
-    const {
-      model,
-      messages,
-      onUpdate,
-      onFinish,
-      preset,
-      providerOptions,
-    } = options
+    const { model, messages, onUpdate, onFinish, preset, providerOptions }
+      = options
 
     this.startTime = Date.now()
     this.firstTokenTime = 0
@@ -54,11 +50,16 @@ export class AIStreamHandler {
     // reset per-call state
 
     // Create the initial assistant message placeholder
-    this.currentMessage = ensureAssistantMessageStructure(createChatMessage('assistant', '', {
-      sentAt: this.startTime,
-      model: (model as any).modelId || (model as any).name || (typeof model === 'string' ? model : 'unknown'),
-      preset,
-    }))
+    this.currentMessage = ensureAssistantMessageStructure(
+      createChatMessage('assistant', '', {
+        sentAt: this.startTime,
+        model:
+          (model as any).modelId
+          || (model as any).name
+          || (typeof model === 'string' ? model : 'unknown'),
+        preset,
+      }),
+    )
 
     try {
       let streamError: Error | null = null
@@ -72,7 +73,10 @@ export class AIStreamHandler {
         providerOptions,
         onError: (event) => {
           console.error('Stream internal error:', event.error)
-          streamError = event.error instanceof Error ? event.error : new Error(String(event.error))
+          streamError
+            = event.error instanceof Error
+              ? event.error
+              : new Error(String(event.error))
           // Do not throw immediately; handle after stream consumption
         },
       })
@@ -94,16 +98,28 @@ export class AIStreamHandler {
               }
             }
 
-            const textDelta = 'text' in event && typeof (event as any).text === 'string' ? (event as any).text : ''
+            const textDelta
+              = 'text' in event && typeof (event as any).text === 'string'
+                ? (event as any).text
+                : ''
             fullContent += textDelta
-            this.currentMessage = updateChatMessageContent(this.currentMessage!, fullContent)
+            this.currentMessage = updateChatMessageContent(
+              this.currentMessage!,
+              fullContent,
+            )
             onUpdate?.(this.currentMessage)
           }
           else if (event.type === 'reasoning-delta') {
-            const reasoningText = 'text' in event && typeof (event as any).text === 'string' ? (event as any).text : ''
+            const reasoningText
+              = 'text' in event && typeof (event as any).text === 'string'
+                ? (event as any).text
+                : ''
             if (reasoningText) {
               fullReasoning += reasoningText
-              this.currentMessage = updateChatMessageReasoning(this.currentMessage!, fullReasoning)
+              this.currentMessage = updateChatMessageReasoning(
+                this.currentMessage!,
+                fullReasoning,
+              )
               onUpdate?.(this.currentMessage!)
             }
           }
@@ -114,7 +130,10 @@ export class AIStreamHandler {
         }
       }
       catch (error) {
-        console.warn('fullStream not available, falling back to textStream:', error)
+        console.warn(
+          'fullStream not available, falling back to textStream:',
+          error,
+        )
         // Fallback: consume textStream to at least stream textual content
         try {
           for await (const delta of (result as any).textStream ?? []) {
@@ -126,7 +145,10 @@ export class AIStreamHandler {
             }
             const textDelta = typeof delta === 'string' ? delta : ''
             fullContent += textDelta
-            this.currentMessage = updateChatMessageContent(this.currentMessage!, fullContent)
+            this.currentMessage = updateChatMessageContent(
+              this.currentMessage!,
+              fullContent,
+            )
             onUpdate?.(this.currentMessage)
           }
           // If the underlying stream reported an error via onError, propagate to outer retry logic
@@ -152,7 +174,9 @@ export class AIStreamHandler {
           usage = {
             inputTokens: finalUsage.inputTokens || 0,
             outputTokens: finalUsage.outputTokens || 0,
-            totalTokens: finalUsage.totalTokens || ((finalUsage.inputTokens || 0) + (finalUsage.outputTokens || 0)),
+            totalTokens:
+              finalUsage.totalTokens
+              || (finalUsage.inputTokens || 0) + (finalUsage.outputTokens || 0),
           }
         }
       }
@@ -163,13 +187,18 @@ export class AIStreamHandler {
 
       // Update final message metadata
       const receivedAt = Date.now()
-      const tokenSpeed = usage && this.firstTokenTime > 0
-        ? (usage.outputTokens / ((receivedAt - this.firstTokenTime) / 1000))
-        : undefined
+      const tokenSpeed
+        = usage && this.firstTokenTime > 0
+          ? usage.outputTokens / ((receivedAt - this.firstTokenTime) / 1000)
+          : undefined
 
       this.currentMessage = mergeChatMessageMetadata(this.currentMessage!, {
         receivedAt,
-        model: this.currentMessage?.metadata?.model || (model as any).modelId || (model as any).name || (typeof model === 'string' ? model : 'unknown'),
+        model:
+          this.currentMessage?.metadata?.model
+          || (model as any).modelId
+          || (model as any).name
+          || (typeof model === 'string' ? model : 'unknown'),
         preset: this.currentMessage?.metadata?.preset || preset,
         usage: usage
           ? {
@@ -207,8 +236,11 @@ export class AIStreamHandler {
       let errorMessage = 'Unknown error'
       if (error instanceof Error) {
         // Check AI SDK aggregated retry error format, although we disable retries
-        if (error.name === 'AI_RetryError' || error.message.includes('Failed after')) {
-          const lastErrorMatch = error.message.match(/Last error: (.+)/)
+        if (
+          error.name === 'AI_RetryError'
+          || error.message.includes('Failed after')
+        ) {
+          const lastErrorMatch = error.message.match(LAST_ERROR_REGEXP)
           errorMessage = lastErrorMatch ? lastErrorMatch[1] : error.message
         }
         else {
@@ -243,7 +275,9 @@ export class AIStreamHandler {
 /**
  * Helper to create and use a streaming handler in one call
  */
-export async function createStreamCompletion(options: StreamOptions): Promise<StreamResult> {
+export async function createStreamCompletion(
+  options: StreamOptions,
+): Promise<StreamResult> {
   const handler = new AIStreamHandler()
   return handler.streamCompletion(options)
 }

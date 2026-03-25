@@ -130,7 +130,10 @@ export class UnifiedStreamParser implements StreamParser {
     if (chunk.usage) {
       this.state.usage = this.normalizeUsage(chunk.usage)
       // 保存 cost 信息（如果提供的话）
-      if ('cost' in chunk.usage && typeof (chunk.usage as any).cost === 'number') {
+      if (
+        'cost' in chunk.usage
+        && typeof (chunk.usage as any).cost === 'number'
+      ) {
         this.state.cost = (chunk.usage as any).cost
       }
       if (this.state.usage) {
@@ -161,7 +164,10 @@ export class UnifiedStreamParser implements StreamParser {
     if (event.response?.model) {
       this.state.model = event.response.model
       // 如果消息已经创建但模型信息更新了，需要更新消息的 metadata
-      if (this.state.currentMessage && !this.state.currentMessage.metadata?.model) {
+      if (
+        this.state.currentMessage
+        && !this.state.currentMessage.metadata?.model
+      ) {
         this.state.currentMessage = {
           ...this.state.currentMessage,
           metadata: {
@@ -219,10 +225,15 @@ export class UnifiedStreamParser implements StreamParser {
 
       // 计算 token 速度
       let tokenSpeed: number | undefined
-      if (this.state.usage && this.state.firstTokenAt && this.state.lastTokenAt) {
+      if (
+        this.state.usage
+        && this.state.firstTokenAt
+        && this.state.lastTokenAt
+      ) {
         const outputTokens = this.state.usage.output_tokens
         if (outputTokens && outputTokens > 0) {
-          const duration = (this.state.lastTokenAt - this.state.firstTokenAt) / 1000 // 转换为秒
+          const duration
+            = (this.state.lastTokenAt - this.state.firstTokenAt) / 1000 // 转换为秒
           if (duration > 0) {
             tokenSpeed = outputTokens / duration
           }
@@ -314,7 +325,8 @@ export class UnifiedStreamParser implements StreamParser {
     if (this.state.usage && this.state.firstTokenAt && this.state.lastTokenAt) {
       const outputTokens = this.state.usage.output_tokens
       if (outputTokens && outputTokens > 0) {
-        const duration = (this.state.lastTokenAt - this.state.firstTokenAt) / 1000 // 转换为秒
+        const duration
+          = (this.state.lastTokenAt - this.state.firstTokenAt) / 1000 // 转换为秒
         if (duration > 0) {
           tokenSpeed = outputTokens / duration
         }
@@ -352,7 +364,9 @@ export class UnifiedStreamParser implements StreamParser {
   }
 }
 
-export function createUnifiedStreamParser(callbacks: StreamCallbacks): StreamParser {
+export function createUnifiedStreamParser(
+  callbacks: StreamCallbacks,
+): StreamParser {
   return new UnifiedStreamParser(callbacks)
 }
 

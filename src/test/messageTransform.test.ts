@@ -44,7 +44,10 @@ describe('messagetransform', () => {
     it('should handle complex content types', () => {
       const complexContent: MessageContent = [
         { type: 'text', text: 'Hello' },
-        { type: 'image_url', image_url: { url: 'http://example.com/image.jpg' } },
+        {
+          type: 'image_url',
+          image_url: { url: 'http://example.com/image.jpg' },
+        },
       ]
 
       const message = createUIMessage('user', complexContent)
@@ -61,7 +64,10 @@ describe('messagetransform', () => {
     it('should validate array content with valid items', () => {
       const validContent = [
         { type: 'text', text: 'Hello' },
-        { type: 'image_url', image_url: { url: 'http://example.com/image.jpg' } },
+        {
+          type: 'image_url',
+          image_url: { url: 'http://example.com/image.jpg' },
+        },
       ]
       expect(isValidMessageContent(validContent)).toBe(true)
     })
@@ -110,11 +116,12 @@ describe('messagetransform', () => {
     it('should handle user messages with image content', () => {
       const content: MessageContent = [
         { type: 'text', text: 'What is in this image?' },
-        { type: 'image_url', image_url: { url: 'http://example.com/image.jpg' } },
+        {
+          type: 'image_url',
+          image_url: { url: 'http://example.com/image.jpg' },
+        },
       ]
-      const messages: ChatMessage[] = [
-        createUIMessage('user', content),
-      ]
+      const messages: ChatMessage[] = [createUIMessage('user', content)]
 
       const result = transformToChatCompletions(messages)
 
@@ -150,11 +157,12 @@ describe('messagetransform', () => {
     it('should handle assistant messages with complex content', () => {
       const content: MessageContent = [
         { type: 'text', text: 'Here is the answer:' },
-        { type: 'function_call', function_call: { name: 'calculate', arguments: '{"x": 5}' } },
+        {
+          type: 'function_call',
+          function_call: { name: 'calculate', arguments: '{"x": 5}' },
+        },
       ]
-      const messages: ChatMessage[] = [
-        createUIMessage('assistant', content),
-      ]
+      const messages: ChatMessage[] = [createUIMessage('assistant', content)]
 
       const result = transformToChatCompletions(messages)
 
@@ -168,9 +176,7 @@ describe('messagetransform', () => {
         { type: 'text', text: 'System prompt' },
         { type: 'text', text: ' additional context' },
       ]
-      const messages: ChatMessage[] = [
-        createUIMessage('system', content),
-      ]
+      const messages: ChatMessage[] = [createUIMessage('system', content)]
 
       const result = transformToChatCompletions(messages)
 
@@ -205,11 +211,12 @@ describe('messagetransform', () => {
     it('should handle image content in responses api', () => {
       const content: MessageContent = [
         { type: 'text', text: 'Analyze this image' },
-        { type: 'image_url', image_url: { url: 'http://example.com/image.jpg' } },
+        {
+          type: 'image_url',
+          image_url: { url: 'http://example.com/image.jpg' },
+        },
       ]
-      const messages: ChatMessage[] = [
-        createUIMessage('user', content),
-      ]
+      const messages: ChatMessage[] = [createUIMessage('user', content)]
 
       const result = transformToResponsesAPI(messages)
 
@@ -230,11 +237,12 @@ describe('messagetransform', () => {
 
     it('should handle function calls in responses api', () => {
       const content: MessageContent = [
-        { type: 'function_call', function_call: { name: 'search', arguments: '{"query": "test"}' } },
+        {
+          type: 'function_call',
+          function_call: { name: 'search', arguments: '{"query": "test"}' },
+        },
       ]
-      const messages: ChatMessage[] = [
-        createUIMessage('assistant', content),
-      ]
+      const messages: ChatMessage[] = [createUIMessage('assistant', content)]
 
       const result = transformToResponsesAPI(messages)
 
@@ -258,9 +266,7 @@ describe('messagetransform', () => {
           },
         },
       ]
-      const messages: ChatMessage[] = [
-        createUIMessage('assistant', content),
-      ]
+      const messages: ChatMessage[] = [createUIMessage('assistant', content)]
 
       const result = transformToResponsesAPI(messages)
 
@@ -357,7 +363,9 @@ describe('messagetransform', () => {
 
     it('should append content in append mode', () => {
       const original = createUIMessage('assistant', 'Original')
-      const updated = updateMessageContent(original, ' appended', { appendMode: true })
+      const updated = updateMessageContent(original, ' appended', {
+        appendMode: true,
+      })
 
       expect(updated.content).toBe('Original appended')
     })
@@ -370,7 +378,9 @@ describe('messagetransform', () => {
       const originalDateNow = Date.now
       Date.now = mockNow
 
-      const updated = updateMessageContent(original, 'New content', { updateTimestamp: true })
+      const updated = updateMessageContent(original, 'New content', {
+        updateTimestamp: true,
+      })
 
       expect(updated.timestamp).toBeGreaterThan(original.timestamp)
       expect(mockNow).toHaveBeenCalled()
@@ -380,9 +390,13 @@ describe('messagetransform', () => {
     })
 
     it('should not append non-string content', () => {
-      const original = createUIMessage('user', [{ type: 'text', text: 'Original' }] as MessageContent)
+      const original = createUIMessage('user', [
+        { type: 'text', text: 'Original' },
+      ] as MessageContent)
       const newContent: MessageContent = [{ type: 'text', text: 'New' }]
-      const updated = updateMessageContent(original, newContent, { appendMode: true })
+      const updated = updateMessageContent(original, newContent, {
+        appendMode: true,
+      })
 
       expect(updated.content).toEqual(newContent)
     })
@@ -397,14 +411,18 @@ describe('messagetransform', () => {
     })
 
     it('should append reasoning in append mode', () => {
-      const original = createUIMessage('assistant', 'Response', { reasoning: 'Initial' })
+      const original = createUIMessage('assistant', 'Response', {
+        reasoning: 'Initial',
+      })
       const updated = updateMessageReasoning(original, ' additional', true)
 
       expect(updated.reasoning).toBe('Initial additional')
     })
 
     it('should replace reasoning when append mode is false', () => {
-      const original = createUIMessage('assistant', 'Response', { reasoning: 'Initial' })
+      const original = createUIMessage('assistant', 'Response', {
+        reasoning: 'Initial',
+      })
       const updated = updateMessageReasoning(original, 'New reasoning', false)
 
       expect(updated.reasoning).toBe('New reasoning')
@@ -416,7 +434,9 @@ describe('messagetransform', () => {
       const updated = updateMessageReasoning(original, 'Reasoning')
 
       expect(updated).toBe(original)
-      expect(consoleSpy).toHaveBeenCalledWith('Reasoning can only be updated for assistant messages')
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Reasoning can only be updated for assistant messages',
+      )
       consoleSpy.mockRestore()
     })
   })
@@ -430,13 +450,21 @@ describe('messagetransform', () => {
     it('should convert complex content to string', () => {
       const content: MessageContent = [
         { type: 'text', text: 'Hello' },
-        { type: 'image_url', image_url: { url: 'http://example.com/image.jpg' } },
-        { type: 'function_call', function_call: { name: 'search', arguments: '{}' } },
+        {
+          type: 'image_url',
+          image_url: { url: 'http://example.com/image.jpg' },
+        },
+        {
+          type: 'function_call',
+          function_call: { name: 'search', arguments: '{}' },
+        },
         { type: 'tool_call', tool_call: { id: 'tool-1', type: 'function' } },
       ]
 
       const result = messageContentToString(content)
-      expect(result).toBe('Hello [图片: http://example.com/image.jpg] [函数调用: search] [工具调用: tool-1]')
+      expect(result).toBe(
+        'Hello [图片: http://example.com/image.jpg] [函数调用: search] [工具调用: tool-1]',
+      )
     })
 
     it('should filter out empty text parts', () => {

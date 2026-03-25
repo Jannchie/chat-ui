@@ -1,8 +1,11 @@
 // 远程价格数据服务
-const PRICING_URL = 'https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json'
+const PRICING_URL
+  = 'https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json'
 const CACHE_KEY = 'model_pricing_cache'
 const CACHE_EXPIRY_KEY = 'model_pricing_cache_expiry'
 const CACHE_DURATION = 1000 * 60 * 60 // 1小时缓存
+const MODEL_NAME_SEPARATORS_REGEXP = /[_-]/g
+const WHITESPACE_REGEXP = /\s+/g
 
 export interface ModelPricing {
   input_cost_per_token?: number
@@ -69,7 +72,10 @@ async function getPricingData(): Promise<Record<string, ModelPricing>> {
 
     // 缓存到 localStorage
     localStorage.setItem(CACHE_KEY, JSON.stringify(data))
-    localStorage.setItem(CACHE_EXPIRY_KEY, (Date.now() + CACHE_DURATION).toString())
+    localStorage.setItem(
+      CACHE_EXPIRY_KEY,
+      (Date.now() + CACHE_DURATION).toString(),
+    )
 
     return data
   }
@@ -127,8 +133,8 @@ function extractModelName(modelName: string): string {
 function normalizeModelName(modelName: string): string {
   return modelName
     .toLowerCase()
-    .replaceAll(/[_-]/g, '')
-    .replaceAll(/\s+/g, '')
+    .replaceAll(MODEL_NAME_SEPARATORS_REGEXP, '')
+    .replaceAll(WHITESPACE_REGEXP, '')
 }
 
 /**
@@ -161,8 +167,8 @@ export async function calculateTokenCost(
         if (!pricing) {
           // 尝试标准化匹配
           const normalizedModelName = normalizeModelName(extractedModelName)
-          const matchedKey = Object.keys(pricingData).find(key =>
-            normalizeModelName(key) === normalizedModelName,
+          const matchedKey = Object.keys(pricingData).find(
+            key => normalizeModelName(key) === normalizedModelName,
           )
 
           if (matchedKey) {
@@ -240,8 +246,8 @@ export async function hasModelPricing(modelName: string): Promise<boolean> {
     }
 
     const normalizedModelName = normalizeModelName(extractedModelName)
-    return Object.keys(pricingData).some(key =>
-      normalizeModelName(key) === normalizedModelName,
+    return Object.keys(pricingData).some(
+      key => normalizeModelName(key) === normalizedModelName,
     )
   }
   catch (error) {

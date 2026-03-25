@@ -22,7 +22,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-const { isOptimizing, optimizationError, optimizePrompt } = usePromptOptimizer()
+const { isOptimizing, optimizationError, optimizePrompt }
+  = usePromptOptimizer()
 
 const showOptionsModal = ref(false)
 const optimizationOptions = ref<PromptOptimizationOptions>({
@@ -65,7 +66,10 @@ async function handleOptimize(withOptions = false) {
     return
   }
 
-  const optimizedPrompt = await optimizePrompt(props.modelValue, optimizationOptions.value)
+  const optimizedPrompt = await optimizePrompt(
+    props.modelValue,
+    optimizationOptions.value,
+  )
 
   if (optimizedPrompt) {
     emit('update:modelValue', optimizedPrompt)
@@ -75,7 +79,10 @@ async function handleOptimize(withOptions = false) {
 
 async function handleOptimizeWithOptions() {
   showOptionsModal.value = false
-  const optimizedPrompt = await optimizePrompt(props.modelValue, optimizationOptions.value)
+  const optimizedPrompt = await optimizePrompt(
+    props.modelValue,
+    optimizationOptions.value,
+  )
 
   if (optimizedPrompt) {
     emit('update:modelValue', optimizedPrompt)
@@ -96,7 +103,8 @@ async function handleOptimizeWithOptions() {
         {
           'opacity-50 cursor-not-allowed': disabled || !modelValue.trim(),
           'animate-pulse': isOptimizing,
-          [hoverClasses[variant]]: !disabled && modelValue.trim() && !isOptimizing,
+          [hoverClasses[variant]]:
+            !disabled && modelValue.trim() && !isOptimizing,
         },
       ]"
       :title="isOptimizing ? 'Optimizing...' : 'Optimize Prompt'"
@@ -122,8 +130,12 @@ async function handleOptimizeWithOptions() {
         class="bg-black/50 flex items-center inset-0 justify-center fixed z-50"
         @click.self="showOptionsModal = false"
       >
-        <div class="dark:border-neutral-6 p-6 border border-neutral-300 rounded-xl bg-neutral-100 max-w-[90vw] w-96 dark:bg-neutral-800">
-          <h3 class="dark:text-neutral-1 text-lg text-neutral-800 font-medium mb-4">
+        <div
+          class="dark:border-neutral-6 p-6 border border-neutral-300 rounded-xl bg-neutral-100 max-w-[90vw] w-96 dark:bg-neutral-800"
+        >
+          <h3
+            class="dark:text-neutral-1 text-lg text-neutral-800 font-medium mb-4"
+          >
             Optimization Options
           </h3>
 
@@ -226,10 +238,7 @@ async function handleOptimizeWithOptions() {
               @click="handleOptimizeWithOptions"
             >
               <span v-if="!isOptimizing">Optimize</span>
-              <span
-                v-else
-                class="flex gap-2 items-center justify-center"
-              >
+              <span v-else class="flex gap-2 items-center justify-center">
                 <i class="i-tabler-loader-2 h-4 w-4 animate-spin" />
                 Optimizing...
               </span>

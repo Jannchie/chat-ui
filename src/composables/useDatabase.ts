@@ -43,7 +43,10 @@ class ChatUIDatabase extends Dexie {
 
 export const db = new ChatUIDatabase()
 
-export async function getSetting(key: string, defaultValue?: string): Promise<string | undefined> {
+export async function getSetting(
+  key: string,
+  defaultValue?: string,
+): Promise<string | undefined> {
   try {
     const setting = await db.settings.where('key').equals(key).first()
     return setting?.value ?? defaultValue

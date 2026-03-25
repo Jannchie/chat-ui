@@ -2,6 +2,8 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { experimental_transcribe as transcribe } from 'ai'
 import { onMounted, ref } from 'vue'
 
+const TRAILING_OPTIONAL_SLASH_REGEXP = /\/?$/
+
 export function useSpeechToText() {
   const isSupported = ref(false)
   const isRecording = ref(false)
@@ -17,7 +19,8 @@ export function useSpeechToText() {
     try {
       const hasNavigator = typeof navigator !== 'undefined'
       const hasMedia = hasNavigator && !!navigator.mediaDevices
-      const hasRecorder = globalThis.window !== undefined && 'MediaRecorder' in globalThis
+      const hasRecorder
+        = globalThis.window !== undefined && 'MediaRecorder' in globalThis
       isSupported.value = !!(hasMedia && hasRecorder)
     }
     catch {
@@ -48,14 +51,19 @@ export function useSpeechToText() {
         }
       }
       chunks = []
-      mediaRecorder = new MediaRecorder(mediaStream, mimeType ? { mimeType } : undefined)
+      mediaRecorder = new MediaRecorder(
+        mediaStream,
+        mimeType ? { mimeType } : undefined,
+      )
       mediaRecorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) {
           chunks.push(e.data)
         }
       }
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mediaRecorder?.mimeType || 'audio/webm' })
+        const blob = new Blob(chunks, {
+          type: mediaRecorder?.mimeType || 'audio/webm',
+        })
         audioBlob.value = blob
         chunks = []
         // stop tracks
@@ -80,7 +88,12 @@ export function useSpeechToText() {
     isRecording.value = false
   }
 
-  async function transcribeWithWhisper(options: { apiKey: string, serviceUrl: string, model?: string, language?: string }) {
+  async function transcribeWithWhisper(options: {
+    apiKey: string
+    serviceUrl: string
+    model?: string
+    language?: string
+  }) {
     if (!audioBlob.value) {
       error.value = 'No audio to transcribe.'
       return ''
@@ -92,7 +105,9 @@ export function useSpeechToText() {
       // Preferred: Vercel AI SDK transcription
       const openai = createOpenAI({ apiKey, baseURL: serviceUrl })
       const transcriptionModel = openai.transcription(model as any)
-      const file = new File([audioBlob.value], 'audio.webm', { type: audioBlob.value.type || 'audio/webm' })
+      const file = new File([audioBlob.value], 'audio.webm', {
+        type: audioBlob.value.type || 'audio/webm',
+      })
       const buffer = await file.arrayBuffer()
       const audio = new Uint8Array(buffer)
       const result = await transcribe({
@@ -106,14 +121,16 @@ export function useSpeechToText() {
       // Fallback: REST call to OpenAI-compatible endpoint
       try {
         const form = new FormData()
-        const file = new File([audioBlob.value], 'audio.webm', { type: audioBlob.value.type || 'audio/webm' })
+        const file = new File([audioBlob.value], 'audio.webm', {
+          type: audioBlob.value.type || 'audio/webm',
+        })
         form.append('file', file)
         form.append('model', model)
         if (language) {
           form.append('language', language)
         }
 
-        const url = `${serviceUrl.replace(/\/?$/, '')}/audio/transcriptions`
+        const url = `${serviceUrl.replace(TRAILING_OPTIONAL_SLASH_REGEXP, '')}/audio/transcriptions`
         const res = await fetch(url, {
           method: 'POST',
           headers: {
@@ -125,12 +142,13 @@ export function useSpeechToText() {
           const text = await res.text()
           throw new Error(`Transcription failed: ${res.status} ${text}`)
         }
-        const data = await res.json() as { text?: string }
+        const data = (await res.json()) as { text?: string }
         const text = data.text || ''
         return text
       }
       catch (error__: any) {
-        error.value = error__?.message || error_?.message || 'Transcription failed.'
+        error.value
+          = error__?.message || error_?.message || 'Transcription failed.'
         return ''
       }
     }

@@ -3,7 +3,14 @@ import { useRequestCache } from '../composables/useRequestCache'
 import 'fake-indexeddb/auto'
 
 describe('userequestcache', () => {
-  const { cacheSuccessfulRequest, getCachedRequest, getRecentSuccessfulRequests, getTopSuccessfulRequests, clearCache, getCacheSize } = useRequestCache()
+  const {
+    cacheSuccessfulRequest,
+    getCachedRequest,
+    getRecentSuccessfulRequests,
+    getTopSuccessfulRequests,
+    clearCache,
+    getCacheSize,
+  } = useRequestCache()
 
   beforeEach(async () => {
     await clearCache()
@@ -137,6 +144,8 @@ describe('userequestcache', () => {
     expect(topRequests).toHaveLength(2)
     expect(topRequests[0].key).toEqual(requestKey1) // Most accessed first
     expect(topRequests[1].key).toEqual(requestKey2)
-    expect(topRequests[0].accessCount).toBeGreaterThan(topRequests[1].accessCount)
+    expect(topRequests[0].accessCount).toBeGreaterThan(
+      topRequests[1].accessCount,
+    )
   })
 })

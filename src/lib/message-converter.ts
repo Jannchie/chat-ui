@@ -10,7 +10,9 @@ import { generateId } from '../utils'
 /**
  * 将 ChatMessage 数组转换为 AI SDK 的 ModelMessage 数组
  */
-export function chatMessagesToModelMessages(chatMessages: ChatMessage[]): ModelMessage[] {
+export function chatMessagesToModelMessages(
+  chatMessages: ChatMessage[],
+): ModelMessage[] {
   return chatMessages
     .filter(msg => msg.role !== 'error') // 过滤错误消息
     .map((chatMessage): ModelMessage => {
@@ -20,7 +22,8 @@ export function chatMessagesToModelMessages(chatMessages: ChatMessage[]): ModelM
       if (role === 'system') {
         return {
           role: 'system',
-          content: typeof content === 'string' ? content : JSON.stringify(content),
+          content:
+            typeof content === 'string' ? content : JSON.stringify(content),
         }
       }
       else if (role === 'user') {
@@ -199,7 +202,9 @@ export function mergeChatMessageMetadata(
   }
 }
 
-export function ensureAssistantMessageStructure(message: ChatMessage): ChatMessage {
+export function ensureAssistantMessageStructure(
+  message: ChatMessage,
+): ChatMessage {
   if (message.role !== 'assistant') {
     return message
   }
@@ -278,7 +283,10 @@ export function setAssistantMessageActiveVersion(
   if (!normalized.versions || normalized.versions.length === 0) {
     return normalized
   }
-  const clampedIndex = Math.min(Math.max(index, 0), normalized.versions.length - 1)
+  const clampedIndex = Math.min(
+    Math.max(index, 0),
+    normalized.versions.length - 1,
+  )
   const activeVersion = normalized.versions[clampedIndex]
   return {
     ...normalized,

@@ -16,15 +16,22 @@ const textContent = computed(() => {
   if (typeof props.content === 'string') {
     return props.content
   }
-  const textItems = props.content.filter((item): item is { type: 'text', text: string } => item.type === 'text')
-  return textItems.length > 0 ? textItems.map(item => item.text).join('\n') : ''
+  const textItems = props.content.filter(
+    (item): item is { type: 'text', text: string } => item.type === 'text',
+  )
+  return textItems.length > 0
+    ? textItems.map(item => item.text).join('\n')
+    : ''
 })
 
 const imageItems = computed(() => {
   if (!Array.isArray(props.content)) {
     return []
   }
-  return props.content.filter((item): item is { type: 'image_url', image_url: { url: string } } => item.type === 'image_url')
+  return props.content.filter(
+    (item): item is { type: 'image_url', image_url: { url: string } } =>
+      item.type === 'image_url',
+  )
 })
 
 function openImagePreview(imageUrl: string) {
@@ -36,11 +43,13 @@ function openImagePreview(imageUrl: string) {
 onMounted(() => {
   if (contentRef.value) {
     // Check if content height exceeds 3 lines
-    const lineHeight = Number.parseInt(getComputedStyle(contentRef.value).lineHeight)
+    const lineHeight = Number.parseInt(
+      getComputedStyle(contentRef.value).lineHeight,
+    )
     const contentHeight = contentRef.value.scrollHeight
 
     // If content height is less than or equal to 3 lines, no need to collapse
-    needsCollapse.value = contentHeight > (lineHeight * 3)
+    needsCollapse.value = contentHeight > lineHeight * 3
 
     // If no need to collapse, set collapsed to false by default
     if (!needsCollapse.value) {
@@ -54,11 +63,7 @@ onMounted(() => {
   <div class="flex-grow-1">
     <!-- Display images if any -->
     <div v-if="imageItems.length > 0" class="mb-3 flex flex-wrap gap-2">
-      <div
-        v-for="(item, index) in imageItems"
-        :key="index"
-        class="relative"
-      >
+      <div v-for="(item, index) in imageItems" :key="index" class="relative">
         <img
           :src="item.image_url.url"
           alt="Uploaded image"
@@ -82,10 +87,10 @@ onMounted(() => {
     class="shrink-0 w-10"
     @click="collapsed = !collapsed"
   >
-    <button class="dark:hover:bg-neutral-5/10 rounded-full flex h-10 w-10 items-center justify-center hover:bg-neutral-200/50">
-      <i
-        :class="collapsed ? 'i-tabler-chevron-down' : 'i-tabler-chevron-up'"
-      />
+    <button
+      class="dark:hover:bg-neutral-5/10 rounded-full flex h-10 w-10 items-center justify-center hover:bg-neutral-200/50"
+    >
+      <i :class="collapsed ? 'i-tabler-chevron-down' : 'i-tabler-chevron-up'" />
     </button>
   </div>
 

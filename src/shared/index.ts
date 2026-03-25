@@ -25,9 +25,15 @@ export interface Preset {
 
 export const preset = useDexieStorage<Record<string, Preset>>('preset', {})
 export const currentPreset = useDexieStorage('currentPreset', 'openai')
-export const customServiceUrl = useDexieStorage('serviceUrl', 'https://api.openai.com/v1')
+export const customServiceUrl = useDexieStorage(
+  'serviceUrl',
+  'https://api.openai.com/v1',
+)
 export const platform = useDexieStorage('platform', 'openai')
-export const openaiReasoningEffort = useDexieStorage<ReasoningEffort>('openaiReasoningEffort', 'medium')
+export const openaiReasoningEffort = useDexieStorage<ReasoningEffort>(
+  'openaiReasoningEffort',
+  'medium',
+)
 
 export const serviceUrl = computed(() => {
   if (platform.value === 'custom') {
@@ -66,7 +72,11 @@ export const model = computed({
     preset.value = {
       ...preset.value,
       [currentPreset.value]: {
-        ...(preset.value[currentPreset.value] || { model: '', serviceUrl: '', apiKey: '' }),
+        ...(preset.value[currentPreset.value] || {
+          model: '',
+          serviceUrl: '',
+          apiKey: '',
+        }),
         model: value,
       },
     }
@@ -80,7 +90,11 @@ export const apiKey = computed({
     preset.value = {
       ...preset.value,
       [currentPreset.value]: {
-        ...(preset.value[currentPreset.value] || { model: '', serviceUrl: '', apiKey: '' }),
+        ...(preset.value[currentPreset.value] || {
+          model: '',
+          serviceUrl: '',
+          apiKey: '',
+        }),
         apiKey: value,
       },
     }

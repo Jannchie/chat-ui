@@ -14,7 +14,9 @@ const showSettingsModal = ref(false)
 </script>
 
 <template>
-  <header class="text-lg px-4 py-3 flex flex-shrink-0 gap-4 items-center justify-between lg:px-6 lg:h-72px">
+  <header
+    class="text-lg px-4 py-3 flex flex-shrink-0 gap-4 items-center justify-between lg:px-6 lg:h-72px"
+  >
     <!-- New Conversation Button for small screens -->
     <button
       class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex hidden items-center justify-center hover:bg-neutral-100 lg:hidden"
@@ -35,9 +37,7 @@ const showSettingsModal = ref(false)
     </button>
 
     <!-- Keep original SelectPresetModal -->
-    <SelectPresetModal
-      v-model="showSelectPresetModal"
-    />
+    <SelectPresetModal v-model="showSelectPresetModal" />
 
     <!-- Use the new SelectModelModal component -->
     <SelectModelModal
@@ -46,20 +46,13 @@ const showSettingsModal = ref(false)
     />
 
     <!-- Cache History Modal -->
-    <CacheHistoryModal
-      v-model="showCacheHistoryModal"
-    />
+    <CacheHistoryModal v-model="showCacheHistoryModal" />
 
-    <SettingsModal
-      v-model="showSettingsModal"
-    />
+    <SettingsModal v-model="showSettingsModal" />
 
     <!-- Desktop view - row of inputs -->
     <div class="hidden lg:flex lg:gap-3">
-      <div
-        v-if="platform === 'custom'"
-        class="flex gap-2 items-center"
-      >
+      <div v-if="platform === 'custom'" class="flex gap-2 items-center">
         <div class="text-lg pr-2 flex items-center">
           <i class="i-tabler-link text-green-400" />
           <span class="text-sm font-medium pl-2">Service URL</span>
@@ -82,7 +75,7 @@ const showSettingsModal = ref(false)
           class="text-sm text-neutral-700 px-6 py-2 rounded-full bg-neutral-200 flex min-w-36 transition-all items-center justify-between dark:text-[#e3e3e3] focus:border-neutral-500/50 dark:bg-[#1e1e1f] hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-[#252526]"
           @click="showSelectModelModal = true"
         >
-          <span class="pr-2 truncate">{{ model || 'Select Model' }}</span>
+          <span class="pr-2 truncate">{{ model || "Select Model" }}</span>
           <i class="i-tabler-chevron-down text-xs opacity-60" />
         </button>
       </div>
@@ -133,7 +126,9 @@ const showSettingsModal = ref(false)
       class="bg-black/50 inset-0 fixed z-50 lg:hidden"
       @click.self="showMobileMenu = false"
     >
-      <div class="p-4 bg-[#121212] h-full w-64 shadow-lg right-0 top-0 absolute">
+      <div
+        class="p-4 bg-[#121212] h-full w-64 shadow-lg right-0 top-0 absolute"
+      >
         <div class="mb-6 flex items-center justify-between">
           <h3 class="text-lg font-medium">
             Settings
@@ -160,10 +155,7 @@ const showSettingsModal = ref(false)
             >
           </div>
 
-          <div
-            v-if="platform === 'custom'"
-            class="flex flex-col gap-2"
-          >
+          <div v-if="platform === 'custom'" class="flex flex-col gap-2">
             <label class="text-sm font-medium flex gap-2 items-center">
               <i class="i-tabler-link text-green-400" />
               Service URL
@@ -184,9 +176,12 @@ const showSettingsModal = ref(false)
             <!-- Replace input with button to show model selection modal in mobile menu -->
             <button
               class="text-sm text-neutral-700 px-4 py-2 rounded-lg bg-neutral-200 flex w-full transition-all items-center justify-between dark:text-[#e3e3e3] focus:border-neutral-500/50 dark:bg-[#1e1e1f] hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-[#252526]"
-              @click="showSelectModelModal = true; showMobileMenu = false"
+              @click="
+                showSelectModelModal = true;
+                showMobileMenu = false;
+              "
             >
-              <span class="truncate">{{ model || 'Select Model' }}</span>
+              <span class="truncate">{{ model || "Select Model" }}</span>
               <i class="i-tabler-chevron-down text-xs opacity-60" />
             </button>
           </div>
@@ -195,7 +190,10 @@ const showSettingsModal = ref(false)
           <div class="flex justify-center">
             <button
               class="hover:bg-neutral-7 text-sm font-medium px-4 py-2 rounded-lg flex gap-2 transition-colors items-center justify-center"
-              @click="showCacheHistoryModal = true; showMobileMenu = false"
+              @click="
+                showCacheHistoryModal = true;
+                showMobileMenu = false;
+              "
             >
               <i class="i-tabler-history text-neutral-400" />
               Cache History

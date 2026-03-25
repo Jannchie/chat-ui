@@ -8,8 +8,11 @@ import VNodePlugin from './render'
 
 export * from './platform'
 
+const MOBILE_USER_AGENT_REGEXP
+  = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+
 export const isMobile = computed(() => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  return MOBILE_USER_AGENT_REGEXP.test(navigator.userAgent)
 })
 export function generateId() {
   // Always use UUIDv7 from external library to avoid custom implementations

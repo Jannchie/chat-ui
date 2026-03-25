@@ -34,13 +34,24 @@ declare module 'markdown-it-texmath' {
     mergeDelimiters: (delims?: string | string[]) => Delimiters
     inlineRuleNames: string[]
     blockRuleNames: string[]
-    render: (tex: string, displayMode: boolean, options?: KatexOptions) => string
+    render: (
+      tex: string,
+      displayMode: boolean,
+      options?: KatexOptions,
+    ) => string
     use: (katex: any) => TexMath
     rules: { [key: string]: Delimiters }
     $_pre: (str: string, outerSpace: boolean, beg: number) => boolean
     $_post: (str: string, outerSpace: boolean, end: number) => boolean
     inline: (rule: Rule) => (state: any, silent: boolean) => boolean
-    block: (rule: Rule) => (state: any, begLine: number, endLine: number, silent: boolean) => boolean
+    block: (
+      rule: Rule,
+    ) => (
+      state: any,
+      begLine: number,
+      endLine: number,
+      silent: boolean,
+    ) => boolean
   }
 
   const texmath: TexMath

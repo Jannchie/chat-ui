@@ -25,7 +25,11 @@ export function usePromptOptimizer() {
     optimizationError.value = null
 
     try {
-      const { style = 'professional', purpose = 'general', language = 'auto-detect' } = options
+      const {
+        style = 'professional',
+        purpose = 'general',
+        language = 'auto-detect',
+      } = options
 
       const systemMessage = `You are a prompt optimization expert. Your task is to improve the user's prompt to be more effective, clear, and specific while maintaining the original intent.
 
@@ -42,7 +46,11 @@ Return only the optimized prompt without any explanations or additional text.`
 
       const userMessage = `Original prompt: "${originalPrompt}"`
 
-      const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
+      const provider = getProviderFromPlatform(
+        platform.value,
+        apiKey.value,
+        serviceUrl.value,
+      )
       const languageModel = provider.getModel(model.value)
 
       const result = await streamText({
@@ -70,7 +78,8 @@ Return only the optimized prompt without any explanations or additional text.`
     }
     catch (error) {
       console.error('Prompt optimization failed:', error)
-      optimizationError.value = error instanceof Error ? error.message : 'Optimization failed'
+      optimizationError.value
+        = error instanceof Error ? error.message : 'Optimization failed'
       return null
     }
     finally {

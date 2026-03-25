@@ -1,10 +1,15 @@
-function easeInOutQuad(time: number, start: number, change: number, duration: number): number {
+function easeInOutQuad(
+  time: number,
+  start: number,
+  change: number,
+  duration: number,
+): number {
   time /= duration / 2
   if (time < 1) {
-    return change / 2 * time * time + start
+    return (change / 2) * time * time + start
   }
   time--
-  return -change / 2 * (time * (time - 2) - 1) + start
+  return (-change / 2) * (time * (time - 2) - 1) + start
 }
 
 export function useScrollControl() {
@@ -35,15 +40,25 @@ export function useScrollControl() {
     scroll()
   }
 
-  function scrollToBottom(element: HTMLElement | null, duration: number = 1000): void {
+  function scrollToBottom(
+    element: HTMLElement | null,
+    duration: number = 1000,
+  ): void {
     if (element) {
       scrollToBottomSmoothly(element, duration)
     }
   }
 
   // Auto-scroll when new content is added
-  function setupAutoScroll(scrollArea: Ref<HTMLElement | null>, threshold: number = 50) {
-    const scrollToBottom = useScrollToBottom(scrollArea, threshold, enableAutoScroll)
+  function setupAutoScroll(
+    scrollArea: Ref<HTMLElement | null>,
+    threshold: number = 50,
+  ) {
+    const scrollToBottom = useScrollToBottom(
+      scrollArea,
+      threshold,
+      enableAutoScroll,
+    )
     return scrollToBottom
   }
 

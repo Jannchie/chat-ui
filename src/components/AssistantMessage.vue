@@ -1,21 +1,29 @@
 <script setup lang="ts">
 import type { MessageContent } from '../types/message'
 import { ref } from 'vue'
-import { isKatexLoaded, isShikiLoaded, loadKatex, loadShiki, md } from '../utils'
+import {
+  isKatexLoaded,
+  isShikiLoaded,
+  loadKatex,
+  loadShiki,
+  md,
+} from '../utils'
 import { addFadeInToVNodes, splitContent } from '../utils/streamingText'
 
-const props = withDefaults(defineProps<{
-  content: MessageContent
-  reasoning?: string
-  loading: boolean
-  thinking?: boolean
-  model?: string
-}>(), {
-  reasoning: '',
-  model: '',
-})
+const props = withDefaults(
+  defineProps<{
+    content: MessageContent
+    reasoning?: string
+    loading: boolean
+    thinking?: boolean
+    model?: string
+  }>(),
+  {
+    reasoning: '',
+    model: '',
+  },
+)
 
-const streamMarkdownWrapperRef = ref<HTMLElement | null>(null)
 const loading = computed(() => props.loading)
 const showImagePreview = ref<boolean>(false)
 const previewImageUrl = ref<string>('')
@@ -52,30 +60,37 @@ const nonTextContent = computed(() => {
 })
 
 const formattedContent = computed(() => splitContent(textContent.value))
-const contentFinal = computed(() => props.loading ? formattedContent.value : textContent.value)
+const contentFinal = computed(() =>
+  props.loading ? formattedContent.value : textContent.value,
+)
 
-const contentVNodes = computedWithControl(() => [isShikiLoaded.value, isKatexLoaded.value, contentFinal.value], () => {
-  const content = contentFinal.value ?? ''
+const contentVNodes = computedWithControl(
+  () => [isShikiLoaded.value, isKatexLoaded.value, contentFinal.value],
+  () => {
+    const content = contentFinal.value ?? ''
 
-  // Check if content contains code blocks and load Shiki if needed
-  if (content.includes('```') || content.includes('`')) {
-    loadShiki()
-  }
+    // Check if content contains code blocks and load Shiki if needed
+    if (content.includes('```') || content.includes('`')) {
+      loadShiki()
+    }
 
-  // Check if content contains math expressions and load KaTeX if needed
-  if (content.includes('$') || content.includes(String.raw`\(`) || content.includes(String.raw`\[`)) {
-    loadKatex()
-  }
+    // Check if content contains math expressions and load KaTeX if needed
+    if (
+      content.includes('$')
+      || content.includes(String.raw`\(`)
+      || content.includes(String.raw`\[`)
+    ) {
+      loadKatex()
+    }
 
-  const r = md.render(content, {
-    sanitize: true,
-  }) as unknown as VNode[]
-  return addFadeInToVNodes(r, debouncedLoading.value)
-})
+    const r = md.render(content, {
+      sanitize: true,
+    }) as unknown as VNode[]
+    return addFadeInToVNodes(r, debouncedLoading.value)
+  },
+)
 
-const reasoningVNodes = computedWithControl([
-  toRef(props, 'reasoning'),
-], () => {
+const reasoningVNodes = computedWithControl([toRef(props, 'reasoning')], () => {
   const reasoningContent = props.reasoning ?? ''
 
   if (!reasoningContent) {
@@ -88,7 +103,11 @@ const reasoningVNodes = computedWithControl([
   }
 
   // Check if reasoning contains math expressions and load KaTeX if needed
-  if (reasoningContent.includes('$') || reasoningContent.includes(String.raw`\(`) || reasoningContent.includes(String.raw`\[`)) {
+  if (
+    reasoningContent.includes('$')
+    || reasoningContent.includes(String.raw`\(`)
+    || reasoningContent.includes(String.raw`\[`)
+  ) {
     loadKatex()
   }
 
@@ -97,35 +116,43 @@ const reasoningVNodes = computedWithControl([
   }) as unknown as VNode[]
 })
 
+function renderContentVNodes(vnodes: { value: VNode[] }) {
+  return () => vnodes.value
+}
+
 // eslint-disable-next-line vue/one-component-per-file
 const StreamMarkdownContent = defineComponent({
   setup() {
-    return () => {
-      return contentVNodes.value
-    }
+    return renderContentVNodes(contentVNodes)
   },
 })
 
 // eslint-disable-next-line vue/one-component-per-file
 const StreamMarkdownReasoning = defineComponent({
   setup() {
-    return () => {
-      return reasoningVNodes.value
-    }
+    return renderContentVNodes(reasoningVNodes)
   },
 })
 
-debouncedWatch([contentFinal], () => {
-  contentVNodes.trigger()
-}, {
-  debounce: 300,
-})
+debouncedWatch(
+  [contentFinal],
+  () => {
+    contentVNodes.trigger()
+  },
+  {
+    debounce: 300,
+  },
+)
 
-debouncedWatch([toRef(props, 'reasoning')], () => {
-  reasoningVNodes.trigger()
-}, {
-  debounce: 300,
-})
+debouncedWatch(
+  [toRef(props, 'reasoning')],
+  () => {
+    reasoningVNodes.trigger()
+  },
+  {
+    debounce: 300,
+  },
+)
 
 function openImagePreview(imageUrl: string) {
   previewImageUrl.value = imageUrl
@@ -179,16 +206,9 @@ function formatToolCall(toolCall: any) {
       </div>
 
       <!-- Render non-text content first -->
-      <div
-        v-for="(part, index) in nonTextContent"
-        :key="index"
-        class="mb-3"
-      >
+      <div v-for="(part, index) in nonTextContent" :key="index" class="mb-3">
         <!-- Image Content -->
-        <div
-          v-if="part.type === 'image_url'"
-          class="image-content"
-        >
+        <div v-if="part.type === 'image_url'" class="image-content">
           <img
             :src="part.image_url.url"
             alt="Image"
@@ -219,7 +239,9 @@ function formatToolCall(toolCall: any) {
           <div class="mb-2 flex gap-2 items-center">
             <i class="i-tabler-tool text-green-600 dark:text-green-400" />
             <span class="text-sm text-green-700 font-medium dark:text-green-300">Tool Call</span>
-            <span class="text-xs text-green-600 font-mono dark:text-green-400">{{ part.tool_call.id }}</span>
+            <span
+              class="text-xs text-green-600 font-mono dark:text-green-400"
+            >{{ part.tool_call.id }}</span>
           </div>
           <div class="text-sm text-green-800 font-mono dark:text-green-200">
             {{ formatToolCall(part.tool_call) }}
@@ -231,7 +253,6 @@ function formatToolCall(toolCall: any) {
       <div
         v-if="textContent"
         key="prose"
-        ref="streamMarkdownWrapperRef"
         class="hover text-sm prose prose-neutral md:text-base prose-code:text-sm prose-h1:text-3xl prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-h5:text-base children:mt-0 dark:prose-invert prose-code:after:content-none prose-code:before:content-none"
       >
         <StreamMarkdownContent />
@@ -253,11 +274,11 @@ li > p {
 .code-content > pre {
   padding: 0px !important;
 }
-.code-content  pre {
+.code-content pre {
   margin: 0px !important;
 }
 
- /*非 pre 里的 code 有背景色 */
+/*非 pre 里的 code 有背景色 */
 code:not(pre code) {
   background-color: #e5e7eb !important; /* 日间模式：浅灰色背景 */
   border-radius: 0.25rem;
@@ -275,7 +296,8 @@ code:not(pre code) {
 
 :root {
   --thinking-text-fallback-color: #52525b;
-  --thinking-text-gradient: linear-gradient(90deg,
+  --thinking-text-gradient: linear-gradient(
+    90deg,
     #606368 0%,
     #a6a9af 15%,
     #ffffff 30%,
@@ -288,7 +310,8 @@ code:not(pre code) {
 
 :root[data-scheme="dark"] {
   --thinking-text-fallback-color: #e5e7eb;
-  --thinking-text-gradient: linear-gradient(90deg,
+  --thinking-text-gradient: linear-gradient(
+    90deg,
     #9ca3af 0%,
     #d1d5db 25%,
     #f9fafb 50%,

@@ -20,12 +20,20 @@ function useDynamicTime(message: ChatMessage) {
   }
 
   const startTimer = () => {
-    if (!intervalId && message.metadata?.sentAt && !message.metadata?.receivedAt) {
+    if (
+      !intervalId
+      && message.metadata?.sentAt
+      && !message.metadata?.receivedAt
+    ) {
       intervalId = setInterval(() => {
         // 使用当前的 props 值，而不是闭包中的 message
-        if (props.message.metadata?.sentAt && !props.message.metadata?.receivedAt) {
+        if (
+          props.message.metadata?.sentAt
+          && !props.message.metadata?.receivedAt
+        ) {
           const elapsed = Date.now() - props.message.metadata.sentAt
-          dynamicTime.value = elapsed < 1000 ? `${elapsed}ms` : `${(elapsed / 1000).toFixed(1)}s`
+          dynamicTime.value
+            = elapsed < 1000 ? `${elapsed}ms` : `${(elapsed / 1000).toFixed(1)}s`
         }
         else {
           stopTimer()
@@ -39,7 +47,10 @@ function useDynamicTime(message: ChatMessage) {
       stopTimer()
 
       const finalTime = message.metadata.receivedAt - message.metadata.sentAt
-      dynamicTime.value = finalTime < 1000 ? `${finalTime}ms` : `${(finalTime / 1000).toFixed(1)}s`
+      dynamicTime.value
+        = finalTime < 1000
+          ? `${finalTime}ms`
+          : `${(finalTime / 1000).toFixed(1)}s`
     }
   }
 
@@ -73,7 +84,9 @@ function useDynamicTime(message: ChatMessage) {
 }
 
 // 格式化时间的工具函数
-const formatTime = (time: number) => time < 1000 ? `${time}ms` : `${(time / 1000).toFixed(1)}s`
+function formatTime(time: number) {
+  return time < 1000 ? `${time}ms` : `${(time / 1000).toFixed(1)}s`
+}
 
 // 使用计时器逻辑
 const dynamicTime = useDynamicTime(props.message)
@@ -92,7 +105,8 @@ function getTimings(message: ChatMessage) {
   if (!receivedAt) {
     const elapsed = Date.now() - sentAt
     return {
-      current: elapsed < 1000 ? `${elapsed}ms` : `${(elapsed / 1000).toFixed(1)}s`,
+      current:
+        elapsed < 1000 ? `${elapsed}ms` : `${(elapsed / 1000).toFixed(1)}s`,
       isCompleted: false,
     }
   }
@@ -149,7 +163,9 @@ function getTimings(message: ChatMessage) {
     </template>
 
     <!-- 详细模式：显示延迟时间和输出时间 -->
-    <template v-else-if="mode === 'detailed' && getTimings(message)?.isCompleted">
+    <template
+      v-else-if="mode === 'detailed' && getTimings(message)?.isCompleted"
+    >
       <div class="flex gap-2 items-center">
         <!-- 延迟时间 -->
         <Tag

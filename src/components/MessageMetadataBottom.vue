@@ -36,7 +36,10 @@ const cost = asyncComputed(async () => {
     return props.message.metadata.cost
   }
   if (props.message.metadata?.usage && props.message.metadata?.model) {
-    const cost = await calculateTokenCost(props.message.metadata.model, props.message.metadata.usage)
+    const cost = await calculateTokenCost(
+      props.message.metadata.model,
+      props.message.metadata.usage,
+    )
     return cost?.totalCost
   }
   return null
@@ -56,17 +59,32 @@ const displayedCost = computed(() => {
 
 <template>
   <div
-    v-if="message.role === 'assistant' && (message.metadata?.receivedAt || message.metadata?.usage || message.metadata?.tokenSpeed)"
+    v-if="
+      message.role === 'assistant'
+        && (message.metadata?.receivedAt
+          || message.metadata?.usage
+          || message.metadata?.tokenSpeed)
+    "
     class="font-condensed flex gap-2 items-center"
   >
     <MessageTimer :message="message" mode="detailed" />
-    <Tag v-if="message.metadata?.usage" size="sm" variant="light" color="surface">
+    <Tag
+      v-if="message.metadata?.usage"
+      size="sm"
+      variant="light"
+      color="surface"
+    >
       {{ formatTokenUsage(message.metadata.usage) }}
     </Tag>
     <Tag v-if="displayedCost" size="sm" variant="light" color="surface">
       {{ displayedCost }}
     </Tag>
-    <Tag v-if="message.metadata?.tokenSpeed" size="sm" variant="light" color="surface">
+    <Tag
+      v-if="message.metadata?.tokenSpeed"
+      size="sm"
+      variant="light"
+      color="surface"
+    >
       {{ message.metadata.tokenSpeed.toFixed(1) }} t/s
     </Tag>
   </div>

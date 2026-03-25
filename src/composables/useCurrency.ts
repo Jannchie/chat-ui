@@ -2,7 +2,12 @@ import { createGlobalState, useStorage } from '@vueuse/core'
 import { ref } from 'vue'
 
 function format(amount: number, currency: string) {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 6 }).format(amount)
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6,
+  }).format(amount)
 }
 
 interface ExchangeRates {
@@ -10,8 +15,16 @@ interface ExchangeRates {
 }
 
 export const useCurrency = createGlobalState(() => {
-  const exchangeRates = useStorage<ExchangeRates>('exchange-rates', { USD: 1 }, sessionStorage)
-  const selectedCurrency = useStorage<string>('selected-currency', 'USD', localStorage)
+  const exchangeRates = useStorage<ExchangeRates>(
+    'exchange-rates',
+    { USD: 1 },
+    sessionStorage,
+  )
+  const selectedCurrency = useStorage<string>(
+    'selected-currency',
+    'USD',
+    localStorage,
+  )
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -27,7 +40,8 @@ export const useCurrency = createGlobalState(() => {
       exchangeRates.value = data.rates
     }
     catch (error_) {
-      error.value = error_ instanceof Error ? error_.message : 'An unknown error occurred'
+      error.value
+        = error_ instanceof Error ? error_.message : 'An unknown error occurred'
     }
     finally {
       isLoading.value = false

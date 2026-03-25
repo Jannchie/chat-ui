@@ -4,21 +4,29 @@ import { z } from 'zod'
 import { useRequestCache } from '../composables/useRequestCache'
 import { apiKey, model, platform, serviceUrl } from '../shared'
 
-const props = withDefaults(defineProps<{
-  content?: string
-  targetLang?: string
-  translationLoading?: boolean
-}>(), {})
+const props = withDefaults(
+  defineProps<{
+    content?: string
+    targetLang?: string
+    translationLoading?: boolean
+  }>(),
+  {},
+)
+const MARKDOWN_JSON_BLOCK_REGEXP = /```(?:json)?\s*(\{[\s\S]*?\})\s*```/
+const JSON_OBJECT_REGEXP = /\{[\s\S]*\}/
+
 const content = computed(() => props.content)
 // Prompt will be constructed when implementing the request
 const { cacheSuccessfulRequest } = useRequestCache()
 
-const Explains = z.array(z.object({
-  word: z.string(),
-  pos: z.string(),
-  explain: z.string(),
-  synonyms: z.array(z.string()),
-}))
+const Explains = z.array(
+  z.object({
+    word: z.string(),
+    pos: z.string(),
+    explain: z.string(),
+    synonyms: z.array(z.string()),
+  }),
+)
 const WordExplainsResp = z.object({
   explains: Explains,
 })
@@ -27,18 +35,26 @@ const loading = ref(false)
 const hasTriggered = ref(false)
 
 // Watch for translation completion
-watch([() => props.translationLoading, content], async ([translationLoading, currentContent]) => {
-  // Only trigger when translation just finished and we have content
-  if (translationLoading === false && currentContent && currentContent.trim() !== '' && !hasTriggered.value) {
-    hasTriggered.value = true
-    await explainWords()
-  }
-  // Reset flag when translation starts again
-  if (translationLoading === true) {
-    hasTriggered.value = false
-    explains.value = undefined
-  }
-})
+watch(
+  [() => props.translationLoading, content],
+  async ([translationLoading, currentContent]) => {
+    // Only trigger when translation just finished and we have content
+    if (
+      translationLoading === false
+      && currentContent
+      && currentContent.trim() !== ''
+      && !hasTriggered.value
+    ) {
+      hasTriggered.value = true
+      await explainWords()
+    }
+    // Reset flag when translation starts again
+    if (translationLoading === true) {
+      hasTriggered.value = false
+      explains.value = undefined
+    }
+  },
+)
 
 async function explainWords() {
   if (!content.value || content.value === '') {
@@ -59,13 +75,13 @@ async function explainWords() {
       }
       catch {
         // If that fails, try to extract JSON from markdown code blocks
-        const jsonMatch = str.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/)
+        const jsonMatch = str.match(MARKDOWN_JSON_BLOCK_REGEXP)
         if (jsonMatch) {
           parsedResponse = JSON.parse(jsonMatch[1])
         }
         else {
           // Try to find JSON object in the text
-          const jsonObjectMatch = str.match(/\{[\s\S]*\}/)
+          const jsonObjectMatch = str.match(JSON_OBJECT_REGEXP)
           if (jsonObjectMatch) {
             parsedResponse = JSON.parse(jsonObjectMatch[0])
           }
@@ -106,27 +122,17 @@ async function explainWords() {
     :rounded="1"
     class="not-prose border border-transparent flex flex-col gap-8 min-h-32"
   >
-    <div
-      v-for="e, i in explains"
-      :key="i"
-      class="flex flex-col gap-2"
-    >
+    <div v-for="(e, i) in explains" :key="i" class="flex flex-col gap-2">
       <div class="flex gap-2 items-end">
         <span class="text-3xl font-bold">
           {{ e.word }}
         </span>
-        <Tag
-          size="sm"
-          class="font-mono"
-        >
+        <Tag size="sm" class="font-mono">
           {{ e.pos }}
         </Tag>
       </div>
       <div class="text-sm flex gap-2">
-        <span
-          v-for="synonym in e.synonyms"
-          :key="synonym"
-        >
+        <span v-for="synonym in e.synonyms" :key="synonym">
           {{ synonym }}
         </span>
       </div>

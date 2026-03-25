@@ -3,7 +3,11 @@ import type {
   MessageContent,
   TransformOptions,
 } from '../types/message'
-import type { ChatCompletionContentPart, ChatCompletionMessageParam, ResponseInput } from '../types/openai-compat'
+import type {
+  ChatCompletionContentPart,
+  ChatCompletionMessageParam,
+  ResponseInput,
+} from '../types/openai-compat'
 import { generateId } from './index'
 
 /**
@@ -38,9 +42,10 @@ export function isValidMessageContent(content: any): content is MessageContent {
   }
 
   if (Array.isArray(content)) {
-    return content.every(item =>
-      (item.type === 'text' && typeof item.text === 'string')
-      || (item.type === 'image_url' && typeof item.image_url?.url === 'string'),
+    return content.every(
+      item =>
+        (item.type === 'text' && typeof item.text === 'string')
+        || (item.type === 'image_url' && typeof item.image_url?.url === 'string'),
     )
   }
 
@@ -56,7 +61,9 @@ function preprocessMessages(messages: ChatMessage[]): ChatMessage[] {
 }
 
 // Helper to convert MessageContent to ChatCompletionMessageParam content
-function convertContent(content: MessageContent): string | ChatCompletionContentPart[] {
+function convertContent(
+  content: MessageContent,
+): string | ChatCompletionContentPart[] {
   if (typeof content === 'string') {
     return content
   }
@@ -85,7 +92,9 @@ function convertContent(content: MessageContent): string | ChatCompletionContent
       })
       .filter((item): item is ChatCompletionContentPart => item !== null)
 
-    return convertedContent.length > 0 ? convertedContent : [{ type: 'text', text: '' }]
+    return convertedContent.length > 0
+      ? convertedContent
+      : [{ type: 'text', text: '' }]
   }
   return ''
 }
@@ -99,7 +108,12 @@ export function transformToChatCompletions(
   const preprocessed = preprocessMessages(messages)
 
   return preprocessed
-    .filter((msg): msg is ChatMessage & { role: Exclude<ChatMessage['role'], 'error'> } => msg.role !== 'error')
+    .filter(
+      (
+        msg,
+      ): msg is ChatMessage & { role: Exclude<ChatMessage['role'], 'error'> } =>
+        msg.role !== 'error',
+    )
     .map((msg) => {
       let result: ChatCompletionMessageParam
 
@@ -195,54 +209,63 @@ export function transformToResponsesAPI(
 /**
  * 将 MessageContent 转换为 ResponseInputMessageContentList 格式
  */
-function convertContentToResponseInput(content: MessageContent, role: ChatMessage['role']): Array<any> {
+function convertContentToResponseInput(
+  content: MessageContent,
+  role: ChatMessage['role'],
+): Array<any> {
   // 根据角色确定文本类型：assistant 使用 output_text，其他使用 input_text
   const textType = role === 'assistant' ? 'output_text' : 'input_text'
 
   if (typeof content === 'string') {
-    return [{
-      type: textType,
-      text: content,
-    }]
+    return [
+      {
+        type: textType,
+        text: content,
+      },
+    ]
   }
 
   if (Array.isArray(content)) {
-    return content.map((item) => {
-      if (item.type === 'text') {
-        return {
-          type: textType,
-          text: item.text,
+    return content
+      .map((item) => {
+        if (item.type === 'text') {
+          return {
+            type: textType,
+            text: item.text,
+          }
         }
-      }
-      if (item.type === 'image_url') {
-        return {
-          type: 'input_image',
-          image_url: { url: item.image_url?.url || '' },
-          detail: 'auto' as const,
+        if (item.type === 'image_url') {
+          return {
+            type: 'input_image',
+            image_url: { url: item.image_url?.url || '' },
+            detail: 'auto' as const,
+          }
         }
-      }
-      // function_call 和 tool_call 在 Responses API 中可能需要特殊处理
-      // 这里暂时转换为文本描述
-      if (item.type === 'function_call') {
-        return {
-          type: textType,
-          text: `Function call: ${item.function_call.name}(${item.function_call.arguments})`,
+        // function_call 和 tool_call 在 Responses API 中可能需要特殊处理
+        // 这里暂时转换为文本描述
+        if (item.type === 'function_call') {
+          return {
+            type: textType,
+            text: `Function call: ${item.function_call.name}(${item.function_call.arguments})`,
+          }
         }
-      }
-      if (item.type === 'tool_call') {
-        return {
-          type: textType,
-          text: `Tool call: ${item.tool_call.id} - ${item.tool_call.type}`,
+        if (item.type === 'tool_call') {
+          return {
+            type: textType,
+            text: `Tool call: ${item.tool_call.id} - ${item.tool_call.type}`,
+          }
         }
-      }
-      return null
-    }).filter(item => item !== null)
+        return null
+      })
+      .filter(item => item !== null)
   }
 
-  return [{
-    type: textType,
-    text: '',
-  }]
+  return [
+    {
+      type: textType,
+      text: '',
+    },
+  ]
 }
 /**
  * 通用的消息转换器
@@ -283,14 +306,12 @@ export function createMessagesFromConversation(
     metadata?: ChatMessage['metadata']
   }>,
 ): ChatMessage[] {
-  return conversation.map(msg => createUIMessage(
-    msg.role,
-    msg.content,
-    {
+  return conversation.map(msg =>
+    createUIMessage(msg.role, msg.content, {
       reasoning: msg.reasoning,
       metadata: msg.metadata,
-    },
-  ))
+    }),
+  )
 }
 
 /**
@@ -306,9 +327,12 @@ export function updateMessageContent(
 ): ChatMessage {
   const updated = { ...message }
 
-  updated.content = (options?.appendMode && typeof updated.content === 'string' && typeof content === 'string')
-    ? updated.content + content
-    : content
+  updated.content
+    = options?.appendMode
+    && typeof updated.content === 'string'
+    && typeof content === 'string'
+      ? updated.content + content
+      : content
 
   if (options?.updateTimestamp) {
     updated.timestamp = Date.now()
@@ -332,9 +356,8 @@ export function updateMessageReasoning(
 
   const updated = { ...message }
 
-  updated.reasoning = (appendMode && updated.reasoning)
-    ? updated.reasoning + reasoning
-    : reasoning
+  updated.reasoning
+    = appendMode && updated.reasoning ? updated.reasoning + reasoning : reasoning
 
   return updated
 }

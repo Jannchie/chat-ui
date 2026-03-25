@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import type { ChatData, ImageFile } from '../composables/chat-types'
-import type { ProviderOptions, ReasoningEffort } from '../types/ai'
-import type { ChatMessage, ImageContent, MessageContent, TextContent } from '../types/message'
+import type { ReasoningEffort } from '../types/ai'
+import type {
+  ChatMessage,
+  ImageContent,
+  MessageContent,
+  TextContent,
+} from '../types/message'
 import { Select } from '@roku-ui/vue'
 import { streamText } from 'ai'
 import { toRaw } from 'vue'
+import { useOpenRouterModels } from '../composables/useOpenRouterModels'
 import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
 import { useSpeechToText } from '../composables/useSpeechToText'
@@ -21,7 +27,19 @@ import {
   updateChatMessageContent,
   updateChatMessageReasoning,
 } from '../lib/message-converter'
-import { apiKey, model, openaiReasoningEffort, platform, serviceUrl, useCurrentChat } from '../shared'
+import {
+  buildReasoningProviderOptions,
+  resolveReasoningCapability,
+  resolveReasoningEffortPreference,
+} from '../lib/reasoning'
+import {
+  apiKey,
+  model,
+  openaiReasoningEffort,
+  platform,
+  serviceUrl,
+  useCurrentChat,
+} from '../shared'
 import { generateId, isMobile, setChat } from '../utils'
 
 const router = useRouter()
@@ -37,7 +55,9 @@ const currentChat = useCurrentChat()
 
 const lastAssistantMessageId = computed<string | null>(() => {
   const reversed = [...conversation.value].reverse()
-  const lastAssistant = reversed.find(message => message.role === 'assistant')
+  const lastAssistant = reversed.find(
+    message => message.role === 'assistant',
+  )
   return lastAssistant ? lastAssistant.id : null
 })
 
@@ -46,52 +66,78 @@ interface ReasoningEffortOption {
   label: string
 }
 
-const reasoningEffortOptions: ReasoningEffortOption[] = [
+const allReasoningEffortOptions: ReasoningEffortOption[] = [
+  { value: 'none', label: 'None' },
   { value: 'minimal', label: 'Minimal' },
   { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'medium' },
+  { value: 'medium', label: 'Medium' },
   { value: 'high', label: 'High' },
+  { value: 'xhigh', label: 'XHigh' },
 ]
-const supportedEffortValues = new Set<ReasoningEffort>(
-  reasoningEffortOptions.map(option => option.value),
-)
-const defaultReasoningEffortOption = reasoningEffortOptions.find(option => option.value === 'medium')
-  ?? reasoningEffortOptions[0]
+
+const { getSupportedParameters } = useOpenRouterModels()
+
+const currentReasoningCapability = computed(() => {
+  const currentModelId = typeof model.value === 'string' ? model.value : ''
+  return resolveReasoningCapability({
+    platform: platform.value,
+    modelId: currentModelId,
+    openRouterSupportedParameters:
+      platform.value === 'openrouter'
+        ? getSupportedParameters(currentModelId)
+        : undefined,
+  })
+})
+
+const reasoningEffortOptions = computed(() => {
+  const allowed = currentReasoningCapability.value.allowedEfforts
+  return allReasoningEffortOptions.filter(option =>
+    allowed.includes(option.value),
+  )
+})
 
 watchEffect(() => {
-  if (!supportedEffortValues.has(openaiReasoningEffort.value)) {
-    openaiReasoningEffort.value = 'medium'
+  const nextEffort = resolveReasoningEffortPreference(
+    currentReasoningCapability.value,
+    openaiReasoningEffort.value,
+  )
+  if (openaiReasoningEffort.value !== nextEffort) {
+    openaiReasoningEffort.value = nextEffort
   }
 })
 
 const showReasoningEffortSelector = computed(() => {
-  return platform.value === 'openai'
-    && typeof model.value === 'string'
-    && model.value.includes('gpt-5')
+  return (
+    currentReasoningCapability.value.selectorKind === 'effort'
+    && reasoningEffortOptions.value.length > 0
+  )
 })
 
 const selectedReasoningEffort = computed<ReasoningEffortOption | undefined>({
   get() {
-    return reasoningEffortOptions.find(option => option.value === openaiReasoningEffort.value)
-      ?? defaultReasoningEffortOption
+    return (
+      reasoningEffortOptions.value.find(
+        option => option.value === openaiReasoningEffort.value,
+      )
+      ?? reasoningEffortOptions.value.find(
+        option =>
+          option.value === currentReasoningCapability.value.defaultEffort,
+      )
+    )
   },
   set(option) {
-    const target = option ?? defaultReasoningEffortOption
-    if (target && supportedEffortValues.has(target.value)) {
-      openaiReasoningEffort.value = target.value
+    if (option) {
+      openaiReasoningEffort.value = option.value
     }
   },
 })
 
-const reasoningProviderOptions = computed<ProviderOptions | undefined>(() => {
-  if (!showReasoningEffortSelector.value) {
-    return
-  }
-  return {
-    openai: {
-      reasoningEffort: openaiReasoningEffort.value,
-    },
-  } as ProviderOptions
+const reasoningProviderOptions = computed(() => {
+  return buildReasoningProviderOptions({
+    platform: platform.value,
+    effort: openaiReasoningEffort.value,
+    capability: currentReasoningCapability.value,
+  })
 })
 
 watch([currentChat], () => {
@@ -111,9 +157,11 @@ watchEffect(() => {
     if (message.role !== 'assistant') {
       return false
     }
-    return !Array.isArray(message.versions)
+    return (
+      !Array.isArray(message.versions)
       || message.versions.length === 0
       || message.activeVersionIndex === undefined
+    )
   })
 
   if (needsNormalization) {
@@ -139,7 +187,11 @@ async function generateSummary(text: string, lockedModel?: string) {
   }
 
   try {
-    const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
+    const provider = getProviderFromPlatform(
+      platform.value,
+      apiKey.value,
+      serviceUrl.value,
+    )
     const languageModel = provider.getModel(modelToUse)
 
     const result = await streamText({
@@ -147,7 +199,8 @@ async function generateSummary(text: string, lockedModel?: string) {
       messages: [
         {
           role: 'system',
-          content: 'Please summarize the user\'s text and return the title of the text without adding any additional information. The title MUST in less than 4 words. Use the text language to summarize the text. Do not add any punctuation. Add "📝" emoji prefix to the summary.',
+          content:
+            'Please summarize the user\'s text and return the title of the text without adding any additional information. The title MUST in less than 4 words. Use the text language to summarize the text. Do not add any punctuation. Add "📝" emoji prefix to the summary.',
         },
         {
           role: 'user',
@@ -201,15 +254,23 @@ const groupedConversation = computed(() => {
   return result
 })
 const enableAutoScroll = ref(false)
-function easeInOutQuad(time: number, start: number, change: number, duration: number) {
+function easeInOutQuad(
+  time: number,
+  start: number,
+  change: number,
+  duration: number,
+) {
   time /= duration / 2
   if (time < 1) {
-    return change / 2 * time * time + start
+    return (change / 2) * time * time + start
   }
   time--
-  return -change / 2 * (time * (time - 2) - 1) + start
+  return (-change / 2) * (time * (time - 2) - 1) + start
 }
-function scrollToBottomSmoothly(element: { scrollTop: number, scrollHeight: number, clientHeight: number }, duration: number) {
+function scrollToBottomSmoothly(
+  element: { scrollTop: number, scrollHeight: number, clientHeight: number },
+  duration: number,
+) {
   const start = element.scrollTop
   const end = element.scrollHeight - element.clientHeight
   const distance = end - start
@@ -239,20 +300,25 @@ const thinking = ref(false)
 const uploadedImages = ref<ImageFile[]>([])
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const rows = ref(1)
-watch([input, textareaRef], () => {
-  nextTick(() => {
-    if (textareaRef.value) {
-      const targetRows = getNumberOfLines(textareaRef.value)
-      rows.value = targetRows
-    }
-  })
-}, { immediate: true })
+watch(
+  [input, textareaRef],
+  () => {
+    nextTick(() => {
+      if (textareaRef.value) {
+        const targetRows = getNumberOfLines(textareaRef.value)
+        rows.value = targetRows
+      }
+    })
+  },
+  { immediate: true },
+)
 function getNumberOfLines(textarea: HTMLTextAreaElement) {
   // 收缩，获取行数，然后展开
   textarea.style.height = '0px'
   const style = globalThis.getComputedStyle(textarea)
   const lineHeight = Number.parseInt(style.lineHeight)
-  const padding = Number.parseInt(style.paddingTop) + Number.parseInt(style.paddingBottom)
+  const padding
+    = Number.parseInt(style.paddingTop) + Number.parseInt(style.paddingBottom)
   const textareaHeight = textarea.scrollHeight - padding
   const numberOfLines = Math.ceil(textareaHeight / lineHeight)
   textarea.style.height = ''
@@ -328,7 +394,10 @@ interface StreamAssistantParams {
   currentModel: string
 }
 
-function updateChatConversation(chatData: ChatData | null, newConversation: ChatMessage[]): ChatData | null {
+function updateChatConversation(
+  chatData: ChatData | null,
+  newConversation: ChatMessage[],
+): ChatData | null {
   if (!chatData) {
     return null
   }
@@ -360,17 +429,25 @@ async function streamAssistantResponse({
     }
   }, 500)
 
-  const assistantIndex = conversation.value.findIndex(message => message.id === assistantMessage.id)
-  const resolvedAssistantIndex = assistantIndex === -1
-    ? [...conversation.value].map(message => message.id).lastIndexOf(assistantMessage.id)
-    : assistantIndex
+  const assistantIndex = conversation.value.findIndex(
+    message => message.id === assistantMessage.id,
+  )
+  const resolvedAssistantIndex
+    = assistantIndex === -1
+      ? Array.from(conversation.value, message => message.id)
+          .lastIndexOf(assistantMessage.id)
+      : assistantIndex
 
-  function commitAssistantUpdate(updater: (message: ChatMessage) => ChatMessage) {
+  function commitAssistantUpdate(
+    updater: (message: ChatMessage) => ChatMessage,
+  ) {
     if (resolvedAssistantIndex === -1) {
       return
     }
     const currentMessage = conversation.value[resolvedAssistantIndex]
-    const updated = ensureAssistantMessageStructure(updater(ensureAssistantMessageStructure(currentMessage)))
+    const updated = ensureAssistantMessageStructure(
+      updater(ensureAssistantMessageStructure(currentMessage)),
+    )
     conversation.value[resolvedAssistantIndex] = updated
     conversation.value = [...conversation.value]
   }
@@ -387,7 +464,11 @@ async function streamAssistantResponse({
   }
 
   try {
-    const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
+    const provider = getProviderFromPlatform(
+      platform.value,
+      apiKey.value,
+      serviceUrl.value,
+    )
     const languageModel = provider.getModel(currentModel)
 
     const messages = chatMessagesToModelMessages(
@@ -460,7 +541,8 @@ async function streamAssistantResponse({
   }
   catch (error: unknown) {
     console.error('Stream completion failed:', error)
-    const message = error instanceof Error ? error.message : 'Failed to get response from AI'
+    const message
+      = error instanceof Error ? error.message : 'Failed to get response from AI'
     const errorMessage = createChatMessage('error', message, {
       sentAt: assistantMessage.metadata?.sentAt || Date.now(),
       receivedAt: Date.now(),
@@ -472,7 +554,8 @@ async function streamAssistantResponse({
     streaming.value = false
     thinking.value = false
 
-    const lastAssistantIndex = [...conversation.value].map(message => message.role).lastIndexOf('assistant')
+    const lastAssistantIndex = Array.from(conversation.value, message => message.role)
+      .lastIndexOf('assistant')
     if (lastAssistantIndex !== -1) {
       const lastAssistant = conversation.value[lastAssistantIndex]
       if (lastAssistant.metadata && !lastAssistant.metadata.receivedAt) {
@@ -482,7 +565,8 @@ async function streamAssistantResponse({
     }
 
     if (chat) {
-      const updatedChat = updateChatConversation(chat, conversation.value) ?? chat
+      const updatedChat
+        = updateChatConversation(chat, conversation.value) ?? chat
       if (!updatedChat.title) {
         const aiMessage = conversation.value
           .filter(message => message.role === 'assistant')
@@ -498,7 +582,10 @@ async function streamAssistantResponse({
   }
 }
 async function onSubmit() {
-  if ((input.value.trim() === '' && uploadedImages.value.length === 0) || streaming.value) {
+  if (
+    (input.value.trim() === '' && uploadedImages.value.length === 0)
+    || streaming.value
+  ) {
     return
   }
 
@@ -575,10 +662,14 @@ async function onSubmit() {
   conversation.value = [...conversation.value, userMessage, assistantMessage]
   chat = updateChatConversation(chat, conversation.value) ?? chat
 
-  const normalizedAssistantIndex = [...conversation.value].map(message => message.role).lastIndexOf('assistant')
-  const normalizedAssistantMessage = normalizedAssistantIndex === -1
-    ? ensureAssistantMessageStructure(assistantMessage)
-    : ensureAssistantMessageStructure(conversation.value[normalizedAssistantIndex])
+  const normalizedAssistantIndex = Array.from(conversation.value, message => message.role)
+    .lastIndexOf('assistant')
+  const normalizedAssistantMessage
+    = normalizedAssistantIndex === -1
+      ? ensureAssistantMessageStructure(assistantMessage)
+      : ensureAssistantMessageStructure(
+          conversation.value[normalizedAssistantIndex],
+        )
 
   if (normalizedAssistantIndex !== -1) {
     conversation.value[normalizedAssistantIndex] = normalizedAssistantMessage
@@ -609,7 +700,9 @@ async function regenerateLastAssistantMessage(): Promise<void> {
     return
   }
 
-  const assistantIndex = conversation.value.findIndex(message => message.id === targetAssistantId)
+  const assistantIndex = conversation.value.findIndex(
+    message => message.id === targetAssistantId,
+  )
   if (assistantIndex === -1) {
     return
   }
@@ -634,7 +727,9 @@ async function regenerateLastAssistantMessage(): Promise<void> {
     chat = updateChatConversation(chat, conversation.value) ?? chat
   }
 
-  const baseMessage = ensureAssistantMessageStructure(conversation.value[assistantIndex])
+  const baseMessage = ensureAssistantMessageStructure(
+    conversation.value[assistantIndex],
+  )
   const assistantMessage = addAssistantMessageVersion(baseMessage, {
     content: '',
     metadata: {
@@ -662,7 +757,13 @@ async function regenerateLastAssistantMessage(): Promise<void> {
   })
 }
 
-async function editUserMessage({ messageId, content }: { messageId: string, content: string }): Promise<void> {
+async function editUserMessage({
+  messageId,
+  content,
+}: {
+  messageId: string
+  content: string
+}): Promise<void> {
   if (streaming.value) {
     console.warn('Cannot edit messages while streaming.')
     return
@@ -674,13 +775,18 @@ async function editUserMessage({ messageId, content }: { messageId: string, cont
     return
   }
 
-  const targetIndex = conversation.value.findIndex(message => message.id === messageId)
+  const targetIndex = conversation.value.findIndex(
+    message => message.id === messageId,
+  )
   if (targetIndex === -1) {
     return
   }
 
   const targetMessage = conversation.value[targetIndex]
-  if (targetMessage.role !== 'user' || typeof targetMessage.content !== 'string') {
+  if (
+    targetMessage.role !== 'user'
+    || typeof targetMessage.content !== 'string'
+  ) {
     return
   }
 
@@ -719,7 +825,8 @@ async function editUserMessage({ messageId, content }: { messageId: string, cont
   })
 
   conversation.value = [...conversation.value, assistantMessage]
-  activeChat = updateChatConversation(activeChat, conversation.value) ?? activeChat
+  activeChat
+    = updateChatConversation(activeChat, conversation.value) ?? activeChat
 
   nextTick(() => {
     const el = scrollArea.value
@@ -735,13 +842,24 @@ async function editUserMessage({ messageId, content }: { messageId: string, cont
   })
 }
 
-function changeAssistantMessageVersion({ messageId, index }: { messageId: string, index: number }): void {
-  const targetIndex = conversation.value.findIndex(message => message.id === messageId)
+function changeAssistantMessageVersion({
+  messageId,
+  index,
+}: {
+  messageId: string
+  index: number
+}): void {
+  const targetIndex = conversation.value.findIndex(
+    message => message.id === messageId,
+  )
   if (targetIndex === -1) {
     return
   }
 
-  const updatedMessage = setAssistantMessageActiveVersion(conversation.value[targetIndex], index)
+  const updatedMessage = setAssistantMessageActiveVersion(
+    conversation.value[targetIndex],
+    index,
+  )
   conversation.value[targetIndex] = updatedMessage
   conversation.value = [...conversation.value]
 
@@ -793,7 +911,9 @@ async function onEnter(e: KeyboardEvent) {
         rows.value = targetRows
         target.selectionStart = selectStart + 1
         target.selectionEnd = selectStart + 1
-        const lineHeight = Number.parseInt(globalThis.getComputedStyle(target).lineHeight)
+        const lineHeight = Number.parseInt(
+          globalThis.getComputedStyle(target).lineHeight,
+        )
         target.scroll({
           top: lineHeight * totalRows,
         })
@@ -849,14 +969,18 @@ watchEffect(() => {
               @click="router.push({ name: 'translate' })"
             >
               <div class="flex gap-2 items-center">
-                <div class="rounded-lg bg-blue-500/20 flex h-8 w-8 items-center justify-center">
+                <div
+                  class="rounded-lg bg-blue-500/20 flex h-8 w-8 items-center justify-center"
+                >
                   <i class="i-tabler-language text-blue-400 h-5 w-5" />
                 </div>
                 <div class="text-base font-medium">
                   Translate
                 </div>
               </div>
-              <div class="text-neutral-5 text-xs ml-auto hidden items-center md:ml-0 md:mt-4 md:flex">
+              <div
+                class="text-neutral-5 text-xs ml-auto hidden items-center md:ml-0 md:mt-4 md:flex"
+              >
                 Easily translate between multiple languages
               </div>
             </button>
@@ -868,17 +992,22 @@ watchEffect(() => {
         ref="scrollArea"
         class="overflow-x-hidden overflow-y-auto last-children:min-h-[calc(100dvh-152px-72px)]"
       >
-        <template
-          v-for="g, i in groupedConversation"
-          :key="i"
-        >
+        <template v-for="(g, i) in groupedConversation" :key="i">
           <ChatMessage
-            v-for="c, j in g"
+            v-for="(c, j) in g"
             :key="j"
             :message="c"
             :loading="streaming && groupedConversation.length - 1 === i"
-            :thinking="thinking && groupedConversation.length - 1 === i && c.role === 'assistant'"
-            :show-regenerate="c.role === 'assistant' && !streaming && lastAssistantMessageId === c.id"
+            :thinking="
+              thinking
+                && groupedConversation.length - 1 === i
+                && c.role === 'assistant'
+            "
+            :show-regenerate="
+              c.role === 'assistant'
+                && !streaming
+                && lastAssistantMessageId === c.id
+            "
             :allow-user-edit="!streaming"
             @change-version="changeAssistantMessageVersion"
             @regenerate="regenerateLastAssistantMessage"
@@ -886,7 +1015,9 @@ watchEffect(() => {
           />
         </template>
       </div>
-      <div class="input-section px-4 flex shrink-0 flex-col gap-1 min-h-120px items-center justify-end relative">
+      <div
+        class="input-section px-4 flex shrink-0 flex-col gap-1 min-h-120px items-center justify-end relative"
+      >
         <div
           class="text-sm rounded-md op50 flex flex-col h-20px shadow-sm items-center z-10"
         >
@@ -897,22 +1028,34 @@ watchEffect(() => {
           >
             <div>
               <span class="font-medium mr-1">Current:</span>
-              <span>{{ lastUsage.prompt_tokens }} / {{ lastUsage.completion_tokens }} Token</span>
+              <span>{{ lastUsage.prompt_tokens }} /
+                {{ lastUsage.completion_tokens }} Token</span>
             </div>
             ·
             <div>
               <span class="font-medium mr-1">Speed:</span>
-              <span>{{ (lastUsage.completion_tokens / lastTimeUsageMS * 1000).toFixed(2) }} Token/s</span>
+              <span>{{
+                (
+                  (lastUsage.completion_tokens / lastTimeUsageMS)
+                  * 1000
+                ).toFixed(2)
+              }}
+                Token/s</span>
             </div>
           </div>
           <!-- 合并的输入/输出统计 -->
           <div
-            v-if="currentChat && currentChat.token.inTokens > 0 && currentChat.token.outTokens > 0"
+            v-if="
+              currentChat
+                && currentChat.token.inTokens > 0
+                && currentChat.token.outTokens > 0
+            "
             class="mr-6 flex items-center"
           >
             <span class="font-medium mr-1">Total Input/Output:</span>
             <span>
-              {{ currentChat.token.inTokens }} / {{ currentChat.token.outTokens }} Token
+              {{ currentChat.token.inTokens }} /
+              {{ currentChat.token.outTokens }} Token
             </span>
           </div>
         </div>
@@ -934,7 +1077,11 @@ watchEffect(() => {
               >
               <button
                 class="dark:hover:bg-neutral-7 rounded-full bg-neutral-300 opacity-0 flex h-6 w-6 transition-opacity items-center justify-center absolute dark:bg-neutral-800 hover:bg-neutral-400 group-hover:opacity-100 -right-2 -top-2"
-                @click="uploadedImages = uploadedImages.filter((img: ImageFile) => img.id !== image.id)"
+                @click="
+                  uploadedImages = uploadedImages.filter(
+                    (img: ImageFile) => img.id !== image.id,
+                  )
+                "
               >
                 <i class="i-tabler-x text-neutral-3 h-4 w-4" />
               </button>
@@ -950,23 +1097,35 @@ watchEffect(() => {
               ref="textareaRef"
               v-model="input"
               type="text"
-              style="resize: none; scrollbar-width: none; max-height: 300px; height: auto;"
+              style="
+                resize: none;
+                scrollbar-width: none;
+                max-height: 300px;
+                height: auto;
+              "
               :rows="rows"
               class="text-lg text-neutral-800 px-4 py-4 outline-none border-none bg-transparent flex-grow-0 w-full dark:text-[#e3e3e3]"
               placeholder="Input your question here"
-              @keydown.stop.up="async (e) => {
-                if (!(input === '')) return
-                const target = e.target as HTMLTextAreaElement
-                if (target.selectionStart === 0) {
-                  const currentIdx = inputHistory.history.value.map(d => d.snapshot).indexOf(input)
-                  if (currentIdx === -1) {
-                    input = inputHistory.history.value[0].snapshot
-                  }
-                  else {
-                    input = inputHistory.history.value[(currentIdx + 1) % inputHistory.history.value.length].snapshot
+              @keydown.stop.up="
+                async (e) => {
+                  if (!(input === '')) return;
+                  const target = e.target as HTMLTextAreaElement;
+                  if (target.selectionStart === 0) {
+                    const currentIdx = inputHistory.history.value
+                      .map((d) => d.snapshot)
+                      .indexOf(input);
+                    if (currentIdx === -1) {
+                      input = inputHistory.history.value[0].snapshot;
+                    }
+                    else {
+                      input
+                        = inputHistory.history.value[
+                          (currentIdx + 1) % inputHistory.history.value.length
+                        ].snapshot;
+                    }
                   }
                 }
-              }"
+              "
               @keypress.stop.prevent.enter="onEnter"
             />
 
@@ -983,9 +1142,7 @@ watchEffect(() => {
                   v-if="showReasoningEffortSelector"
                   class="text-xs text-neutral-500 flex gap-2 items-center dark:text-neutral-400"
                 >
-                  <span>
-                    Effort
-                  </span>
+                  <span> Effort </span>
                   <Select
                     v-model="selectedReasoningEffort"
                     :options="reasoningEffortOptions"
@@ -1012,14 +1169,22 @@ watchEffect(() => {
                   "
                   class="color-[#c4c7c5] rounded-lg flex h-8 w-8 transition-all items-center justify-center"
                   :class="{
-                    'opacity-50 cursor-not-allowed': streaming || !sttSupported || sttTranscribing,
-                    'hover:bg-neutral-700': !streaming && sttSupported && !sttTranscribing,
+                    'opacity-50 cursor-not-allowed':
+                      streaming || !sttSupported || sttTranscribing,
+                    'hover:bg-neutral-700':
+                      !streaming && sttSupported && !sttTranscribing,
                     'bg-red-500/20': isRecording,
                   }"
                   @click="onMicClick"
                 >
-                  <i v-if="sttTranscribing" class="i-tabler-loader-2 h-4 w-4 animate-spin" />
-                  <i v-else-if="isRecording" class="i-tabler-player-stop h-5 w-5" />
+                  <i
+                    v-if="sttTranscribing"
+                    class="i-tabler-loader-2 h-4 w-4 animate-spin"
+                  />
+                  <i
+                    v-else-if="isRecording"
+                    class="i-tabler-player-stop h-5 w-5"
+                  />
                   <i v-else class="i-tabler-microphone h-5 w-5" />
                 </button>
                 <!-- Prompt optimize button -->
@@ -1028,18 +1193,25 @@ watchEffect(() => {
                   :disabled="streaming"
                   size="md"
                   variant="ghost"
-                  @optimized="(optimizedPrompt: string) => {
-                    // Optional: Show a toast notification or animation
-                    console.log('Prompt optimized:', optimizedPrompt)
-                  }"
+                  @optimized="
+                    (optimizedPrompt: string) => {
+                      // Optional: Show a toast notification or animation
+                      console.log('Prompt optimized:', optimizedPrompt);
+                    }
+                  "
                 />
 
                 <!-- Send button -->
                 <button
-                  :disabled="streaming || (!input.trim() && uploadedImages.length === 0)"
+                  :disabled="
+                    streaming || (!input.trim() && uploadedImages.length === 0)
+                  "
                   :class="{
-                    'opacity-50 cursor-not-allowed': streaming || (!input.trim() && uploadedImages.length === 0),
-                    'hover:bg-neutral-700': !streaming && (input.trim() || uploadedImages.length > 0),
+                    'opacity-50 cursor-not-allowed':
+                      streaming
+                      || (!input.trim() && uploadedImages.length === 0),
+                    'hover:bg-neutral-700':
+                      !streaming && (input.trim() || uploadedImages.length > 0),
                   }"
                   class="color-[#c4c7c5] rounded-lg flex h-8 w-8 transition-all items-center justify-center"
                   @click="onSubmit"
@@ -1050,10 +1222,10 @@ watchEffect(() => {
             </div>
           </div>
         </div>
-        <div class="animate-fade-delay text-xs color-[#6d6d6d] pb-3 pt-1 flex gap-2 animate-delay-500 dark:color-[#c4c7c5]">
-          <span>
-            Jannchie's Web UI for Chat Services
-          </span>
+        <div
+          class="animate-fade-delay text-xs color-[#6d6d6d] pb-3 pt-1 flex gap-2 animate-delay-500 dark:color-[#c4c7c5]"
+        >
+          <span> Jannchie's Web UI for Chat Services </span>
           <a
             class="underline"
             target="_blank"

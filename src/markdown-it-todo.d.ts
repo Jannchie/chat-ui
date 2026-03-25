@@ -35,7 +35,10 @@ declare namespace MdTodoParser {
 
   function todoify(token: Token, TokenConstructor: TokenConstructor): void
 
-  function createTodoItem(token: Token, TokenConstructor: TokenConstructor): Token
+  function createTodoItem(
+    token: Token,
+    TokenConstructor: TokenConstructor,
+  ): Token
 }
 
 declare module 'markdown-it-todo' {

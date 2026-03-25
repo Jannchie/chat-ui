@@ -20,7 +20,9 @@ const { selectedCurrency, exchangeRates } = useCurrency()
 const { scheme, setTheme } = useTheme()
 
 const availableCurrencies = computed(() => {
-  return Object.keys(exchangeRates.value).filter(c => ['USD', 'JPY', 'CNY'].includes(c))
+  return Object.keys(exchangeRates.value).filter(c =>
+    ['USD', 'JPY', 'CNY'].includes(c),
+  )
 })
 
 function selectCurrency(currency: string) {
@@ -32,8 +34,12 @@ const themes: Array<'auto' | 'light' | 'dark'> = ['auto', 'light', 'dark']
 
 <template>
   <Modal v-model="showModal">
-    <div class="rounded-lg bg-neutral-100 max-w-md w-full shadow-xl overflow-hidden dark:bg-[#1a1a1a]">
-      <div class="p-4 border-b border-neutral-300 flex items-center justify-between dark:border-neutral-700">
+    <div
+      class="rounded-lg bg-neutral-100 max-w-md w-full shadow-xl overflow-hidden dark:bg-[#1a1a1a]"
+    >
+      <div
+        class="p-4 border-b border-neutral-300 flex items-center justify-between dark:border-neutral-700"
+      >
         <h2 class="text-xl text-neutral-800 font-semibold dark:text-white">
           Settings
         </h2>
@@ -53,7 +59,11 @@ const themes: Array<'auto' | 'light' | 'dark'> = ['auto', 'light', 'dark']
             <button
               v-for="theme in themes"
               :key="theme"
-              :class="scheme === theme ? 'text-white bg-neutral-500 dark:bg-neutral-600' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'"
+              :class="
+                scheme === theme
+                  ? 'text-white bg-neutral-500 dark:bg-neutral-600'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'
+              "
               class="text-sm px-3 py-1 rounded transition-colors"
               @click="setTheme(theme)"
             >
@@ -69,7 +79,11 @@ const themes: Array<'auto' | 'light' | 'dark'> = ['auto', 'light', 'dark']
             <button
               v-for="currency in availableCurrencies"
               :key="currency"
-              :class="selectedCurrency === currency ? 'text-white bg-neutral-500 dark:bg-neutral-600' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'"
+              :class="
+                selectedCurrency === currency
+                  ? 'text-white bg-neutral-500 dark:bg-neutral-600'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'
+              "
               class="text-sm px-3 py-1 rounded transition-colors"
               @click="selectCurrency(currency)"
             >

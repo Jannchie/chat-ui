@@ -1,51 +1,66 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { isKatexLoaded, isShikiLoaded, loadKatex, loadShiki, md } from '../utils'
+import {
+  isKatexLoaded,
+  isShikiLoaded,
+  loadKatex,
+  loadShiki,
+  md,
+} from '../utils'
 import { addFadeInToVNodes, splitContent } from '../utils/streamingText'
 
-const props = withDefaults(defineProps<{
-  content: string
-  reasoning?: string
-  loading: boolean
-  model?: string
-}>(), {
-  reasoning: '',
-  model: '',
-})
+const props = withDefaults(
+  defineProps<{
+    content: string
+    reasoning?: string
+    loading: boolean
+    model?: string
+  }>(),
+  {
+    reasoning: '',
+    model: '',
+  },
+)
 
 const content = computed(() => props.content)
 const reasoning = computed(() => props.reasoning)
-const streamMarkdownWrapperRef = ref<HTMLElement | null>(null)
 const loading = computed(() => props.loading)
 const showCopyTooltip = ref(false)
 
 const debouncedLoading = refDebounced(loading, 1000)
 
 const formattedContent = computed(() => splitContent(content.value))
-const contentFinal = computed(() => props.loading ? formattedContent.value : content.value)
+const contentFinal = computed(() =>
+  props.loading ? formattedContent.value : content.value,
+)
 
-const contentVNodes = computedWithControl(() => [contentFinal.value, isShikiLoaded.value, isKatexLoaded.value], () => {
-  const content = contentFinal.value ?? ''
+const contentVNodes = computedWithControl(
+  () => [contentFinal.value, isShikiLoaded.value, isKatexLoaded.value],
+  () => {
+    const content = contentFinal.value ?? ''
 
-  // Check if content contains code blocks and load Shiki if needed
-  if (content.includes('```') || content.includes('`')) {
-    loadShiki()
-  }
+    // Check if content contains code blocks and load Shiki if needed
+    if (content.includes('```') || content.includes('`')) {
+      loadShiki()
+    }
 
-  // Check if content contains math expressions and load KaTeX if needed
-  if (content.includes('$') || content.includes(String.raw`\(`) || content.includes(String.raw`\[`)) {
-    loadKatex()
-  }
+    // Check if content contains math expressions and load KaTeX if needed
+    if (
+      content.includes('$')
+      || content.includes(String.raw`\(`)
+      || content.includes(String.raw`\[`)
+    ) {
+      loadKatex()
+    }
 
-  const r = md.render(content, {
-    sanitize: true,
-  }) as unknown as VNode[]
-  return addFadeInToVNodes(r, debouncedLoading.value)
-})
+    const r = md.render(content, {
+      sanitize: true,
+    }) as unknown as VNode[]
+    return addFadeInToVNodes(r, debouncedLoading.value)
+  },
+)
 
-const reasoningVNodes = computedWithControl([
-  reasoning,
-], () => {
+const reasoningVNodes = computedWithControl([reasoning], () => {
   const reasoningContent = reasoning.value ?? ''
 
   // Check if reasoning contains code blocks and load Shiki if needed
@@ -54,7 +69,11 @@ const reasoningVNodes = computedWithControl([
   }
 
   // Check if reasoning contains math expressions and load KaTeX if needed
-  if (reasoningContent.includes('$') || reasoningContent.includes(String.raw`\(`) || reasoningContent.includes(String.raw`\[`)) {
+  if (
+    reasoningContent.includes('$')
+    || reasoningContent.includes(String.raw`\(`)
+    || reasoningContent.includes(String.raw`\[`)
+  ) {
     loadKatex()
   }
 
@@ -63,47 +82,58 @@ const reasoningVNodes = computedWithControl([
   }) as unknown as VNode[]
 })
 
+function renderContentVNodes(vnodes: { value: VNode[] }) {
+  return () => vnodes.value
+}
+
 // eslint-disable-next-line vue/one-component-per-file
 const StreamMarkdownContent = defineComponent({
   setup() {
-    return () => {
-      return contentVNodes.value
-    }
+    return renderContentVNodes(contentVNodes)
   },
 })
 
 // eslint-disable-next-line vue/one-component-per-file
 const StreamMarkdownReasoning = defineComponent({
   setup() {
-    return () => {
-      return reasoningVNodes.value
-    }
+    return renderContentVNodes(reasoningVNodes)
   },
 })
 
-debouncedWatch([content], () => {
-  contentVNodes.trigger()
-}, {
-  debounce: 300,
-})
+debouncedWatch(
+  [content],
+  () => {
+    contentVNodes.trigger()
+  },
+  {
+    debounce: 300,
+  },
+)
 
-debouncedWatch([reasoning], () => {
-  reasoningVNodes.trigger()
-}, {
-  debounce: 300,
-})
+debouncedWatch(
+  [reasoning],
+  () => {
+    reasoningVNodes.trigger()
+  },
+  {
+    debounce: 300,
+  },
+)
 
 // Enhanced copy functionality with tooltip feedback
 function copyContentToClipboard() {
   const markdownContent = contentFinal.value
-  navigator.clipboard.writeText(markdownContent).then(() => {
-    showCopyTooltip.value = true
-    setTimeout(() => {
-      showCopyTooltip.value = false
-    }, 2000)
-  }).catch((error) => {
-    console.error(`Failed to copy content: ${error}`)
-  })
+  navigator.clipboard
+    .writeText(markdownContent)
+    .then(() => {
+      showCopyTooltip.value = true
+      setTimeout(() => {
+        showCopyTooltip.value = false
+      }, 2000)
+    })
+    .catch((error) => {
+      console.error(`Failed to copy content: ${error}`)
+    })
 }
 </script>
 
@@ -124,7 +154,9 @@ function copyContentToClipboard() {
             aria-label="Copy markdown content"
             @click="copyContentToClipboard"
           >
-            <i class="i-tabler-copy dark:text-neutral-4 text-neutral-500 h-5 w-5" />
+            <i
+              class="i-tabler-copy dark:text-neutral-4 text-neutral-500 h-5 w-5"
+            />
             <div
               v-if="showCopyTooltip"
               class="text-xs text-white px-2 py-1 rounded bg-black/70 pointer-events-none whitespace-nowrap right-0 absolute dark:text-black dark:bg-white/70 -bottom-7"
@@ -137,7 +169,6 @@ function copyContentToClipboard() {
 
       <div
         key="prose"
-        ref="streamMarkdownWrapperRef"
         class="hover text-sm prose prose-neutral md:text-base prose-code:text-sm prose-h1:text-3xl prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-h5:text-base children:mt-0 dark:prose-invert prose-code:after:content-none prose-code:before:content-none"
       >
         <StreamMarkdownContent />
@@ -153,7 +184,7 @@ li > p {
 .code-content > pre {
   padding: 0px !important;
 }
-.code-content  pre {
+.code-content pre {
   margin: 0px !important;
 }
 
@@ -167,7 +198,7 @@ pre {
   border: 1px solid #374151 !important;
 }
 
- /*非 pre 里的 code 有背景色 */
+/*非 pre 里的 code 有背景色 */
 code:not(pre code) {
   background-color: #e5e7eb !important; /* 日间模式：浅灰色背景 */
   border-radius: 0.25rem;

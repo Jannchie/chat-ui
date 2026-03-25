@@ -1,6 +1,11 @@
 import { apiKey, currentPreset, platform, preset, serviceUrl } from '../shared'
 
-async function fetchModelsFromAPI(platformName: string, key: string): Promise<string[]> {
+const TRAILING_SLASH_REGEXP = /\/$/
+
+async function fetchModelsFromAPI(
+  platformName: string,
+  key: string,
+): Promise<string[]> {
   const baseUrl = getAPIBaseURL(platformName)
 
   switch (platformName) {
@@ -77,7 +82,7 @@ function getAPIBaseURL(platformName: string): string {
       return 'https://api.z.ai/api/paas/v4/'
     }
     case 'custom': {
-      return serviceUrl.value.replace(/\/$/, '')
+      return serviceUrl.value.replace(TRAILING_SLASH_REGEXP, '')
     } // Remove trailing slash
     default: {
       return ''
@@ -121,11 +126,19 @@ export function useModels() {
             break
           }
           case 'anthropic': {
-            models.value = ['claude-3-5-sonnet-20241022', 'claude-3-haiku-20240307', 'claude-3-opus-20240229']
+            models.value = [
+              'claude-3-5-sonnet-20241022',
+              'claude-3-haiku-20240307',
+              'claude-3-opus-20240229',
+            ]
             break
           }
           case 'openrouter': {
-            models.value = ['openai/gpt-4', 'anthropic/claude-3-sonnet', 'google/gemini-pro']
+            models.value = [
+              'openai/gpt-4',
+              'anthropic/claude-3-sonnet',
+              'google/gemini-pro',
+            ]
             break
           }
           case 'deepseek': {
@@ -137,7 +150,13 @@ export function useModels() {
             break
           }
           case 'zhipu': {
-            models.value = ['glm-4-flash', 'glm-4-air', 'glm-4-airx', 'glm-4', 'glm-4-plus']
+            models.value = [
+              'glm-4-flash',
+              'glm-4-air',
+              'glm-4-airx',
+              'glm-4',
+              'glm-4-plus',
+            ]
             break
           }
           default: {
@@ -167,7 +186,11 @@ export function useModels() {
 
   // 等待关键状态加载完成后再开始监听
   const allStatesLoaded = computed(() => {
-    return platform.isLoaded.value && preset.isLoaded.value && currentPreset.isLoaded.value
+    return (
+      platform.isLoaded.value
+      && preset.isLoaded.value
+      && currentPreset.isLoaded.value
+    )
   })
 
   // 使用 watchEffect 来统一监听所有相关状态变化

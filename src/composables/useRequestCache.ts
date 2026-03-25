@@ -32,7 +32,9 @@ async function maintainCacheSize() {
       .limit(count - MAX_CACHE_SIZE)
       .toArray()
 
-    const idsToRemove = entriesToRemove.map(entry => entry.id!).filter(id => id !== undefined)
+    const idsToRemove = entriesToRemove
+      .map(entry => entry.id!)
+      .filter(id => id !== undefined)
     await db.requestCache.bulkDelete(idsToRemove)
   }
 }
@@ -42,9 +44,12 @@ async function cacheSuccessfulRequest(key: RequestCacheKey) {
   const now = Date.now()
 
   try {
-  // caching request
+    // caching request
     // Check if entry already exists
-    const existingEntry = await db.requestCache.where('cacheKey').equals(cacheKey).first()
+    const existingEntry = await db.requestCache
+      .where('cacheKey')
+      .equals(cacheKey)
+      .first()
     // existingEntry inspected
 
     existingEntry
@@ -75,12 +80,17 @@ async function cacheSuccessfulRequest(key: RequestCacheKey) {
   }
 }
 
-async function getCachedRequest(key: RequestCacheKey): Promise<RequestCacheEntry | null> {
+async function getCachedRequest(
+  key: RequestCacheKey,
+): Promise<RequestCacheEntry | null> {
   const cacheKey = generateCacheKey(key)
   const now = Date.now()
 
   try {
-    const entry = await db.requestCache.where('cacheKey').equals(cacheKey).first()
+    const entry = await db.requestCache
+      .where('cacheKey')
+      .equals(cacheKey)
+      .first()
 
     if (!entry) {
       return null
@@ -111,7 +121,9 @@ async function getCachedRequest(key: RequestCacheKey): Promise<RequestCacheEntry
   }
 }
 
-async function getRecentSuccessfulRequests(limit = 10): Promise<RequestCacheEntry[]> {
+async function getRecentSuccessfulRequests(
+  limit = 10,
+): Promise<RequestCacheEntry[]> {
   try {
     await cleanupExpiredEntries()
 
@@ -129,7 +141,9 @@ async function getRecentSuccessfulRequests(limit = 10): Promise<RequestCacheEntr
   }
 }
 
-async function getTopSuccessfulRequests(limit = 10): Promise<RequestCacheEntry[]> {
+async function getTopSuccessfulRequests(
+  limit = 10,
+): Promise<RequestCacheEntry[]> {
   try {
     await cleanupExpiredEntries()
 

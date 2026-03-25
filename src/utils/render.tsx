@@ -2,7 +2,15 @@ import type Renderer from 'markdown-it/lib/renderer.mjs'
 import type Token from 'markdown-it/lib/token.mjs'
 import type { VNode } from 'vue'
 import { escapeHtml, unescapeAll } from 'markdown-it/lib/common/utils.mjs'
-import { Comment, createVNode, defineComponent, Fragment, h, ref, Text } from 'vue'
+import {
+  Comment,
+  createVNode,
+  defineComponent,
+  Fragment,
+  h,
+  ref,
+  Text,
+} from 'vue'
 
 export interface Plugin<Ctx = any> {
   name: string
@@ -23,6 +31,9 @@ const sensitiveUrlReg = /^javascript:|vbscript:|file:/i
 const sensitiveAttrReg = /^href|src|xlink:href|poster/i
 const attrNameReg = /^[a-z_:][\w:.-]*$/i
 const attrEventReg = /^on/i
+const CODE_INFO_SPLIT_REGEXP = /(\s+)/g
+const STREAMING_TEXT_SPLIT_REGEXP
+  = /(?<=[。？！；、，\n])|(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=[.?!`])/g
 const defaultRules = {} as any
 
 function validateAttrName(name: string) {
@@ -37,8 +48,12 @@ function getLine(token: Token, env?: Record<string, any>) {
   if (env?.macroLines && env.bMarks && env.eMarks) {
     const sPos = env.bMarks[lineStart]
     for (let i = 0; i < env.macroLines.length; i++) {
-      const { matchPos, lineOffset, posOffset, currentPosOffset } = env.macroLines[i]
-      if (sPos + posOffset > matchPos && sPos + posOffset - currentPosOffset > matchPos) {
+      const { matchPos, lineOffset, posOffset, currentPosOffset }
+        = env.macroLines[i]
+      if (
+        sPos + posOffset > matchPos
+        && sPos + posOffset - currentPosOffset > matchPos
+      ) {
         sOffset = lineOffset
       }
       else {
@@ -86,12 +101,28 @@ function processToken(token: Token, env?: Record<string, any>) {
   }
 }
 
-defaultRules.code_inline = function (tokens: Token[], idx: number, _: any, __: any, slf: Renderer) {
+defaultRules.code_inline = function (
+  tokens: Token[],
+  idx: number,
+  _: any,
+  __: any,
+  slf: Renderer,
+) {
   const token = tokens[idx]
-  return createVNode('code', { ...slf.renderAttrs(token) as any, key: idx } as any, token.content)
+  return createVNode(
+    'code',
+    { ...(slf.renderAttrs(token) as any), key: idx } as any,
+    token.content,
+  )
 }
 
-defaultRules.code_block = function (tokens: Token[], idx: number, _: any, __: any, slf: Renderer) {
+defaultRules.code_block = function (
+  tokens: Token[],
+  idx: number,
+  _: any,
+  __: any,
+  slf: Renderer,
+) {
   const token = tokens[idx]
   const attrs: any = slf.renderAttrs(token)
   const preAttrs = {
@@ -101,11 +132,9 @@ defaultRules.code_block = function (tokens: Token[], idx: number, _: any, __: an
 
   delete attrs[DOM_ATTR_NAME.SOURCE_LINE_START]
   delete attrs[DOM_ATTR_NAME.SOURCE_LINE_END]
-  return h(
-    'pre',
-    preAttrs,
-    [h('code', attrs, [createVNode(Text, {}, token.content)])],
-  )
+  return h('pre', preAttrs, [
+    h('code', attrs, [createVNode(Text, {}, token.content)]),
+  ])
 }
 
 const CodeBlockWrapper = defineComponent({
@@ -143,27 +172,56 @@ const CodeBlockWrapper = defineComponent({
     return { copyCode, copied }
   },
   render() {
-    return h('div', {
-      class: 'code-block-wrapper border rounded-xl my-4 overflow-hidden max-w-[calc(100vw-24px)]',
-    }, [
-      h('div', {
-        class: 'code-block-toolbar bg-neutral-100 border-b px-4 text-neutral-4 py-2 flex justify-between items-center dark:bg-neutral-800 dark:border-neutral-700',
-      }, [
-        h('span', { class: 'code-language text-sm uppercase font-mono' }, this.language || 'text'),
-        h('button', {
-          class: 'copy-button text-sm w-6 h-6 rounded hover:bg-neutral-7 leading-0',
-          onClick: this.copyCode,
-        }, this.copied ? h('i', { class: 'i-tabler-check' }) : h('i', { class: 'i-tabler-copy' })),
-      ]),
-      h('div', { class: 'code-content' }, [
-        h('pre', this.preAttrs, [createVNode('code', { innerHTML: this.content }, [])]),
-      ]),
-    ])
+    return h(
+      'div',
+      {
+        class:
+          'code-block-wrapper border rounded-xl my-4 overflow-hidden max-w-[calc(100vw-24px)]',
+      },
+      [
+        h(
+          'div',
+          {
+            class:
+              'code-block-toolbar bg-neutral-100 border-b px-4 text-neutral-4 py-2 flex justify-between items-center dark:bg-neutral-800 dark:border-neutral-700',
+          },
+          [
+            h(
+              'span',
+              { class: 'code-language text-sm uppercase font-mono' },
+              this.language || 'text',
+            ),
+            h(
+              'button',
+              {
+                class:
+                  'copy-button text-sm w-6 h-6 rounded hover:bg-neutral-7 leading-0',
+                onClick: this.copyCode,
+              },
+              this.copied
+                ? h('i', { class: 'i-tabler-check' })
+                : h('i', { class: 'i-tabler-copy' }),
+            ),
+          ],
+        ),
+        h('div', { class: 'code-content' }, [
+          h('pre', this.preAttrs, [
+            createVNode('code', { innerHTML: this.content }, []),
+          ]),
+        ]),
+      ],
+    )
   },
 })
 
 // Modified fence rule
-defaultRules.fence = function (tokens: Token[], idx: number, options: any, _: any, slf: Renderer) {
+defaultRules.fence = function (
+  tokens: Token[],
+  idx: number,
+  options: any,
+  _: any,
+  slf: Renderer,
+) {
   const token = tokens[idx]
   const info = token.info ? unescapeAll(token.info).trim() : ''
   let langName = ''
@@ -174,11 +232,14 @@ defaultRules.fence = function (tokens: Token[], idx: number, options: any, _: an
   let tmpToken
 
   if (info) {
-    arr = info.split(/(\s+)/g)
+    arr = info.split(CODE_INFO_SPLIT_REGEXP)
     langName = arr[0]
     langAttrs = arr.slice(2).join('')
   }
-  const highlighted = options.highlight ? options.highlight(token.content, langName, langAttrs) || escapeHtml(token.content) : escapeHtml(token.content)
+  const highlighted = options.highlight
+    ? options.highlight(token.content, langName, langAttrs)
+      || escapeHtml(token.content)
+    : escapeHtml(token.content)
 
   const buildVNode = (attrs: any) => {
     const preAttrs = {
@@ -192,14 +253,11 @@ defaultRules.fence = function (tokens: Token[], idx: number, options: any, _: an
     delete attrs[DOM_ATTR_NAME.SOURCE_LINE_END]
 
     // Use our wrapper component instead of directly returning pre/code
-    return h(
-      CodeBlockWrapper,
-      {
-        language: langName,
-        content: highlighted,
-        preAttrs,
-      },
-    )
+    return h(CodeBlockWrapper, {
+      language: langName,
+      content: highlighted,
+      preAttrs,
+    })
   }
 
   // If language exists, inject class gently, without modifying original token.
@@ -226,13 +284,23 @@ defaultRules.fence = function (tokens: Token[], idx: number, options: any, _: an
   return buildVNode(slf.renderAttrs(token))
 }
 
-defaultRules.image = function (tokens: Token[], idx: number, options: any, env: any, slf: Renderer) {
+defaultRules.image = function (
+  tokens: Token[],
+  idx: number,
+  options: any,
+  env: any,
+  slf: Renderer,
+) {
   const token = tokens[idx]
 
-  return h('img', {
-    ...slf.renderAttrs(token) as any,
-    alt: slf.renderInlineAsText(token.children || [], options, env),
-  }, [])
+  return h(
+    'img',
+    {
+      ...(slf.renderAttrs(token) as any),
+      alt: slf.renderInlineAsText(token.children || [], options, env),
+    },
+    [],
+  )
 }
 
 defaultRules.hardbreak = function (_: Token[], idx: number) {
@@ -242,13 +310,25 @@ defaultRules.softbreak = function (_: Token[], idx: number, options: any) {
   return options.breaks ? h('br', { key: idx }) : null
 }
 
-defaultRules.list_item_open = function (tokens: Token[], idx: number, _: any, __: any, self: Renderer) {
-  return h('li', { key: idx, ...self.renderAttrs(tokens[idx]) as any }, [])
+defaultRules.list_item_open = function (
+  tokens: Token[],
+  idx: number,
+  _: any,
+  __: any,
+  self: Renderer,
+) {
+  return h('li', { key: idx, ...(self.renderAttrs(tokens[idx]) as any) }, [])
 }
 
-defaultRules.paragraph_open = function (tokens: Token[], idx: number, _: any, __: any, self: Renderer) {
+defaultRules.paragraph_open = function (
+  tokens: Token[],
+  idx: number,
+  _: any,
+  __: any,
+  self: Renderer,
+) {
   // 强制添加 p 标签，即使单个列表项。从而防止列表项元素突变。
-  return h('p', { key: idx, ...self.renderAttrs(tokens[idx]) as any }, [])
+  return h('p', { key: idx, ...(self.renderAttrs(tokens[idx]) as any) }, [])
 }
 
 defaultRules.text = function (tokens: Token[], idx: number, _: any, env: any) {
@@ -258,7 +338,7 @@ defaultRules.text = function (tokens: Token[], idx: number, _: any, env: any) {
     // 使用
     // 分割英语 (?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)
     // 分割中文 (?<=[。？！；])
-    const splited = token.content.split(/(?<=[。？！；、，\n])|(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=[.?!`])/g)
+    const splited = token.content.split(STREAMING_TEXT_SPLIT_REGEXP)
     return splited.map((content, i) => {
       return createVNode('span', { key: i }, { default: () => content })
     })
@@ -350,61 +430,68 @@ function render(this: Renderer, tokens: Token[], options: any, env: any) {
 
   const vNodeParents: VNode[] = []
 
-  return tokens.map((token, i) => {
-    processToken(token, env)
-    if (token.block) {
-      token.attrSet(DOM_ATTR_NAME.TOKEN_IDX, i.toString())
-    }
-
-    const { type } = token
-
-    let vnode: VNode | null = null
-    let parent: VNode | null = null
-
-    if (type === 'inline') {
-      vnode = this.render(token.children || [], options, env) as any
-    }
-    else if (rules[type]) {
-      const result = rules[type](tokens, i, options, env, this)
-      if (typeof result === 'string') {
-        vnode = createHtmlVNode(result)
+  return tokens
+    .map((token, i) => {
+      processToken(token, env)
+      if (token.block) {
+        token.attrSet(DOM_ATTR_NAME.TOKEN_IDX, i.toString())
       }
-      else if (result && result.node && result.parent) {
-        parent = result.parent
-        vnode = result.node
+
+      const { type } = token
+
+      let vnode: VNode | null = null
+      let parent: VNode | null = null
+
+      if (type === 'inline') {
+        vnode = this.render(token.children || [], options, env) as any
+      }
+      else if (rules[type]) {
+        const result = rules[type](tokens, i, options, env, this)
+        if (typeof result === 'string') {
+          vnode = createHtmlVNode(result)
+        }
+        else if (result && result.node && result.parent) {
+          parent = result.parent
+          vnode = result.node
+        }
+        else {
+          vnode = result
+        }
       }
       else {
-        vnode = result
+        vnode = this.renderToken(tokens, i, options) as any
       }
-    }
-    else {
-      vnode = this.renderToken(tokens, i, options) as any
-    }
 
-    let isChild = false
-    const parentNode = vNodeParents.length > 0 ? vNodeParents.at(-1) : null
-    if (vnode && parentNode) {
-      if (typeof parentNode.type === 'string' || parentNode.type === Fragment) {
-        const children = Array.isArray(parentNode.children) ? parentNode.children : []
-        parentNode.children = [...children, vnode]
+      let isChild = false
+      const parentNode = vNodeParents.length > 0 ? vNodeParents.at(-1) : null
+      if (vnode && parentNode) {
+        if (
+          typeof parentNode.type === 'string'
+          || parentNode.type === Fragment
+        ) {
+          const children = Array.isArray(parentNode.children)
+            ? parentNode.children
+            : []
+          parentNode.children = [...children, vnode]
+        }
+        isChild = true
       }
-      isChild = true
-    }
 
-    if (token.nesting === 1) {
-      if (parent) {
-        vNodeParents.push(parent)
+      if (token.nesting === 1) {
+        if (parent) {
+          vNodeParents.push(parent)
+        }
+        else if (vnode) {
+          vNodeParents.push(vnode)
+        }
       }
-      else if (vnode) {
-        vNodeParents.push(vnode)
-      }
-    }
 
-    if (token.nesting === -1) {
-      vNodeParents.pop()
-    }
-    return isChild ? null : vnode
-  }).filter(node => !!node) as any
+      if (token.nesting === -1) {
+        vNodeParents.pop()
+      }
+      return isChild ? null : vnode
+    })
+    .filter(node => !!node) as any
 }
 
 function render_(md: any) {

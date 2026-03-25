@@ -1,5 +1,7 @@
 // Message content types
-export type MessageContent = string | Array<TextContent | ImageContent | FunctionCallContent | ToolCallContent>
+export type MessageContent
+  = | string
+  | Array<TextContent | ImageContent | FunctionCallContent | ToolCallContent>
 
 export interface TextContent {
   type: 'text'
@@ -86,5 +88,5 @@ export interface TransformOptions {
 // Transform 函数类型
 export type MessageTransformer<T = any> = (
   messages: ChatMessage[],
-  options: TransformOptions
+  options: TransformOptions,
 ) => T

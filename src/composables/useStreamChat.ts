@@ -37,7 +37,10 @@ export function useStreamChat() {
     uploadedImages: ImageFile[],
     options: StreamChatOptions = {},
   ): Promise<{ message: ChatMessage, error?: Error }> {
-    if ((input.trim() === '' && uploadedImages.length === 0) || streaming.value) {
+    if (
+      (input.trim() === '' && uploadedImages.length === 0)
+      || streaming.value
+    ) {
       throw new Error('Invalid input or already streaming')
     }
 
@@ -85,12 +88,18 @@ export function useStreamChat() {
       const userMessage = createChatMessage('user', messageContent, {
         sentAt: Date.now(),
       })
-      const assistantMessage = ensureAssistantMessageStructure(createChatMessage('assistant', '', {
-        sentAt: Date.now(),
-        model: currentModel,
-      }))
+      const assistantMessage = ensureAssistantMessageStructure(
+        createChatMessage('assistant', '', {
+          sentAt: Date.now(),
+          model: currentModel,
+        }),
+      )
 
-      const updatedConversation = [...normalizedConversation, userMessage, assistantMessage]
+      const updatedConversation = [
+        ...normalizedConversation,
+        userMessage,
+        assistantMessage,
+      ]
 
       // Use AI SDK for streaming
       const messages = chatMessagesToModelMessages(
@@ -98,7 +107,11 @@ export function useStreamChat() {
       )
 
       try {
-        const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
+        const provider = getProviderFromPlatform(
+          platform.value,
+          apiKey.value,
+          serviceUrl.value,
+        )
         const languageModel = provider.getModel(currentModel)
 
         lastStartedAtMS.value = 0
@@ -143,10 +156,14 @@ export function useStreamChat() {
       }
       catch (error: any) {
         console.error('Stream completion failed:', error)
-        const errorMessage = createChatMessage('error', error?.message || 'Failed to get response from AI', {
-          sentAt: assistantMessage.metadata?.sentAt || Date.now(),
-          receivedAt: Date.now(),
-        })
+        const errorMessage = createChatMessage(
+          'error',
+          error?.message || 'Failed to get response from AI',
+          {
+            sentAt: assistantMessage.metadata?.sentAt || Date.now(),
+            receivedAt: Date.now(),
+          },
+        )
         return { message: errorMessage, error }
       }
     }

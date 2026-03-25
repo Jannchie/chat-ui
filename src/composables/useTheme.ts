@@ -9,7 +9,9 @@ export function useTheme() {
     let finalScheme: 'dark' | 'light'
 
     if (themeScheme === 'auto') {
-      const prefersDark = globalThis.matchMedia && globalThis.matchMedia('(prefers-color-scheme: dark)').matches
+      const prefersDark
+        = globalThis.matchMedia
+        && globalThis.matchMedia('(prefers-color-scheme: dark)').matches
       finalScheme = prefersDark ? 'dark' : 'light'
     }
     else {

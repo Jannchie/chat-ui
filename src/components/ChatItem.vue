@@ -7,7 +7,10 @@ const props = defineProps<{
 }>()
 const buttonRef = ref<HTMLElement | null>(null)
 const hover = useElementHover(buttonRef)
-const openedMenuChat = inject<Ref<ChatData | null>>('openedMenuChat', ref(null))
+const openedMenuChat = inject<Ref<ChatData | null>>(
+  'openedMenuChat',
+  ref(null),
+)
 function onActionClick(e: MouseEvent) {
   e.stopPropagation()
   e.preventDefault()
@@ -27,11 +30,7 @@ function onClick() {
 </script>
 
 <template>
-  <button
-    ref="buttonRef"
-    class="text-sm w-full relative"
-    @click="onClick"
-  >
+  <button ref="buttonRef" class="text-sm w-full relative" @click="onClick">
     <div
       :class="{
         'bg-blue-500/30 dark:text-blue-200 text-blue-500': active,
@@ -40,8 +39,10 @@ function onClick() {
       class="py-1 pl-2 pr-1 rounded-full flex gap-2 items-center"
     >
       <i class="i-tabler-message m-2 flex-shrink-0" />
-      <span class="text-left flex-grow text-nowrap text-ellipsis overflow-x-hidden">
-        {{ chatData.title ?? 'Untitled Chat' }}
+      <span
+        class="text-left flex-grow text-nowrap text-ellipsis overflow-x-hidden"
+      >
+        {{ chatData.title ?? "Untitled Chat" }}
       </span>
       <button
         v-if="hover || showMenu"
@@ -54,15 +55,9 @@ function onClick() {
         class="leading-0 p-2 rounded-full"
         @click="onActionClick"
       >
-        <i
-          v-if="hover || showMenu"
-          class="i-tabler-dots-vertical"
-        />
+        <i v-if="hover || showMenu" class="i-tabler-dots-vertical" />
       </button>
     </div>
-    <div
-      v-if="showMenu"
-      class="inset-0 fixed z-9"
-    />
+    <div v-if="showMenu" class="inset-0 fixed z-9" />
   </button>
 </template>

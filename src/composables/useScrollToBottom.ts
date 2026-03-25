@@ -1,6 +1,10 @@
 import { nextTick, onBeforeUnmount, ref } from 'vue'
 
-export function useScrollToBottom(containerRef: Ref<HTMLElement | null>, scrollThreshold = 50, enable: MaybeRef<boolean> = true) {
+export function useScrollToBottom(
+  containerRef: Ref<HTMLElement | null>,
+  scrollThreshold = 50,
+  enable: MaybeRef<boolean> = true,
+) {
   // 滚动容器的引用
 
   // 是否自动吸附到底部

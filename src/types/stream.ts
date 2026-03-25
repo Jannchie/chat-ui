@@ -1,5 +1,9 @@
 import type { ChatMessage } from './message'
-import type { ChatCompletionChunk, ResponseStreamEvent, ResponseUsage } from './openai-compat'
+import type {
+  ChatCompletionChunk,
+  ResponseStreamEvent,
+  ResponseUsage,
+} from './openai-compat'
 
 // Re-export event types for convenience
 export type {

@@ -14,11 +14,13 @@ const needsCollapse = ref<boolean>(true)
 onMounted(() => {
   if (contentRef.value) {
     // Check if content height exceeds 3 lines
-    const lineHeight = Number.parseInt(getComputedStyle(contentRef.value).lineHeight)
+    const lineHeight = Number.parseInt(
+      getComputedStyle(contentRef.value).lineHeight,
+    )
     const contentHeight = contentRef.value.scrollHeight
 
     // If content height is less than or equal to 3 lines, no need to collapse
-    needsCollapse.value = contentHeight > (lineHeight * 3)
+    needsCollapse.value = contentHeight > lineHeight * 3
 
     // If no need to collapse, set collapsed to false by default
     if (!needsCollapse.value) {
@@ -29,7 +31,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="error-message p-3 border border-red-200 rounded-md bg-red-50 dark:border-red-700 dark:bg-red-900">
+  <div
+    class="error-message p-3 border border-red-200 rounded-md bg-red-50 dark:border-red-700 dark:bg-red-900"
+  >
     <div class="flex items-start">
       <!-- Content container -->
       <div class="ml-3 flex-grow">
@@ -58,7 +62,9 @@ onMounted(() => {
         class="ml-2 flex-shrink-0"
         @click="collapsed = !collapsed"
       >
-        <button class="text-red-500 rounded-full flex h-8 w-8 items-center justify-center hover:bg-red-100 dark:hover:bg-red-800">
+        <button
+          class="text-red-500 rounded-full flex h-8 w-8 items-center justify-center hover:bg-red-100 dark:hover:bg-red-800"
+        >
           <i
             :class="collapsed ? 'i-tabler-chevron-down' : 'i-tabler-chevron-up'"
           />

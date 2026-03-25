@@ -6,7 +6,10 @@ import { useRequestCache } from './useRequestCache'
 export function useChatSummary() {
   const { cacheSuccessfulRequest } = useRequestCache()
 
-  async function generateSummary(text: string, lockedModel?: string): Promise<string | null> {
+  async function generateSummary(
+    text: string,
+    lockedModel?: string,
+  ): Promise<string | null> {
     const modelToUse = lockedModel || model.value
 
     if (!modelToUse || !apiKey.value || !platform.value) {
@@ -14,7 +17,11 @@ export function useChatSummary() {
     }
 
     try {
-      const provider = getProviderFromPlatform(platform.value, apiKey.value, serviceUrl.value)
+      const provider = getProviderFromPlatform(
+        platform.value,
+        apiKey.value,
+        serviceUrl.value,
+      )
       const languageModel = provider.getModel(modelToUse)
 
       const result = await streamText({
@@ -22,7 +29,8 @@ export function useChatSummary() {
         messages: [
           {
             role: 'system',
-            content: 'Please summarize the user\'s text and return the title of the text without adding any additional information. The title MUST in less than 4 words. Use the text language to summarize the text. Do not add any punctuation. Add "📝" emoji prefix to the summary.',
+            content:
+              'Please summarize the user\'s text and return the title of the text without adding any additional information. The title MUST in less than 4 words. Use the text language to summarize the text. Do not add any punctuation. Add "📝" emoji prefix to the summary.',
           },
           {
             role: 'user',

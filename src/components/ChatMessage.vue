@@ -21,7 +21,9 @@ const message = computed(() => props.message)
 // 为底部 metadata 容器添加自动动画指令
 
 // For user messages, convert to string for UserChatMessage component
-const contentAsString = computed(() => messageContentToString(message.value.content))
+const contentAsString = computed(() =>
+  messageContentToString(message.value.content),
+)
 
 // For assistant messages, use original content structure
 const assistantContent = computed(() => message.value.content)
@@ -29,9 +31,11 @@ const showCopyTooltip = ref(false)
 let copyTooltipTimeout: ReturnType<typeof globalThis.setTimeout> | undefined
 
 const clipboardSupported = computed(() => {
-  return typeof navigator !== 'undefined'
+  return (
+    typeof navigator !== 'undefined'
     && Boolean(navigator.clipboard)
     && typeof navigator.clipboard.writeText === 'function'
+  )
 })
 
 const versionCount = computed(() => {
@@ -176,33 +180,42 @@ function confirmEdit(): void {
   cancelEditing()
 }
 
-watch(() => props.message.content, () => {
-  syncEditContent()
-})
+watch(
+  () => props.message.content,
+  () => {
+    syncEditContent()
+  },
+)
 
-watch(() => props.message.id, () => {
-  cancelEditing()
-})
-
-watch(() => props.allowUserEdit, (value) => {
-  if (value === false) {
+watch(
+  () => props.message.id,
+  () => {
     cancelEditing()
-  }
-})
+  },
+)
+
+watch(
+  () => props.allowUserEdit,
+  (value) => {
+    if (value === false) {
+      cancelEditing()
+    }
+  },
+)
 </script>
 
 <template>
   <div
     class="m-auto px-3 py-4 flex-grow-1 w-full md:px-4 md:py-6 md:max-w-712px"
     :class="{
-      'bg-neutral-100 dark:bg-neutral-800 rounded-t-xl': message.role === 'user',
-      'bg-neutral-100 dark:bg-neutral-900 rounded-b-xl mb-2': message.role === 'assistant',
+      'bg-neutral-100 dark:bg-neutral-800 rounded-t-xl':
+        message.role === 'user',
+      'bg-neutral-100 dark:bg-neutral-900 rounded-b-xl mb-2':
+        message.role === 'assistant',
     }"
   >
     <!-- 移动端上下结构布局（图标+文字在上，内容在下） -->
-    <div
-      class="block md:hidden"
-    >
+    <div class="block md:hidden">
       <div class="mb-3 flex items-center">
         <div class="leading-0 mr-1 flex-shrink-0">
           <i
@@ -212,14 +225,20 @@ watch(() => props.allowUserEdit, (value) => {
           <i
             v-else
             class="text-neutral-4 i-fluent-bot-48-filled text-xs"
-            :class="{ 'animate-pulse': props.loading && props.message.role === 'assistant' }"
+            :class="{
+              'animate-pulse':
+                props.loading && props.message.role === 'assistant',
+            }"
           />
         </div>
         <div class="text-neutral-4 text-xs font-medium">
           <span v-if="props.message.role === 'user'">User</span>
           <span
             v-else
-            :class="{ 'animate-pulse': props.loading && props.message.role === 'assistant' }"
+            :class="{
+              'animate-pulse':
+                props.loading && props.message.role === 'assistant',
+            }"
           >AI Assistant</span>
         </div>
       </div>
@@ -285,7 +304,10 @@ watch(() => props.allowUserEdit, (value) => {
       <!-- 移动端底部元数据 - 显示执行完毕后的性能指标 -->
       <div class="mt-3 flex gap-2 min-h-6 items-center">
         <Transition name="fade">
-          <MessageMetadataBottom v-if="props.message.role === 'assistant' && !loading" :message="message" />
+          <MessageMetadataBottom
+            v-if="props.message.role === 'assistant' && !loading"
+            :message="message"
+          />
         </Transition>
         <div
           v-if="props.message.role === 'assistant'"
@@ -298,7 +320,9 @@ watch(() => props.allowUserEdit, (value) => {
             <button
               type="button"
               class="rounded-md flex h-6 w-6 transition-colors items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
-              :class="{ 'opacity-50 cursor-not-allowed': activeVersionIndex === 0 }"
+              :class="{
+                'opacity-50 cursor-not-allowed': activeVersionIndex === 0,
+              }"
               :disabled="activeVersionIndex === 0"
               aria-label="Previous version"
               title="Previous version"
@@ -306,11 +330,16 @@ watch(() => props.allowUserEdit, (value) => {
             >
               <i class="i-tabler-chevron-left h-4 w-4" />
             </button>
-            <span class="text-xs font-mono px-1 text-center">{{ versionLabel }}</span>
+            <span class="text-xs font-mono px-1 text-center">{{
+              versionLabel
+            }}</span>
             <button
               type="button"
               class="rounded-md flex h-6 w-6 transition-colors items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
-              :class="{ 'opacity-50 cursor-not-allowed': activeVersionIndex >= versionCount - 1 }"
+              :class="{
+                'opacity-50 cursor-not-allowed':
+                  activeVersionIndex >= versionCount - 1,
+              }"
               :disabled="activeVersionIndex >= versionCount - 1"
               aria-label="Next version"
               title="Next version"
@@ -350,9 +379,7 @@ watch(() => props.allowUserEdit, (value) => {
       </div>
     </div>
     <!-- 桌面端保持原有的左右结构 -->
-    <div
-      class="hidden md:flex md:gap-4"
-    >
+    <div class="hidden md:flex md:gap-4">
       <div class="flex-shrink-0 h-8 w-8 top-4 sticky z-10">
         <i
           v-if="props.message.role === 'user'"
@@ -363,10 +390,7 @@ watch(() => props.allowUserEdit, (value) => {
           class="i-fluent-bot-48-filled h-full w-full"
           :class="{ 'animate-pulse': loading && message.role === 'assistant' }"
         />
-        <i
-          v-else
-          class="i-fluent-error-circle-24-filled h-full w-full"
-        />
+        <i v-else class="i-fluent-error-circle-24-filled h-full w-full" />
       </div>
 
       <div class="flex-grow overflow-hidden">
@@ -436,7 +460,10 @@ watch(() => props.allowUserEdit, (value) => {
         <!-- 桌面端底部元数据 - 显示执行完毕后的性能指标 -->
         <div class="mt-3 flex gap-2 min-h-6 items-center">
           <Transition name="fade">
-            <MessageMetadataBottom v-if="message.role === 'assistant' && !loading" :message="message" />
+            <MessageMetadataBottom
+              v-if="message.role === 'assistant' && !loading"
+              :message="message"
+            />
           </Transition>
           <div
             v-if="message.role === 'assistant'"
@@ -449,7 +476,9 @@ watch(() => props.allowUserEdit, (value) => {
               <button
                 type="button"
                 class="rounded-md flex h-6 w-6 transition-colors items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
-                :class="{ 'opacity-50 cursor-not-allowed': activeVersionIndex === 0 }"
+                :class="{
+                  'opacity-50 cursor-not-allowed': activeVersionIndex === 0,
+                }"
                 :disabled="activeVersionIndex === 0"
                 aria-label="Previous version"
                 title="Previous version"
@@ -457,11 +486,16 @@ watch(() => props.allowUserEdit, (value) => {
               >
                 <i class="i-tabler-chevron-left h-4 w-4" />
               </button>
-              <span class="text-xs font-mono px-1 text-center">{{ versionLabel }}</span>
+              <span class="text-xs font-mono px-1 text-center">{{
+                versionLabel
+              }}</span>
               <button
                 type="button"
                 class="rounded-md flex h-6 w-6 transition-colors items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
-                :class="{ 'opacity-50 cursor-not-allowed': activeVersionIndex >= versionCount - 1 }"
+                :class="{
+                  'opacity-50 cursor-not-allowed':
+                    activeVersionIndex >= versionCount - 1,
+                }"
                 :disabled="activeVersionIndex >= versionCount - 1"
                 aria-label="Next version"
                 title="Next version"
