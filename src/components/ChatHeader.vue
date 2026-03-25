@@ -1,16 +1,88 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { apiKey, customServiceUrl, model, platform } from '../shared'
+import { computed, onBeforeUnmount, ref, toRaw } from 'vue'
+import {
+  apiKey,
+  customServiceUrl,
+  model,
+  platform,
+  useCurrentChat,
+} from '../shared'
 import { getPlatformIcon, getPlatformName } from '../utils'
 import CacheHistoryModal from './CacheHistoryModal.vue'
 import SelectModelModal from './SelectModelModal.vue'
 import SettingsModal from './SettingsModal.vue'
+
+type CopyStatus = 'idle' | 'success' | 'error'
 
 const showSelectModelModal = ref(false)
 const showMobileMenu = ref(false)
 const showSelectPresetModal = ref(false)
 const showCacheHistoryModal = ref(false)
 const showSettingsModal = ref(false)
+const currentChat = useCurrentChat()
+const copyStatus = ref<CopyStatus>('idle')
+const copyTooltipTimeout = ref<ReturnType<typeof globalThis.setTimeout>>()
+
+const clipboardSupported = computed(() => {
+  return (
+    typeof navigator !== 'undefined'
+    && Boolean(navigator.clipboard)
+    && typeof navigator.clipboard.writeText === 'function'
+  )
+})
+
+const canCopyChatJson = computed(() => {
+  return clipboardSupported.value && Boolean(currentChat.value)
+})
+
+const copyButtonTitle = computed(() => {
+  if (copyStatus.value === 'success') {
+    return 'Copied'
+  }
+  if (copyStatus.value === 'error') {
+    return 'Copy failed'
+  }
+  return 'Copy Chat JSON'
+})
+
+function clearCopyTooltipTimeout() {
+  if (copyTooltipTimeout.value !== undefined) {
+    globalThis.clearTimeout(copyTooltipTimeout.value)
+    copyTooltipTimeout.value = undefined
+  }
+}
+
+function setCopyStatus(status: CopyStatus) {
+  copyStatus.value = status
+  clearCopyTooltipTimeout()
+
+  if (status !== 'idle') {
+    copyTooltipTimeout.value = globalThis.setTimeout(() => {
+      copyStatus.value = 'idle'
+      copyTooltipTimeout.value = undefined
+    }, 2000)
+  }
+}
+
+async function copyChatJson() {
+  if (!canCopyChatJson.value || !currentChat.value) {
+    return
+  }
+
+  try {
+    const rawChat = toRaw(currentChat.value)
+    await navigator.clipboard.writeText(JSON.stringify(rawChat, null, 2))
+    setCopyStatus('success')
+  }
+  catch (error) {
+    console.error(`Failed to copy chat JSON: ${error}`)
+    setCopyStatus('error')
+  }
+}
+
+onBeforeUnmount(() => {
+  clearCopyTooltipTimeout()
+})
 </script>
 
 <template>
@@ -96,6 +168,28 @@ const showSettingsModal = ref(false)
       <!-- Cache History Button -->
       <div class="flex items-center">
         <button
+          v-if="currentChat"
+          :class="{
+            'text-green-500': copyStatus === 'success',
+            'text-red-500': copyStatus === 'error',
+            'opacity-50 cursor-not-allowed': !canCopyChatJson,
+          }"
+          :disabled="!canCopyChatJson"
+          :title="copyButtonTitle"
+          class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-700"
+          @click="copyChatJson"
+        >
+          <i
+            :class="
+              copyStatus === 'success'
+                ? 'i-tabler-check'
+                : copyStatus === 'error'
+                  ? 'i-tabler-x'
+                  : 'i-tabler-code'
+            "
+          />
+        </button>
+        <button
           class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-700"
           title="Cache History"
           @click="showCacheHistoryModal = true"
@@ -113,12 +207,36 @@ const showSettingsModal = ref(false)
     </div>
 
     <!-- Mobile view - menu toggle -->
-    <button
-      class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center hover:bg-neutral-100 lg:hidden"
-      @click="showMobileMenu = !showMobileMenu"
-    >
-      <i class="i-tabler-settings text-neutral-400" />
-    </button>
+    <div class="flex items-center gap-1 lg:hidden">
+      <button
+        v-if="currentChat"
+        :class="{
+          'text-green-500': copyStatus === 'success',
+          'text-red-500': copyStatus === 'error',
+          'opacity-50 cursor-not-allowed': !canCopyChatJson,
+        }"
+        :disabled="!canCopyChatJson"
+        :title="copyButtonTitle"
+        class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center hover:bg-neutral-100"
+        @click="copyChatJson"
+      >
+        <i
+          :class="
+            copyStatus === 'success'
+              ? 'i-tabler-check'
+              : copyStatus === 'error'
+                ? 'i-tabler-x'
+                : 'i-tabler-code'
+          "
+        />
+      </button>
+      <button
+        class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center hover:bg-neutral-100"
+        @click="showMobileMenu = !showMobileMenu"
+      >
+        <i class="i-tabler-settings text-neutral-400" />
+      </button>
+    </div>
 
     <!-- Mobile menu drawer -->
     <div
