@@ -8,6 +8,7 @@ import type {
   ChatCompletionMessageParam,
   ResponseInput,
 } from '../types/openai-compat'
+import { isChatMessage } from '../lib/message-converter'
 import { generateId } from './index'
 
 /**
@@ -57,7 +58,9 @@ export function isValidMessageContent(content: any): content is MessageContent {
  */
 function preprocessMessages(messages: ChatMessage[]): ChatMessage[] {
   // 过滤错误消息
-  return messages.filter(msg => msg.role !== 'error')
+  return messages.filter((msg): msg is ChatMessage => {
+    return isChatMessage(msg) && msg.role !== 'error'
+  })
 }
 
 // Helper to convert MessageContent to ChatCompletionMessageParam content

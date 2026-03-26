@@ -1,6 +1,11 @@
 import type { ChatMessage, MessageContent } from '../types/message'
 import { describe, expect, it, vi } from 'vitest'
 import {
+  chatMessagesToModelMessages,
+  isChatMessage,
+  normalizeChatMessages,
+} from '../lib/message-converter'
+import {
   createMessagesFromConversation,
   createUIMessage,
   isValidMessageContent,
@@ -14,6 +19,49 @@ import {
 import { createUnifiedStreamParser } from '../utils/streamParser'
 
 describe('messagetransform', () => {
+  describe('message validation', () => {
+    it('should detect invalid chat message entries', () => {
+      expect(isChatMessage(undefined)).toBe(false)
+      expect(isChatMessage({ role: 'user' })).toBe(false)
+      expect(
+        isChatMessage({
+          id: 'msg-1',
+          role: 'user',
+          content: 'Hello',
+          timestamp: Date.now(),
+        }),
+      ).toBe(true)
+    })
+
+    it('should drop invalid conversation items during normalization', () => {
+      const messages = [
+        createUIMessage('user', 'Hello'),
+        undefined,
+        createUIMessage('assistant', 'Hi'),
+      ] as unknown as ChatMessage[]
+
+      const normalized = normalizeChatMessages(messages)
+
+      expect(normalized).toHaveLength(2)
+      expect(normalized[0].role).toBe('user')
+      expect(normalized[1].role).toBe('assistant')
+    })
+
+    it('should ignore invalid items when converting to model messages', () => {
+      const messages = [
+        createUIMessage('user', 'Hello'),
+        undefined,
+        createUIMessage('assistant', 'Hi'),
+      ] as unknown as ChatMessage[]
+
+      const converted = chatMessagesToModelMessages(messages)
+
+      expect(converted).toHaveLength(2)
+      expect(converted[0].role).toBe('user')
+      expect(converted[1].role).toBe('assistant')
+    })
+  })
+
   describe('createuimessage', () => {
     it('should create a basic ui message with required fields', () => {
       const message = createUIMessage('user', 'Hello world')

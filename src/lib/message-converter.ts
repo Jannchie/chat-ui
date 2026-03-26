@@ -7,13 +7,31 @@ import type {
 } from '../types/message'
 import { generateId } from '../utils'
 
+const CHAT_MESSAGE_ROLES = new Set(['user', 'assistant', 'system', 'error'])
+
+export function isChatMessage(value: unknown): value is ChatMessage {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const candidate = value as Partial<ChatMessage>
+
+  return (
+    typeof candidate.id === 'string'
+    && typeof candidate.timestamp === 'number'
+    && typeof candidate.role === 'string'
+    && CHAT_MESSAGE_ROLES.has(candidate.role)
+    && 'content' in candidate
+  )
+}
+
 /**
  * 将 ChatMessage 数组转换为 AI SDK 的 ModelMessage 数组
  */
 export function chatMessagesToModelMessages(
   chatMessages: ChatMessage[],
 ): ModelMessage[] {
-  return chatMessages
+  return normalizeChatMessages(chatMessages)
     .filter(msg => msg.role !== 'error') // 过滤错误消息
     .map((chatMessage): ModelMessage => {
       const role = chatMessage.role as 'user' | 'assistant' | 'system'
@@ -298,5 +316,15 @@ export function setAssistantMessageActiveVersion(
 }
 
 export function normalizeChatMessages(messages: ChatMessage[]): ChatMessage[] {
-  return messages.map(message => ensureAssistantMessageStructure(message))
+  return messages
+    .filter((message): message is ChatMessage => {
+      const valid = isChatMessage(message)
+
+      if (!valid) {
+        console.warn('Dropping invalid chat message from conversation.', message)
+      }
+
+      return valid
+    })
+    .map(message => ensureAssistantMessageStructure(message))
 }

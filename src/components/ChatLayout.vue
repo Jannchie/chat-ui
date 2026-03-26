@@ -21,6 +21,7 @@ import {
   chatMessagesToModelMessages,
   createChatMessage,
   ensureAssistantMessageStructure,
+  isChatMessage,
   mergeChatMessageMetadata,
   normalizeChatMessages,
   setAssistantMessageActiveVersion,
@@ -154,9 +155,14 @@ watchEffect(() => {
   }
 
   const needsNormalization = chat.conversation.some((message) => {
+    if (!isChatMessage(message)) {
+      return true
+    }
+
     if (message.role !== 'assistant') {
       return false
     }
+
     return (
       !Array.isArray(message.versions)
       || message.versions.length === 0

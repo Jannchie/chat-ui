@@ -8,6 +8,7 @@ import {
   useCurrentChat,
 } from '../shared'
 import { getPlatformIcon, getPlatformName } from '../utils'
+import { serializeChatForExport } from '../utils/chatExport'
 import CacheHistoryModal from './CacheHistoryModal.vue'
 import SelectModelModal from './SelectModelModal.vue'
 import SettingsModal from './SettingsModal.vue'
@@ -45,6 +46,16 @@ const copyButtonTitle = computed(() => {
   return 'Copy Chat JSON'
 })
 
+const copyButtonIcon = computed(() => {
+  if (copyStatus.value === 'success') {
+    return 'i-tabler-check'
+  }
+  if (copyStatus.value === 'error') {
+    return 'i-tabler-x'
+  }
+  return 'i-tabler-code'
+})
+
 function clearCopyTooltipTimeout() {
   if (copyTooltipTimeout.value !== undefined) {
     globalThis.clearTimeout(copyTooltipTimeout.value)
@@ -71,7 +82,8 @@ async function copyChatJson() {
 
   try {
     const rawChat = toRaw(currentChat.value)
-    await navigator.clipboard.writeText(JSON.stringify(rawChat, null, 2))
+    const exportedChat = serializeChatForExport(rawChat)
+    await navigator.clipboard.writeText(JSON.stringify(exportedChat, null, 2))
     setCopyStatus('success')
   }
   catch (error) {
@@ -96,17 +108,35 @@ onBeforeUnmount(() => {
     >
       <i class="i-tabler-plus text-neutral-400" />
     </button>
-    <!-- Model selection - visible on all devices -->
-    <button
-      class="text-sm font-medium px-3 py-2 rounded-full flex gap-2 cursor-pointer transition-colors items-center lg:px-4 lg:py-2.5 hover:bg-neutral-200 dark:hover:bg-neutral-800"
-      @click="showSelectPresetModal = true"
-    >
-      <div class="text-lg leading-0">
-        <component :is="() => getPlatformIcon(platform)" />
-      </div>
-      {{ getPlatformName(platform) }}
-      <i class="i-tabler-chevron-down text-xs ml-1 opacity-60" />
-    </button>
+    <div class="flex gap-2 min-w-0 items-center">
+      <!-- Model selection - visible on all devices -->
+      <button
+        class="text-sm font-medium px-3 py-2 rounded-full flex gap-2 cursor-pointer transition-colors items-center lg:px-4 lg:py-2.5 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+        @click="showSelectPresetModal = true"
+      >
+        <div class="text-lg leading-0">
+          <component :is="() => getPlatformIcon(platform)" />
+        </div>
+        {{ getPlatformName(platform) }}
+        <i class="i-tabler-chevron-down text-xs ml-1 opacity-60" />
+      </button>
+
+      <button
+        v-if="currentChat"
+        :class="{
+          'text-green-500': copyStatus === 'success',
+          'text-red-500': copyStatus === 'error',
+          'opacity-50 cursor-not-allowed': !canCopyChatJson,
+        }"
+        :disabled="!canCopyChatJson"
+        :title="copyButtonTitle"
+        class="text-sm font-medium px-3 py-2 rounded-full gap-2 hidden transition-colors items-center hover:bg-neutral-200 lg:flex dark:hover:bg-neutral-800"
+        @click="copyChatJson"
+      >
+        <i :class="copyButtonIcon" class="text-base" />
+        <span>Copy JSON</span>
+      </button>
+    </div>
 
     <!-- Keep original SelectPresetModal -->
     <SelectPresetModal v-model="showSelectPresetModal" />
@@ -165,30 +195,8 @@ onBeforeUnmount(() => {
         >
       </div>
 
-      <!-- Cache History Button -->
+      <!-- Header actions -->
       <div class="flex items-center">
-        <button
-          v-if="currentChat"
-          :class="{
-            'text-green-500': copyStatus === 'success',
-            'text-red-500': copyStatus === 'error',
-            'opacity-50 cursor-not-allowed': !canCopyChatJson,
-          }"
-          :disabled="!canCopyChatJson"
-          :title="copyButtonTitle"
-          class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-700"
-          @click="copyChatJson"
-        >
-          <i
-            :class="
-              copyStatus === 'success'
-                ? 'i-tabler-check'
-                : copyStatus === 'error'
-                  ? 'i-tabler-x'
-                  : 'i-tabler-code'
-            "
-          />
-        </button>
         <button
           class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-700"
           title="Cache History"
@@ -207,29 +215,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Mobile view - menu toggle -->
-    <div class="flex items-center gap-1 lg:hidden">
-      <button
-        v-if="currentChat"
-        :class="{
-          'text-green-500': copyStatus === 'success',
-          'text-red-500': copyStatus === 'error',
-          'opacity-50 cursor-not-allowed': !canCopyChatJson,
-        }"
-        :disabled="!canCopyChatJson"
-        :title="copyButtonTitle"
-        class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center hover:bg-neutral-100"
-        @click="copyChatJson"
-      >
-        <i
-          :class="
-            copyStatus === 'success'
-              ? 'i-tabler-check'
-              : copyStatus === 'error'
-                ? 'i-tabler-x'
-                : 'i-tabler-code'
-          "
-        />
-      </button>
+    <div class="flex gap-1 items-center lg:hidden">
       <button
         class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center hover:bg-neutral-100"
         @click="showMobileMenu = !showMobileMenu"
@@ -315,6 +301,25 @@ onBeforeUnmount(() => {
             >
               <i class="i-tabler-history text-neutral-400" />
               Cache History
+            </button>
+          </div>
+
+          <div v-if="currentChat" class="flex justify-center">
+            <button
+              :class="{
+                'text-green-500': copyStatus === 'success',
+                'text-red-500': copyStatus === 'error',
+                'opacity-50 cursor-not-allowed': !canCopyChatJson,
+              }"
+              :disabled="!canCopyChatJson"
+              class="hover:bg-neutral-7 text-sm font-medium px-4 py-2 rounded-lg flex gap-2 transition-colors items-center justify-center"
+              @click="
+                copyChatJson();
+                showMobileMenu = false;
+              "
+            >
+              <i :class="copyButtonIcon" />
+              Copy Chat JSON
             </button>
           </div>
         </div>
