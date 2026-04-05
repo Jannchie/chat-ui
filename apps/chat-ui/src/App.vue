@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RokuProvider } from '@roku-ui/vue'
-import { loadShiki } from './packages/streaming-markdown-vue'
+import { loadShiki } from 'streaming-markdown-vue'
 
 loadShiki()
 </script>

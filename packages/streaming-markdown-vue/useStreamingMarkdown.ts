@@ -5,7 +5,7 @@ import {
   debouncedWatch,
   refDebounced,
 } from '@vueuse/core'
-import { splitContent } from '../streaming-markdown-core'
+import { splitContent } from 'streaming-markdown-core'
 import { addFadeInToVNodes } from './fadeIn'
 import {
   isKatexLoaded,

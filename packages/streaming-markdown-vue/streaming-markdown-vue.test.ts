@@ -1,6 +1,6 @@
 import { h } from 'vue'
 import { describe, expect, it } from 'vitest'
-import { addFadeInToVNodes } from '../../packages/streaming-markdown-vue'
+import { addFadeInToVNodes } from './index'
 
 describe('streaming-markdown-vue', () => {
   it('adds fade-in classes to Vue VNodes through the adapter', () => {

@@ -1,5 +1,5 @@
 import type { VNode } from 'vue'
-import { addFadeInClassToTreeNodes } from '../streaming-markdown-core'
+import { addFadeInClassToTreeNodes } from 'streaming-markdown-core'
 
 export function addFadeInToVNodes(
   childrenRaw: VNode[],

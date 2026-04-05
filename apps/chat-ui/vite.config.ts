@@ -1,10 +1,14 @@
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import { fileURLToPath } from 'node:url'
 import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+
+const componentsDtsPath = fileURLToPath(new URL('./src/components.d.ts', import.meta.url))
+const autoImportDtsPath = fileURLToPath(new URL('./src/auto-import.d.ts', import.meta.url))
 
 function manualChunks(id: string) {
   if (id.includes('node_modules/vue/') || id.includes('node_modules/vue-router/')) {
@@ -26,12 +30,12 @@ export default defineConfig({
     UnoCSS(),
     Components({
       dirs: ['./src/components', './src/views'],
-      dts: './src/components.d.ts',
+      dts: componentsDtsPath,
     }),
     AutoImport({
       imports: ['vue', '@vueuse/core', 'vue-router'],
       dirs: ['./src/composables', './src/locale'],
-      dts: './src/auto-import.d.ts',
+      dts: autoImportDtsPath,
     }),
     VitePWA({
       registerType: 'autoUpdate',

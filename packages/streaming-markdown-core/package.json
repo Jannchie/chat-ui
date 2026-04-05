@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
+  "scripts": {
+    "test": "vitest run ./streaming-markdown-core.test.ts"
+  },
   "exports": {
     ".": "./index.ts"
   },
@@ -11,5 +14,9 @@
     "index.ts",
     "streamingText.ts",
     "README.md"
-  ]
+  ],
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.1"
+  }
 }

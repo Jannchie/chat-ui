@@ -5,7 +5,7 @@ import {
   createReasoningMarkdownVNodes,
   createStreamingMarkdownVNodes,
   createVNodeRendererComponent,
-} from '../packages/streaming-markdown-vue'
+} from 'streaming-markdown-vue'
 
 const props = withDefaults(
   defineProps<{
