@@ -1,14 +1,14 @@
+import { fileURLToPath } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
-import { fileURLToPath } from 'node:url'
 import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const componentsDtsPath = fileURLToPath(new URL('./src/components.d.ts', import.meta.url))
-const autoImportDtsPath = fileURLToPath(new URL('./src/auto-import.d.ts', import.meta.url))
+const componentsDtsPath = fileURLToPath(new URL('src/components.d.ts', import.meta.url))
+const autoImportDtsPath = fileURLToPath(new URL('src/auto-import.d.ts', import.meta.url))
 
 function manualChunks(id: string) {
   if (id.includes('node_modules/vue/') || id.includes('node_modules/vue-router/')) {
@@ -87,7 +87,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
   },
   optimizeDeps: {
-    include: ['vue', 'vue-router', '@vueuse/core'],
-    exclude: ['shiki'],
+    include: ['vue', 'vue-router', '@vueuse/core', 'shiki'],
   },
 })
