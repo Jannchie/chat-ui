@@ -17,7 +17,7 @@
     "@ai-sdk/openai": "^3.0.50",
     "@ai-sdk/openai-compatible": "^2.0.38",
     "@ai-sdk/vue": "^3.0.146",
-    "@preferred-markdown-stream/vue": "0.1.9",
+    "@preferred-markdown-stream/vue": "0.2.1",
     "@roku-ui/preset": "^0.31.0",
     "@roku-ui/vue": "^0.31.0",
     "@vueuse/core": "^14.2.1",

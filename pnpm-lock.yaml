@@ -21,8 +21,8 @@ importers:
         specifier: ^3.0.146
         version: 3.0.146(vue@3.5.32(typescript@6.0.2))(zod@4.3.6)
       '@preferred-markdown-stream/vue':
-        specifier: 0.1.9
-        version: 0.1.9(vue@3.5.32(typescript@6.0.2))
+        specifier: 0.2.1
+        version: 0.2.1(vue@3.5.32(typescript@6.0.2))
       '@roku-ui/preset':
         specifier: ^0.31.0
         version: 0.31.0
@@ -1454,11 +1454,11 @@ packages:
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
 
-  '@preferred-markdown-stream/core@0.1.9':
-    resolution: {integrity: sha512-Nxj7eWAAsr7A1TNirhAXU4c0lxlNLUmyIEqKVR7HZ9Oz7hqxlICfUfLbU0yH7aCGrp/eMfmRDzuMhWj0Y1axkg==}
+  '@preferred-markdown-stream/core@0.2.1':
+    resolution: {integrity: sha512-WTiz5mh1UJyaT6m4XahgHgWQIl3moB1p5Yg625m7ciKHzyo/X/9YCCkg77YmQBgpUMbWtzNNh2LrZ/2tUiqegw==}
 
-  '@preferred-markdown-stream/vue@0.1.9':
-    resolution: {integrity: sha512-DRtpP/XPNE5A88AaXwk1u5L23w41K/0Skh3YkHJoOC2GOdWMIbLpR6cbCq3UY+E5hPjGIygMfFQHrJkQPlp09A==}
+  '@preferred-markdown-stream/vue@0.2.1':
+    resolution: {integrity: sha512-U6HcQDaZxRMOUNiJTm1i5ddWWrPUDQcp0INtzdIE7KWRI3/aT5IEG5oeMlFKcO6eine1lfouDBdPn7hFHYYSdw==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -5876,11 +5876,11 @@ snapshots:
 
   '@polka/url@1.0.0-next.29': {}
 
-  '@preferred-markdown-stream/core@0.1.9': {}
+  '@preferred-markdown-stream/core@0.2.1': {}
 
-  '@preferred-markdown-stream/vue@0.1.9(vue@3.5.32(typescript@6.0.2))':
+  '@preferred-markdown-stream/vue@0.2.1(vue@3.5.32(typescript@6.0.2))':
     dependencies:
-      '@preferred-markdown-stream/core': 0.1.9
+      '@preferred-markdown-stream/core': 0.2.1
       '@shikijs/markdown-it': 4.0.2
       '@vueuse/core': 14.2.1(vue@3.5.32(typescript@6.0.2))
       katex: 0.16.45
