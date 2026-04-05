@@ -1,9 +1,15 @@
-import type { VNode } from 'vue'
-
 const SENTENCE_SPLIT_REGEXP
   = /(?<=[。？！；、，\n])|(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=[.?!`])/g
 const SENTENCE_END_REGEXP = /[.?!。？！；，、`\n]$/
 const ORDERED_LIST_PREFIX_REGEXP = /^\d+\./
+
+export interface StreamingTextNode {
+  children?: string | StreamingTextNode[] | unknown
+  props?: {
+    class?: string
+    [key: string]: unknown
+  } | null
+}
 
 /**
  * Smart content splitting to avoid displaying incomplete sentences
@@ -27,23 +33,24 @@ export function splitContent(msg: string): string {
 }
 
 /**
- * Add fade-in animation class to text nodes in VNode tree
- * This is the core function that enables streaming text animation
+ * Add a fade-in class to string-backed nodes in a generic tree structure.
  */
-export function addFadeInToVNodes(
-  childrenRaw: VNode[],
+export function addFadeInClassToTreeNodes<T extends StreamingTextNode>(
+  childrenRaw: T[],
   loading: boolean,
   fadeInClass = 'fade-in',
-): VNode[] {
+): T[] {
   // eslint-disable-next-line unicorn/no-magic-array-flat-depth
-  const children = childrenRaw.flat(20)
+  const children = childrenRaw.flat(20) as T[]
   for (const child of children) {
     if (typeof child.children === 'string') {
       child.props = {
         ...child.props,
       }
       if (loading) {
-        const existingClass = child.props.class || ''
+        const existingClass = typeof child.props.class === 'string'
+          ? child.props.class
+          : ''
         child.props.class = `${existingClass} ${fadeInClass}`.trim()
       }
     }
@@ -52,7 +59,7 @@ export function addFadeInToVNodes(
       && Array.isArray(child.children)
       && child.children.length > 0
     ) {
-      addFadeInToVNodes(child.children as VNode[], loading, fadeInClass)
+      addFadeInClassToTreeNodes(child.children as T[], loading, fadeInClass)
     }
   }
   return children

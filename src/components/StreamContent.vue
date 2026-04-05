@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import {
-  isKatexLoaded,
-  isShikiLoaded,
-  loadKatex,
-  loadShiki,
-  md,
-} from '../utils'
-import { addFadeInToVNodes, splitContent } from '../utils/streamingText'
+  bindStreamingMarkdownTrigger,
+  createReasoningMarkdownVNodes,
+  createStreamingMarkdownVNodes,
+  createVNodeRendererComponent,
+} from '../packages/streaming-markdown-vue'
 
 const props = withDefaults(
   defineProps<{
@@ -27,98 +25,17 @@ const reasoning = computed(() => props.reasoning)
 const loading = computed(() => props.loading)
 const showCopyTooltip = ref(false)
 
-const debouncedLoading = refDebounced(loading, 1000)
-
-const formattedContent = computed(() => splitContent(content.value))
-const contentFinal = computed(() =>
-  props.loading ? formattedContent.value : content.value,
+const { contentFinal, contentVNodes } = createStreamingMarkdownVNodes(
+  content,
+  loading,
 )
+const reasoningVNodes = createReasoningMarkdownVNodes(reasoning)
 
-const contentVNodes = computedWithControl(
-  () => [contentFinal.value, isShikiLoaded.value, isKatexLoaded.value],
-  () => {
-    const content = contentFinal.value ?? ''
+const StreamMarkdownContent = createVNodeRendererComponent(contentVNodes)
+const StreamMarkdownReasoning = createVNodeRendererComponent(reasoningVNodes)
 
-    // Check if content contains code blocks and load Shiki if needed
-    if (content.includes('```') || content.includes('`')) {
-      loadShiki()
-    }
-
-    // Check if content contains math expressions and load KaTeX if needed
-    if (
-      content.includes('$')
-      || content.includes(String.raw`\(`)
-      || content.includes(String.raw`\[`)
-    ) {
-      loadKatex()
-    }
-
-    const r = md.render(content, {
-      sanitize: true,
-    }) as unknown as VNode[]
-    return addFadeInToVNodes(r, debouncedLoading.value)
-  },
-)
-
-const reasoningVNodes = computedWithControl([reasoning], () => {
-  const reasoningContent = reasoning.value ?? ''
-
-  // Check if reasoning contains code blocks and load Shiki if needed
-  if (reasoningContent.includes('```') || reasoningContent.includes('`')) {
-    loadShiki()
-  }
-
-  // Check if reasoning contains math expressions and load KaTeX if needed
-  if (
-    reasoningContent.includes('$')
-    || reasoningContent.includes(String.raw`\(`)
-    || reasoningContent.includes(String.raw`\[`)
-  ) {
-    loadKatex()
-  }
-
-  return md.render(reasoningContent, {
-    sanitize: true,
-  }) as unknown as VNode[]
-})
-
-function renderContentVNodes(vnodes: { value: VNode[] }) {
-  return () => vnodes.value
-}
-
-// eslint-disable-next-line vue/one-component-per-file
-const StreamMarkdownContent = defineComponent({
-  setup() {
-    return renderContentVNodes(contentVNodes)
-  },
-})
-
-// eslint-disable-next-line vue/one-component-per-file
-const StreamMarkdownReasoning = defineComponent({
-  setup() {
-    return renderContentVNodes(reasoningVNodes)
-  },
-})
-
-debouncedWatch(
-  [content],
-  () => {
-    contentVNodes.trigger()
-  },
-  {
-    debounce: 300,
-  },
-)
-
-debouncedWatch(
-  [reasoning],
-  () => {
-    reasoningVNodes.trigger()
-  },
-  {
-    debounce: 300,
-  },
-)
+bindStreamingMarkdownTrigger(contentVNodes, content)
+bindStreamingMarkdownTrigger(reasoningVNodes, reasoning)
 
 // Enhanced copy functionality with tooltip feedback
 function copyContentToClipboard() {

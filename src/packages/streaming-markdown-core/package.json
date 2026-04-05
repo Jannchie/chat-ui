@@ -1,0 +1,15 @@
+{
+  "name": "streaming-markdown-core",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./index.ts"
+  },
+  "files": [
+    "index.ts",
+    "streamingText.ts",
+    "README.md"
+  ]
+}

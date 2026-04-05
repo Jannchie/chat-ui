@@ -1,10 +1,7 @@
 import type { ChatData } from '../composables/chat-types'
-import markdownit from 'markdown-it'
-import todo from 'markdown-it-todo'
 import { v7 as uuidv7 } from 'uuid'
-import { computed, ref, toRaw } from 'vue'
+import { computed, toRaw } from 'vue'
 import { chatHistoryIDB } from '../shared'
-import VNodePlugin from './render'
 
 export * from './platform'
 
@@ -17,75 +14,6 @@ export const isMobile = computed(() => {
 export function generateId() {
   // Always use UUIDv7 from external library to avoid custom implementations
   return uuidv7()
-}
-
-export const md = markdownit({
-  linkify: true,
-  typographer: true,
-  breaks: true,
-  html: true,
-} as any)
-md.use(VNodePlugin)
-md.use(todo)
-
-// Lazy load katex and shiki to reduce initial bundle size
-export const isKatexLoaded = ref(false)
-export const isShikiLoaded = ref(false)
-
-export async function loadKatex() {
-  if (isKatexLoaded.value) {
-    return
-  }
-
-  const [katex, texmath] = await Promise.all([
-    import('katex'),
-    import('markdown-it-texmath'),
-    import('katex/dist/katex.min.css'), // Lazy load CSS
-  ])
-
-  const tm = texmath.default.use(katex.default)
-  md.use(tm, { delimiters: ['brackets', 'dollars'] })
-  isKatexLoaded.value = true
-}
-
-export async function loadShiki() {
-  if (isShikiLoaded.value) {
-    return
-  }
-
-  try {
-    const Shiki = await import('@shikijs/markdown-it')
-
-    const shiki = await Shiki.default({
-      theme: 'vitesse-dark',
-      // Only load most commonly used languages to reduce bundle size
-      langs: [
-        'javascript',
-        'typescript',
-        'python',
-        'bash',
-        'json',
-        'html',
-        'css',
-        'markdown',
-        'vue',
-        'rust',
-        'go',
-        'java',
-        'sql',
-        'jsx',
-        'tsx',
-      ],
-      fallbackLanguage: 'markdown',
-    })
-    md.use(shiki)
-    isShikiLoaded.value = true
-  }
-  catch (error) {
-    console.error('Failed to load Shiki:', error)
-    // 如果 Shiki 加载失败，至少确保不会重复尝试
-    isShikiLoaded.value = true
-  }
 }
 
 export function getChat(id: string) {
