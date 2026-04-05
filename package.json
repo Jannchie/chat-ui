@@ -8,7 +8,7 @@
     "preview": "pnpm --filter chat-ui preview",
     "test": "pnpm -r test",
     "lint": "pnpm --filter chat-ui lint",
-    "typecheck": "pnpm --filter chat-ui typecheck"
+    "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
     "katex": "^0.16.42",

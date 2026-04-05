@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addFadeInClassToTreeNodes,
   splitContent,
-} from './index'
+} from '../src/index'
 
 describe('streaming-markdown-core', () => {
   it('drops incomplete trailing sentence while streaming', () => {

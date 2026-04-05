@@ -5,17 +5,14 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "test": "vitest run ./streaming-markdown-vue.test.ts"
+    "test": "vitest run --config ./vitest.config.ts",
+    "typecheck": "tsc -p ./tsconfig.json"
   },
   "exports": {
-    ".": "./index.ts"
+    ".": "./src/index.ts"
   },
   "files": [
-    "index.ts",
-    "fadeIn.ts",
-    "runtime.ts",
-    "render.tsx",
-    "useStreamingMarkdown.ts",
+    "src",
     "README.md"
   ],
   "dependencies": {
