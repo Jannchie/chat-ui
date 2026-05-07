@@ -1,8 +1,9 @@
 // 远程价格数据服务
-const PRICING_URL
+const LITELLM_PRICING_URL
   = 'https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json'
-const CACHE_KEY = 'model_pricing_cache'
-const CACHE_EXPIRY_KEY = 'model_pricing_cache_expiry'
+const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models'
+const CACHE_KEY = 'model_pricing_cache_v2'
+const CACHE_EXPIRY_KEY = 'model_pricing_cache_v2_expiry'
 const CACHE_DURATION = 1000 * 60 * 60 // 1小时缓存
 const MODEL_NAME_SEPARATORS_REGEXP = /[_-]/g
 const WHITESPACE_REGEXP = /\s+/g
@@ -64,19 +65,41 @@ async function getPricingData(): Promise<Record<string, ModelPricing>> {
   }
 
   // 发起新的请求
-  fetchPromise = fetchPricingData()
+  fetchPromise = (async () => {
+    // 并行请求 OpenRouter 和 LiteLLM，OpenRouter 优先
+    const [openrouterPricing, litellmPricing] = await Promise.all([
+      fetchOpenRouterPricing(),
+      fetchLiteLLMPricing().catch(() => {
+        // LiteLLM 失败时尝试使用过期缓存
+        const cachedData = localStorage.getItem(CACHE_KEY)
+        if (cachedData) {
+          try {
+            console.warn('Using expired cached pricing data as fallback')
+            return JSON.parse(cachedData)
+          }
+          catch {
+            return {} as Record<string, ModelPricing>
+          }
+        }
+        return {} as Record<string, ModelPricing>
+      }),
+    ])
 
-  try {
-    const data = await fetchPromise
-    cachedPricing = data
+    // 合并：LiteLLM 作为基础，OpenRouter 覆盖
+    const merged = { ...litellmPricing, ...openrouterPricing }
+    cachedPricing = merged
 
-    // 缓存到 localStorage
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data))
+    localStorage.setItem(CACHE_KEY, JSON.stringify(merged))
     localStorage.setItem(
       CACHE_EXPIRY_KEY,
       (Date.now() + CACHE_DURATION).toString(),
     )
 
+    return merged
+  })()
+
+  try {
+    const data = await fetchPromise
     return data
   }
   finally {
@@ -85,36 +108,48 @@ async function getPricingData(): Promise<Record<string, ModelPricing>> {
 }
 
 /**
- * 从远程 URL 获取价格数据
+ * 从 OpenRouter API 获取模型定价数据
  */
-async function fetchPricingData(): Promise<Record<string, ModelPricing>> {
+async function fetchOpenRouterPricing(): Promise<Record<string, ModelPricing>> {
   try {
-    const response = await fetch(PRICING_URL, {
-      cache: 'no-cache',
-    })
-
+    const response = await fetch(OPENROUTER_MODELS_URL)
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      throw new Error(`OpenRouter HTTP ${response.status}`)
     }
-
-    const data = await response.json()
-    return data
+    const json = await response.json()
+    const pricing: Record<string, ModelPricing> = {}
+    for (const model of json.data ?? []) {
+      if (model.id && model.pricing) {
+        pricing[model.id] = {
+          input_cost_per_token: Number.parseFloat(model.pricing.prompt) || 0,
+          output_cost_per_token: Number.parseFloat(model.pricing.completion) || 0,
+          litellm_provider: 'openrouter',
+        }
+      }
+    }
+    return pricing
   }
   catch (error) {
-    console.error('Failed to fetch pricing data from remote:', error)
+    console.warn('Failed to fetch OpenRouter pricing:', error)
+    return {}
+  }
+}
 
-    // 尝试使用过期的缓存数据作为回退
-    const cachedData = localStorage.getItem(CACHE_KEY)
-    if (cachedData) {
-      try {
-        console.warn('Using expired cached pricing data as fallback')
-        return JSON.parse(cachedData)
-      }
-      catch (parseError) {
-        console.error('Failed to parse fallback cached data:', parseError)
-      }
+/**
+ * 从 LiteLLM GitHub 获取模型定价数据
+ */
+async function fetchLiteLLMPricing(): Promise<Record<string, ModelPricing>> {
+  try {
+    const response = await fetch(LITELLM_PRICING_URL, {
+      cache: 'no-cache',
+    })
+    if (!response.ok) {
+      throw new Error(`LiteLLM HTTP ${response.status}: ${response.statusText}`)
     }
-
+    return await response.json()
+  }
+  catch (error) {
+    console.error('Failed to fetch LiteLLM pricing:', error)
     throw error
   }
 }
@@ -165,19 +200,30 @@ export async function calculateTokenCost(
         pricing = pricingData[extractedModelName] as ModelPricing | undefined
 
         if (!pricing) {
-          // 尝试标准化匹配
+          // 尝试标准化匹配：对 pricing key 也先提取模型名再标准化
           const normalizedModelName = normalizeModelName(extractedModelName)
-          const matchedKey = Object.keys(pricingData).find(
-            key => normalizeModelName(key) === normalizedModelName,
-          )
+          const matchedKey = Object.keys(pricingData).find((key) => {
+            const keyNormalized = normalizeModelName(key)
+            const keyExtracted = extractModelName(key)
+            const keyExtractedNormalized = normalizeModelName(keyExtracted)
+            return (
+              keyNormalized === normalizedModelName
+              || keyExtractedNormalized === normalizedModelName
+            )
+          })
 
           if (matchedKey) {
-            return calculateTokenCost(matchedKey, usage)
+            pricing = pricingData[matchedKey]
           }
-
-          return null
         }
       }
+    }
+
+    if (!pricing) {
+      console.warn(
+        `[pricing] No pricing found for model "${modelName}"`,
+      )
+      return null
     }
 
     const inputTokens = usage.input_tokens || 0
@@ -246,9 +292,13 @@ export async function hasModelPricing(modelName: string): Promise<boolean> {
     }
 
     const normalizedModelName = normalizeModelName(extractedModelName)
-    return Object.keys(pricingData).some(
-      key => normalizeModelName(key) === normalizedModelName,
-    )
+    return Object.keys(pricingData).some((key) => {
+      const keyExtracted = extractModelName(key)
+      return (
+        normalizeModelName(key) === normalizedModelName
+        || normalizeModelName(keyExtracted) === normalizedModelName
+      )
+    })
   }
   catch (error) {
     console.error('Failed to check model pricing:', error)

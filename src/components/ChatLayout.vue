@@ -49,6 +49,7 @@ const lastUsage = ref<{
   prompt_tokens: number
   completion_tokens: number
   total_tokens: number
+  text_tokens?: number
   reasoning_tokens?: number
   cached_input_tokens?: number
 } | null>(null)
@@ -508,6 +509,7 @@ async function streamAssistantResponse({
             prompt_tokens: usage.inputTokens,
             completion_tokens: usage.outputTokens,
             total_tokens: usage.totalTokens,
+            text_tokens: usage.textTokens,
             reasoning_tokens: usage.reasoningTokens,
             cached_input_tokens: usage.cachedInputTokens,
           }
@@ -884,6 +886,7 @@ function changeAssistantMessageVersion({
       prompt_tokens: metadata.usage.input_tokens,
       completion_tokens: metadata.usage.output_tokens,
       total_tokens: metadata.usage.total_tokens,
+      text_tokens: metadata.usage.text_tokens,
       reasoning_tokens: metadata.usage.reasoning_tokens,
       cached_input_tokens: metadata.usage.cached_input_tokens,
     }
@@ -1043,21 +1046,20 @@ watchEffect(() => {
           >
             <div>
               <span class="font-medium mr-1">Current:</span>
-              <span>{{ lastUsage.prompt_tokens }} /
-                {{ lastUsage.completion_tokens }} Token</span>
+              <i class="i-tabler-arrow-up h-3 w-3" />{{ lastUsage.prompt_tokens }}
+              <i class="i-tabler-arrow-down h-3 w-3 ml-0.5" />{{ lastUsage.completion_tokens }}
+              <template
+                v-if="
+                  lastUsage.reasoning_tokens
+                    && lastUsage.reasoning_tokens > 0
+                "
+              >
+                <span class="op70">
+                  (<i class="i-tabler-message h-3 w-3" />{{ lastUsage.text_tokens ?? (lastUsage.completion_tokens - lastUsage.reasoning_tokens) }}
+                  <i class="i-tabler-brain h-3 w-3 ml-0.5" />{{ lastUsage.reasoning_tokens }})
+                </span>
+              </template>
             </div>
-            <template
-              v-if="
-                lastUsage.reasoning_tokens
-                  && lastUsage.reasoning_tokens > 0
-              "
-            >
-              ·
-              <div>
-                <span class="font-medium mr-1">Reasoning:</span>
-                <span>{{ lastUsage.reasoning_tokens }} Token</span>
-              </div>
-            </template>
             <template
               v-if="
                 lastUsage.cached_input_tokens
@@ -1066,8 +1068,7 @@ watchEffect(() => {
             >
               ·
               <div>
-                <span class="font-medium mr-1">Cached:</span>
-                <span>{{ lastUsage.cached_input_tokens }} Token</span>
+                <i class="i-tabler-bolt h-3 w-3" />{{ lastUsage.cached_input_tokens }}
               </div>
             </template>
             ·

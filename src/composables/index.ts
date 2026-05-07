@@ -142,7 +142,7 @@ export function useModels() {
             break
           }
           case 'deepseek': {
-            models.value = ['deepseek-chat', 'deepseek-coder']
+            models.value = ['deepseek-chat', 'deepseek-reasoner', 'deepseek-coder']
             break
           }
           case 'pfn': {

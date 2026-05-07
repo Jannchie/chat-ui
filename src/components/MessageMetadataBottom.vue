@@ -11,26 +11,6 @@ const props = defineProps<{ message: ChatMessage }>()
 
 const { selectedCurrency, convert, format } = useCurrency()
 
-function formatTokenUsage(usage: any) {
-  const upArrow = '⬆'
-  const downArrow = '⬇'
-  const input = usage.input_tokens
-  const output = usage.output_tokens
-  if (input !== undefined && output !== undefined) {
-    return `${upArrow} ${input} ${downArrow} ${output} tokens`
-  }
-  else if (input !== undefined) {
-    return `${upArrow} ${input} tokens`
-  }
-  else if (output !== undefined) {
-    return `${downArrow} ${output} tokens`
-  }
-  else if (usage.total_tokens) {
-    return `${usage.total_tokens} tokens`
-  }
-  return 'DEBUG: EMPTY_USAGE'
-}
-
 const cost = asyncComputed(async () => {
   if (props.message.metadata?.cost !== undefined) {
     return props.message.metadata.cost
@@ -74,7 +54,31 @@ const displayedCost = computed(() => {
       variant="light"
       color="surface"
     >
-      {{ formatTokenUsage(message.metadata.usage) }}
+      <template #leftSection>
+        <span class="flex gap-0.5 items-center">
+          <i class="i-tabler-arrow-up h-3 w-3" />
+          <span>{{ message.metadata.usage.input_tokens }}</span>
+          <i class="i-tabler-arrow-down h-3 w-3 ml-0.5" />
+          <span>{{ message.metadata.usage.output_tokens }}</span>
+          <template v-if="message.metadata.usage.reasoning_tokens && message.metadata.usage.reasoning_tokens > 0">
+            <i class="i-tabler-message h-3 w-3 ml-1" />
+            <span>{{ message.metadata.usage.text_tokens ?? (message.metadata.usage.output_tokens - message.metadata.usage.reasoning_tokens) }}</span>
+            <i class="i-tabler-brain h-3 w-3 ml-0.5" />
+            <span>{{ message.metadata.usage.reasoning_tokens }}</span>
+          </template>
+        </span>
+      </template>
+    </Tag>
+    <Tag
+      v-if="message.metadata?.usage?.cached_input_tokens && message.metadata.usage.cached_input_tokens > 0"
+      size="sm"
+      variant="light"
+      color="surface"
+    >
+      <template #leftSection>
+        <i class="i-tabler-bolt h-3 w-3" />
+      </template>
+      {{ message.metadata.usage.cached_input_tokens }}
     </Tag>
     <Tag v-if="displayedCost" size="sm" variant="light" color="surface">
       {{ displayedCost }}

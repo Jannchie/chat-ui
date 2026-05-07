@@ -26,6 +26,7 @@ export interface UsageInfo {
   inputTokens: number
   outputTokens: number
   totalTokens: number
+  textTokens?: number
   reasoningTokens?: number
   cachedInputTokens?: number
 }
@@ -172,19 +173,28 @@ export class AIStreamHandler {
       // Fetch final usage if available
       try {
         const finalUsage = await result.usage
+        if (import.meta.env.DEV) {
+          console.warn('[ai-stream] finalUsage', finalUsage)
+        }
         if (finalUsage) {
+          const raw = (finalUsage as any).raw
+          const textTokens
+            = finalUsage.outputTokenDetails?.textTokens
+              ?? (finalUsage.outputTokens || 0) - (finalUsage.outputTokenDetails?.reasoningTokens ?? 0)
           const reasoningTokens
             = finalUsage.outputTokenDetails?.reasoningTokens
-              ?? finalUsage.reasoningTokens
+              ?? raw?.completion_tokens_details?.reasoning_tokens
           const cachedInputTokens
             = finalUsage.inputTokenDetails?.cacheReadTokens
-              ?? finalUsage.cachedInputTokens
+              ?? raw?.prompt_tokens_details?.cached_tokens
           usage = {
             inputTokens: finalUsage.inputTokens || 0,
             outputTokens: finalUsage.outputTokens || 0,
             totalTokens:
               finalUsage.totalTokens
               || (finalUsage.inputTokens || 0) + (finalUsage.outputTokens || 0),
+            textTokens:
+              typeof textTokens === 'number' ? textTokens : undefined,
             reasoningTokens:
               typeof reasoningTokens === 'number' ? reasoningTokens : undefined,
             cachedInputTokens:
@@ -217,6 +227,7 @@ export class AIStreamHandler {
               input_tokens: usage.inputTokens,
               output_tokens: usage.outputTokens,
               total_tokens: usage.totalTokens,
+              text_tokens: usage.textTokens,
               reasoning_tokens: usage.reasoningTokens,
               cached_input_tokens: usage.cachedInputTokens,
             }
