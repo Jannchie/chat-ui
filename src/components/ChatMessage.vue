@@ -249,17 +249,17 @@ watch(
           <div class="relative">
             <div
               v-if="isEditing"
-              class="p-3 border border-neutral-200 rounded-lg bg-white dark:border-neutral-700 dark:bg-neutral-800"
+              class="p-3 rounded-lg bg-neutral-100 dark:bg-[#1e1e1f]"
             >
               <textarea
                 v-model="editContent"
                 rows="4"
-                class="text-sm p-2 outline-none border border-neutral-300 rounded-md bg-white h-32 w-full resize-y dark:text-neutral-100 dark:border-neutral-600 focus:border-neutral-500 dark:bg-neutral-900"
+                class="text-sm p-2 outline-none border-none bg-transparent h-32 w-full resize-y dark:text-neutral-100"
               />
               <div class="mt-3 flex gap-2 justify-end">
                 <button
                   type="button"
-                  class="text-sm px-3 py-1 border border-neutral-300 rounded-md dark:text-neutral-200 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                  class="text-sm px-3 py-1 rounded-md dark:text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200 dark:hover:text-neutral-200 dark:hover:bg-neutral-700"
                   @click="cancelEditing"
                 >
                   Cancel
@@ -401,17 +401,17 @@ watch(
           <div class="relative">
             <div
               v-if="isEditing"
-              class="p-4 border border-neutral-200 rounded-lg bg-white dark:border-neutral-700 dark:bg-neutral-800"
+              class="p-4 rounded-lg bg-neutral-100 dark:bg-[#1e1e1f]"
             >
               <textarea
                 v-model="editContent"
                 rows="6"
-                class="text-base p-3 outline-none border border-neutral-300 rounded-md bg-white h-40 w-full resize-y dark:text-neutral-100 dark:border-neutral-600 focus:border-neutral-500 dark:bg-neutral-900"
+                class="text-base p-3 outline-none border-none bg-transparent h-40 w-full resize-y dark:text-neutral-100"
               />
               <div class="mt-4 flex gap-2 justify-end">
                 <button
                   type="button"
-                  class="text-sm px-3 py-1.5 border border-neutral-300 rounded-md dark:text-neutral-200 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                  class="text-sm px-3 py-1.5 rounded-md dark:text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200 dark:hover:text-neutral-200 dark:hover:bg-neutral-700"
                   @click="cancelEditing"
                 >
                   Cancel

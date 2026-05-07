@@ -70,6 +70,16 @@ watch(
   </div>
 </template>
 
+<style>
+@font-face {
+  font-family: 'Berkeley Mono';
+  src: url('https://cdn.jannchie.com/fonts/variants/BerkeleyMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+</style>
+
 <style scoped>
 .code-block-wrapper {
   margin-block: 0.5rem;
@@ -82,6 +92,11 @@ watch(
 
 :root[data-scheme="dark"] .code-content {
   background-color: #1e1e1e;
+}
+
+.code-content :deep(pre),
+.code-content :deep(code) {
+  font-family: 'Berkeley Mono', 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 .code-content :deep(pre) {

@@ -20,9 +20,12 @@ importers:
       '@ai-sdk/vue':
         specifier: ^3.0.175
         version: 3.0.175(vue@3.5.34(typescript@6.0.3))(zod@4.4.3)
+      '@jannchie/shiki-theme':
+        specifier: ^3.1.0
+        version: 3.1.0
       '@preferred-markdown-stream/vue':
-        specifier: 0.2.1
-        version: 0.2.1(vue@3.5.34(typescript@6.0.3))
+        specifier: 0.3.0
+        version: 0.3.0(vue@3.5.34(typescript@6.0.3))
       '@roku-ui/preset':
         specifier: ^0.31.0
         version: 0.31.0
@@ -1291,6 +1294,9 @@ packages:
       svelte-eslint-parser:
         optional: true
 
+  '@jannchie/shiki-theme@3.1.0':
+    resolution: {integrity: sha512-/qTeeZS+LVPlAs1FXRyabjUlKO70IISqPyXWdcDfQmJWiPEeM+VVm4+dSV3PdPApTRB/wlrFhQhfSVgD4zZsSA==}
+
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
 
@@ -1456,11 +1462,11 @@ packages:
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
 
-  '@preferred-markdown-stream/core@0.2.1':
-    resolution: {integrity: sha512-WTiz5mh1UJyaT6m4XahgHgWQIl3moB1p5Yg625m7ciKHzyo/X/9YCCkg77YmQBgpUMbWtzNNh2LrZ/2tUiqegw==}
+  '@preferred-markdown-stream/core@0.3.0':
+    resolution: {integrity: sha512-O5qyYfuW2F3uuhsN5PJ47Wb3awR7L4wPTKLyiLy0WxbAM+T6s/Sr71iycIloCZeXo8AOekvRcWYmnj18MnZFvw==}
 
-  '@preferred-markdown-stream/vue@0.2.1':
-    resolution: {integrity: sha512-U6HcQDaZxRMOUNiJTm1i5ddWWrPUDQcp0INtzdIE7KWRI3/aT5IEG5oeMlFKcO6eine1lfouDBdPn7hFHYYSdw==}
+  '@preferred-markdown-stream/vue@0.3.0':
+    resolution: {integrity: sha512-Pr1CUZjMED0mNTAzpjz+30Qz0Bfjgvp0RZn1PFbdsX1/C06wybSxkgpPqKUzeYqO9kTJBN4JTl4o3YklqoUwmA==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -5796,6 +5802,8 @@ snapshots:
       - typescript
       - vitest
 
+  '@jannchie/shiki-theme@3.1.0': {}
+
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -5904,11 +5912,11 @@ snapshots:
 
   '@polka/url@1.0.0-next.29': {}
 
-  '@preferred-markdown-stream/core@0.2.1': {}
+  '@preferred-markdown-stream/core@0.3.0': {}
 
-  '@preferred-markdown-stream/vue@0.2.1(vue@3.5.34(typescript@6.0.3))':
+  '@preferred-markdown-stream/vue@0.3.0(vue@3.5.34(typescript@6.0.3))':
     dependencies:
-      '@preferred-markdown-stream/core': 0.2.1
+      '@preferred-markdown-stream/core': 0.3.0
       '@shikijs/markdown-it': 4.0.2
       '@vueuse/core': 14.3.0(vue@3.5.34(typescript@6.0.3))
       katex: 0.16.45
@@ -6197,8 +6205,8 @@ snapshots:
 
   '@typescript-eslint/project-service@8.57.2(typescript@6.0.3)':
     dependencies:
-      '@typescript-eslint/tsconfig-utils': 8.57.2(typescript@6.0.3)
-      '@typescript-eslint/types': 8.57.2
+      '@typescript-eslint/tsconfig-utils': 8.59.2(typescript@6.0.3)
+      '@typescript-eslint/types': 8.59.2
       debug: 4.4.3
       typescript: 6.0.3
     transitivePeerDependencies:
