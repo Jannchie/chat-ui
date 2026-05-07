@@ -38,7 +38,7 @@ function useDynamicTime(message: ChatMessage) {
         else {
           stopTimer()
         }
-      }, 100)
+      }, 250)
     }
   }
 

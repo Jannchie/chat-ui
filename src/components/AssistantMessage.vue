@@ -135,6 +135,8 @@ function formatToolCall(toolCall: any) {
           <img
             :src="part.image_url.url"
             alt="Image"
+            loading="lazy"
+            decoding="async"
             class="border-neutral-6 border rounded-lg max-h-48 max-w-xs cursor-pointer object-cover"
             @click="openImagePreview(part.image_url.url)"
           >

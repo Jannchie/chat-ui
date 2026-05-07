@@ -67,6 +67,8 @@ onMounted(() => {
         <img
           :src="item.image_url.url"
           alt="Uploaded image"
+          loading="lazy"
+          decoding="async"
           class="dark:border-neutral-6 border border-neutral-300 rounded-lg max-h-48 max-w-xs cursor-pointer object-cover"
           @click="openImagePreview(item.image_url.url)"
         >

@@ -26,6 +26,8 @@ export interface UsageInfo {
   inputTokens: number
   outputTokens: number
   totalTokens: number
+  reasoningTokens?: number
+  cachedInputTokens?: number
 }
 
 export interface StreamResult {
@@ -171,12 +173,22 @@ export class AIStreamHandler {
       try {
         const finalUsage = await result.usage
         if (finalUsage) {
+          const reasoningTokens
+            = finalUsage.outputTokenDetails?.reasoningTokens
+              ?? finalUsage.reasoningTokens
+          const cachedInputTokens
+            = finalUsage.inputTokenDetails?.cacheReadTokens
+              ?? finalUsage.cachedInputTokens
           usage = {
             inputTokens: finalUsage.inputTokens || 0,
             outputTokens: finalUsage.outputTokens || 0,
             totalTokens:
               finalUsage.totalTokens
               || (finalUsage.inputTokens || 0) + (finalUsage.outputTokens || 0),
+            reasoningTokens:
+              typeof reasoningTokens === 'number' ? reasoningTokens : undefined,
+            cachedInputTokens:
+              typeof cachedInputTokens === 'number' ? cachedInputTokens : undefined,
           }
         }
       }
@@ -205,6 +217,8 @@ export class AIStreamHandler {
               input_tokens: usage.inputTokens,
               output_tokens: usage.outputTokens,
               total_tokens: usage.totalTokens,
+              reasoning_tokens: usage.reasoningTokens,
+              cached_input_tokens: usage.cachedInputTokens,
             }
           : undefined,
         tokenSpeed,

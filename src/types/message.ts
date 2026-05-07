@@ -56,6 +56,8 @@ export interface ChatMessageMetadata {
     input_tokens: number // 输入 token 数量
     output_tokens: number // 输出 token 数量
     total_tokens: number // 总 token 数量
+    reasoning_tokens?: number // 推理 token 数量（包含在 output_tokens 中）
+    cached_input_tokens?: number // 命中缓存的输入 token 数量
   }
   cost?: number // API 提供的实际费用（优先于计算费用）
 }

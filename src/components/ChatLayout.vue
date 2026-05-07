@@ -49,6 +49,8 @@ const lastUsage = ref<{
   prompt_tokens: number
   completion_tokens: number
   total_tokens: number
+  reasoning_tokens?: number
+  cached_input_tokens?: number
 } | null>(null)
 
 const conversation = shallowRef<ChatMessage[]>([])
@@ -506,6 +508,8 @@ async function streamAssistantResponse({
             prompt_tokens: usage.inputTokens,
             completion_tokens: usage.outputTokens,
             total_tokens: usage.totalTokens,
+            reasoning_tokens: usage.reasoningTokens,
+            cached_input_tokens: usage.cachedInputTokens,
           }
 
           if (chat) {
@@ -880,6 +884,8 @@ function changeAssistantMessageVersion({
       prompt_tokens: metadata.usage.input_tokens,
       completion_tokens: metadata.usage.output_tokens,
       total_tokens: metadata.usage.total_tokens,
+      reasoning_tokens: metadata.usage.reasoning_tokens,
+      cached_input_tokens: metadata.usage.cached_input_tokens,
     }
   }
   if (metadata?.sentAt) {
@@ -998,10 +1004,13 @@ watchEffect(() => {
         ref="scrollArea"
         class="overflow-x-hidden overflow-y-auto last-children:min-h-[calc(100dvh-152px-72px)]"
       >
-        <template v-for="(g, i) in groupedConversation" :key="i">
+        <template
+          v-for="(g, i) in groupedConversation"
+          :key="g[0]?.id ?? `group-${i}`"
+        >
           <ChatMessage
-            v-for="(c, j) in g"
-            :key="j"
+            v-for="c in g"
+            :key="c.id"
             :message="c"
             :loading="streaming && groupedConversation.length - 1 === i"
             :thinking="
@@ -1037,6 +1046,30 @@ watchEffect(() => {
               <span>{{ lastUsage.prompt_tokens }} /
                 {{ lastUsage.completion_tokens }} Token</span>
             </div>
+            <template
+              v-if="
+                lastUsage.reasoning_tokens
+                  && lastUsage.reasoning_tokens > 0
+              "
+            >
+              ·
+              <div>
+                <span class="font-medium mr-1">Reasoning:</span>
+                <span>{{ lastUsage.reasoning_tokens }} Token</span>
+              </div>
+            </template>
+            <template
+              v-if="
+                lastUsage.cached_input_tokens
+                  && lastUsage.cached_input_tokens > 0
+              "
+            >
+              ·
+              <div>
+                <span class="font-medium mr-1">Cached:</span>
+                <span>{{ lastUsage.cached_input_tokens }} Token</span>
+              </div>
+            </template>
             ·
             <div>
               <span class="font-medium mr-1">Speed:</span>
@@ -1079,6 +1112,8 @@ watchEffect(() => {
               <img
                 :src="image.dataUrl"
                 :alt="image.file.name"
+                loading="lazy"
+                decoding="async"
                 class="dark:border-neutral-6 border border-neutral-300 rounded-lg h-16 w-16 object-cover"
               >
               <button

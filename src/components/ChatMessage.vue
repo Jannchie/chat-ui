@@ -181,24 +181,14 @@ function confirmEdit(): void {
 }
 
 watch(
-  () => props.message.content,
-  () => {
-    syncEditContent()
-  },
-)
-
-watch(
-  () => props.message.id,
-  () => {
-    cancelEditing()
-  },
-)
-
-watch(
-  () => props.allowUserEdit,
-  (value) => {
-    if (value === false) {
+  () => [props.message.id, props.allowUserEdit, props.message.content] as const,
+  ([newId, newAllow], [oldId]) => {
+    if (newId !== oldId || newAllow === false) {
       cancelEditing()
+      return
+    }
+    if (isEditing.value) {
+      syncEditContent()
     }
   },
 )
