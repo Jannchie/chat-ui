@@ -7,8 +7,10 @@ const props = defineProps<{
   mode?: 'compact' | 'detailed' // compact: 显示单个时间, detailed: 显示详细时间分解
 }>()
 
-// 动态时间显示功能
-function useDynamicTime(message: ChatMessage) {
+// 动态时间显示功能。
+// 消息更新是不可变替换（props.message 每次都是新对象），
+// 因此全部通过 props.message 读取，不能捕获挂载时的对象
+function useDynamicTime() {
   const dynamicTime = ref<string | null>(null)
   let intervalId: ReturnType<typeof setInterval> | null = null
 
@@ -22,8 +24,8 @@ function useDynamicTime(message: ChatMessage) {
   const startTimer = () => {
     if (
       !intervalId
-      && message.metadata?.sentAt
-      && !message.metadata?.receivedAt
+      && props.message.metadata?.sentAt
+      && !props.message.metadata?.receivedAt
     ) {
       intervalId = setInterval(() => {
         // 使用当前的 props 值，而不是闭包中的 message
@@ -43,10 +45,11 @@ function useDynamicTime(message: ChatMessage) {
   }
 
   const setFinalTime = () => {
-    if (message.metadata?.sentAt && message.metadata?.receivedAt) {
+    const metadata = props.message.metadata
+    if (metadata?.sentAt && metadata?.receivedAt) {
       stopTimer()
 
-      const finalTime = message.metadata.receivedAt - message.metadata.sentAt
+      const finalTime = metadata.receivedAt - metadata.sentAt
       dynamicTime.value
         = finalTime < 1000
           ? `${finalTime}ms`
@@ -56,7 +59,7 @@ function useDynamicTime(message: ChatMessage) {
 
   // 监听消息状态变化
   watch(
-    () => [message.metadata?.sentAt, message.metadata?.receivedAt],
+    () => [props.message.metadata?.sentAt, props.message.metadata?.receivedAt],
     ([sentAt, receivedAt]) => {
       if (sentAt && receivedAt) {
         // 消息已完成，设置最终时间
@@ -89,7 +92,7 @@ function formatTime(time: number) {
 }
 
 // 使用计时器逻辑
-const dynamicTime = useDynamicTime(props.message)
+const dynamicTime = useDynamicTime()
 
 // 计算各种时间
 function getTimings(message: ChatMessage) {

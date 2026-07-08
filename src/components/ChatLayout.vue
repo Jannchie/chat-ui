@@ -35,6 +35,7 @@ import {
 } from '../lib/reasoning'
 import {
   apiKey,
+  chatHistoryIDB,
   model,
   openaiReasoningEffort,
   platform,
@@ -634,6 +635,12 @@ async function onSubmit() {
     (input.value.trim() === '' && uploadedImages.value.length === 0)
     || streaming.value
   ) {
+    return
+  }
+
+  // 聊天历史尚未从 IndexedDB 加载完成时创建的新会话，会在加载完成后被存储值覆盖丢失
+  if (!chatHistoryIDB.isFinished.value) {
+    console.warn('Chat history is still loading; please retry in a moment.')
     return
   }
 
