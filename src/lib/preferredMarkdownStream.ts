@@ -1,7 +1,7 @@
 import type { Ref, VNode } from 'vue'
 import {
   createStreamingMarkdownVNodes,
-  createVNodeRendererComponent,
+
   setCodeBlockComponent,
 } from '@preferred-markdown-stream/vue'
 import { computed, watch } from 'vue'
@@ -10,11 +10,6 @@ import MarkdownCodeBlock from '../components/MarkdownCodeBlock.vue'
 interface TriggerableComputed<T> {
   value: T
   trigger: () => void
-}
-
-export {
-  createStreamingMarkdownVNodes,
-  createVNodeRendererComponent,
 }
 
 setCodeBlockComponent(MarkdownCodeBlock)
@@ -61,3 +56,5 @@ export function bindStreamingMarkdownTrigger(
     }, debounce)
   })
 }
+
+export { createStreamingMarkdownVNodes, createVNodeRendererComponent } from '@preferred-markdown-stream/vue'

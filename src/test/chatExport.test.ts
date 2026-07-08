@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { serializeChatForExport } from '../utils/chatExport'
 
-describe('serializeChatForExport', () => {
+describe('serializechatforexport', () => {
   it('serializes chat data to the public export schema', () => {
     const result = serializeChatForExport({
       id: 'chat-1',
