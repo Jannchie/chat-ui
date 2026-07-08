@@ -17,6 +17,35 @@ function generateCacheKey(key: RequestCacheKey): string {
   return `${preset}:${serviceUrl}:${model}:${apiKey.slice(0, 10)}***`
 }
 
+// 缓存条目只保留脱敏后的 key 前缀，完整 API key 不落盘
+function maskApiKey(apiKey: string): string {
+  return apiKey.length > 8 ? `${apiKey.slice(0, 8)}...` : apiKey
+}
+
+// 旧版本曾把完整 API key 明文写入缓存，首次访问时一次性脱敏
+let sanitizeLegacyPromise: Promise<void> | null = null
+function sanitizeLegacyEntries(): Promise<void> {
+  sanitizeLegacyPromise ??= (async () => {
+    try {
+      const entries = await db.requestCache.toArray()
+      const dirty = entries.filter(
+        entry => entry.key.apiKey !== maskApiKey(entry.key.apiKey),
+      )
+      await Promise.all(
+        dirty.map(entry =>
+          db.requestCache.update(entry.id!, {
+            key: { ...entry.key, apiKey: maskApiKey(entry.key.apiKey) },
+          }),
+        ),
+      )
+    }
+    catch (error) {
+      console.error('Error sanitizing legacy cache entries:', error)
+    }
+  })()
+  return sanitizeLegacyPromise
+}
+
 async function cleanupExpiredEntries() {
   const now = Date.now()
   const expiredTime = now - TTL
@@ -41,28 +70,28 @@ async function maintainCacheSize() {
 
 async function cacheSuccessfulRequest(key: RequestCacheKey) {
   const cacheKey = generateCacheKey(key)
+  const storedKey: RequestCacheKey = { ...key, apiKey: maskApiKey(key.apiKey) }
   const now = Date.now()
 
   try {
-    // caching request
+    await sanitizeLegacyEntries()
     // Check if entry already exists
     const existingEntry = await db.requestCache
       .where('cacheKey')
       .equals(cacheKey)
       .first()
-    // existingEntry inspected
 
     existingEntry
       ? await db.requestCache.update(existingEntry.id!, {
           timestamp: now,
           lastAccessed: now,
           accessCount: existingEntry.accessCount + 1,
-          key,
+          key: storedKey,
           success: true,
         })
       : await db.requestCache.add({
           cacheKey,
-          key,
+          key: storedKey,
           timestamp: now,
           success: true,
           accessCount: 1,
@@ -125,6 +154,7 @@ async function getRecentSuccessfulRequests(
   limit = 10,
 ): Promise<RequestCacheEntry[]> {
   try {
+    await sanitizeLegacyEntries()
     await cleanupExpiredEntries()
 
     // Order by timestamp to ensure true recency, then filter successes
@@ -145,6 +175,7 @@ async function getTopSuccessfulRequests(
   limit = 10,
 ): Promise<RequestCacheEntry[]> {
   try {
+    await sanitizeLegacyEntries()
     await cleanupExpiredEntries()
 
     // Order by accessCount descending (most used first)

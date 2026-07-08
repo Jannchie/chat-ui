@@ -5,7 +5,15 @@ import {
   setCodeBlockComponent,
 } from '@preferred-markdown-stream/vue'
 import { computed, watch } from 'vue'
+// The package's exports map hides its markdown-it instance, but the raw-HTML
+// pass-through it enables (html: true) lets LLM output inject live DOM with
+// event-handler attributes. Reach into the dist file (same module instance as
+// the package's own internals) and disable raw HTML so it renders as text.
+// eslint-disable-next-line antfu/no-import-dist, antfu/no-import-node-modules-by-path
+import { md } from '../../node_modules/@preferred-markdown-stream/vue/dist/runtime.js'
 import MarkdownCodeBlock from '../components/MarkdownCodeBlock.vue'
+
+md.set({ html: false })
 
 interface TriggerableComputed<T> {
   value: T

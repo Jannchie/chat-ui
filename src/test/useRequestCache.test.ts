@@ -32,7 +32,8 @@ describe('userequestcache', () => {
 
     const cached = await getCachedRequest(requestKey)
     expect(cached).toBeTruthy()
-    expect(cached?.key).toEqual(requestKey)
+    // 完整 API key 不落盘，只保留脱敏前缀
+    expect(cached?.key).toEqual({ ...requestKey, apiKey: 'sk-test1...' })
     expect(cached?.success).toBe(true)
     expect(cached?.timestamp).toBeTypeOf('number')
     expect(cached?.accessCount).toBe(2) // 1 for cache + 1 for get
@@ -58,8 +59,9 @@ describe('userequestcache', () => {
 
     const recent = await getRecentSuccessfulRequests()
     expect(recent).toHaveLength(2)
-    expect(recent[0].key).toEqual(requestKey2) // Most recent first
-    expect(recent[1].key).toEqual(requestKey1)
+    // Most recent first; API keys are stored masked
+    expect(recent[0].key).toEqual({ ...requestKey2, apiKey: 'sk-test4...' })
+    expect(recent[1].key).toEqual({ ...requestKey1, apiKey: 'sk-test1...' })
   })
 
   it('should clear cache', async () => {
@@ -142,8 +144,9 @@ describe('userequestcache', () => {
 
     const topRequests = await getTopSuccessfulRequests()
     expect(topRequests).toHaveLength(2)
-    expect(topRequests[0].key).toEqual(requestKey1) // Most accessed first
-    expect(topRequests[1].key).toEqual(requestKey2)
+    // Most accessed first; API keys are stored masked
+    expect(topRequests[0].key).toEqual({ ...requestKey1, apiKey: 'sk-test1...' })
+    expect(topRequests[1].key).toEqual({ ...requestKey2, apiKey: 'sk-test4...' })
     expect(topRequests[0].accessCount).toBeGreaterThan(
       topRequests[1].accessCount,
     )

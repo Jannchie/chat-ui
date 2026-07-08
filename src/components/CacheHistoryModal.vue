@@ -2,7 +2,7 @@
 import type { RequestCacheEntry } from '../composables/useDatabase'
 import { Modal } from '@roku-ui/vue'
 import { useRequestCache } from '../composables/useRequestCache'
-import { apiKey, customServiceUrl, model, platform } from '../shared'
+import { currentPreset, customServiceUrl, model, platform } from '../shared'
 
 const props = defineProps<{
   modelValue: boolean
@@ -46,7 +46,9 @@ async function loadCacheEntries() {
 
 function applyConfiguration(entry: RequestCacheEntry) {
   const config = entry.key
+  // model 的 setter 写向 preset[currentPreset]，必须先切换 currentPreset
   platform.value = config.preset
+  currentPreset.value = config.preset
 
   // Handle custom service URL
   if (config.preset === 'custom') {
@@ -54,7 +56,7 @@ function applyConfiguration(entry: RequestCacheEntry) {
   }
 
   model.value = config.model
-  apiKey.value = config.apiKey
+  // API key 不再存入缓存（只存脱敏前缀）；切换 preset 后使用该 preset 已保存的 key
   showModal.value = false
 }
 
