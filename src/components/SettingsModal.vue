@@ -20,17 +20,26 @@ const showModal = computed({
 const { selectedCurrency, exchangeRates } = useCurrency()
 const { scheme, setTheme } = useTheme()
 
-const availableCurrencies = computed(() => {
-  return Object.keys(exchangeRates.value).filter(c =>
-    ['USD', 'JPY', 'CNY'].includes(c),
-  )
+const currencyOptions = computed(() => {
+  return Object.keys(exchangeRates.value)
+    .filter(c => ['USD', 'JPY', 'CNY'].includes(c))
+    .map(c => ({ label: c, value: c }))
 })
 
-function selectCurrency(currency: string) {
-  selectedCurrency.value = currency
-}
+const themeModel = computed({
+  get: () => scheme.value,
+  set: (value: 'auto' | 'light' | 'dark' | undefined) => {
+    if (value) {
+      setTheme(value)
+    }
+  },
+})
 
-const themes: Array<'auto' | 'light' | 'dark'> = ['auto', 'light', 'dark']
+const themeOptions = [
+  { label: 'Auto', value: 'auto', icon: 'i-tabler-device-desktop' },
+  { label: 'Light', value: 'light', icon: 'i-tabler-sun' },
+  { label: 'Dark', value: 'dark', icon: 'i-tabler-moon' },
+] as const
 
 const totalTimeoutOptions = [
   { label: 'Off', value: 0 },
@@ -50,107 +59,64 @@ const chunkTimeoutOptions = [
 <template>
   <Modal v-model="showModal">
     <div
-      class="rounded-lg bg-neutral-100 max-w-md w-full shadow-xl overflow-hidden dark:bg-[#1a1a1a]"
+      class="mx-4 border border-neutral-200 rounded-2xl bg-white max-w-md w-full shadow-2xl overflow-hidden dark:border-neutral-800 dark:bg-[#1a1a1a]"
     >
       <div
-        class="p-4 border-b border-neutral-300 flex items-center justify-between dark:border-neutral-700"
+        class="px-5 py-4 border-b border-neutral-200 flex items-center justify-between dark:border-neutral-800"
       >
-        <h2 class="text-xl text-neutral-800 font-semibold dark:text-white">
+        <h2 class="text-base text-neutral-800 font-semibold dark:text-white">
           Settings
         </h2>
         <button
-          class="leading-0 rounded-full h-9 w-9 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+          class="text-neutral-400 rounded-full flex h-8 w-8 transition-colors items-center justify-center hover:text-neutral-700 hover:bg-neutral-200 dark:hover:text-white dark:hover:bg-neutral-800"
           @click="showModal = false"
         >
-          <i class="i-tabler-x text-neutral-600 dark:text-white" />
+          <i class="i-tabler-x" />
         </button>
       </div>
-      <div class="p-4 space-y-4">
-        <div>
-          <h3 class="text-lg text-neutral-800 font-medium mb-2 dark:text-white">
+
+      <div class="px-5 py-4 space-y-5">
+        <div class="flex gap-4 items-center justify-between">
+          <div class="text-sm text-neutral-800 font-medium dark:text-neutral-200">
             Theme
-          </h3>
-          <div class="flex gap-2">
-            <button
-              v-for="theme in themes"
-              :key="theme"
-              :class="
-                scheme === theme
-                  ? 'text-white bg-neutral-500 dark:bg-neutral-600'
-                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'
-              "
-              class="text-sm px-3 py-1 rounded transition-colors"
-              @click="setTheme(theme)"
-            >
-              {{ theme }}
-            </button>
           </div>
+          <SegmentedControl v-model="themeModel" :options="themeOptions" />
         </div>
-        <div>
-          <h3 class="text-lg text-neutral-800 font-medium mb-2 dark:text-white">
+
+        <div class="flex gap-4 items-center justify-between">
+          <div class="text-sm text-neutral-800 font-medium dark:text-neutral-200">
             Currency
-          </h3>
-          <div class="flex gap-2">
-            <button
-              v-for="currency in availableCurrencies"
-              :key="currency"
-              :class="
-                selectedCurrency === currency
-                  ? 'text-white bg-neutral-500 dark:bg-neutral-600'
-                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'
-              "
-              class="text-sm px-3 py-1 rounded transition-colors"
-              @click="selectCurrency(currency)"
-            >
-              {{ currency }}
-            </button>
           </div>
+          <SegmentedControl v-model="selectedCurrency" :options="currencyOptions" />
         </div>
-        <div>
-          <h3 class="text-lg text-neutral-800 font-medium mb-2 dark:text-white">
+
+        <div class="pt-4 border-t border-neutral-200 space-y-4 dark:border-neutral-800">
+          <div
+            class="text-xs text-neutral-400 tracking-wider font-medium uppercase dark:text-neutral-500"
+          >
             Request Timeout
-          </h3>
-          <div class="space-y-3">
+          </div>
+          <div class="flex gap-4 items-center justify-between">
             <div>
-              <div class="text-sm text-neutral-500 mb-1 dark:text-neutral-400">
+              <div class="text-sm text-neutral-800 font-medium dark:text-neutral-200">
                 Total duration
               </div>
-              <div class="flex gap-2">
-                <button
-                  v-for="option in totalTimeoutOptions"
-                  :key="option.value"
-                  :class="
-                    totalTimeoutSec === option.value
-                      ? 'text-white bg-neutral-500 dark:bg-neutral-600'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'
-                  "
-                  class="text-sm px-3 py-1 rounded transition-colors"
-                  @click="totalTimeoutSec = option.value"
-                >
-                  {{ option.label }}
-                </button>
+              <div class="text-xs text-neutral-400 mt-0.5 dark:text-neutral-500">
+                Abort the whole request
               </div>
             </div>
+            <SegmentedControl v-model="totalTimeoutSec" :options="totalTimeoutOptions" />
+          </div>
+          <div class="flex gap-4 items-center justify-between">
             <div>
-              <div class="text-sm text-neutral-500 mb-1 dark:text-neutral-400">
-                Stream stall (no new output)
+              <div class="text-sm text-neutral-800 font-medium dark:text-neutral-200">
+                Stream stall
               </div>
-              <div class="flex gap-2">
-                <button
-                  v-for="option in chunkTimeoutOptions"
-                  :key="option.value"
-                  :class="
-                    chunkTimeoutSec === option.value
-                      ? 'text-white bg-neutral-500 dark:bg-neutral-600'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'
-                  "
-                  class="text-sm px-3 py-1 rounded transition-colors"
-                  @click="chunkTimeoutSec = option.value"
-                >
-                  {{ option.label }}
-                </button>
+              <div class="text-xs text-neutral-400 mt-0.5 dark:text-neutral-500">
+                No new output received
               </div>
             </div>
+            <SegmentedControl v-model="chunkTimeoutSec" :options="chunkTimeoutOptions" />
           </div>
         </div>
       </div>

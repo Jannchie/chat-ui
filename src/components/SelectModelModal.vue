@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Btn, Modal } from '@roku-ui/vue'
+import { Modal } from '@roku-ui/vue'
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useModels } from '../composables'
 import { platform } from '../shared'
@@ -97,42 +97,38 @@ function closeModal() {
 <template>
   <Modal v-model="modelValue">
     <div
-      class="mx-4 rounded-xl bg-neutral-100 max-w-md w-full shadow-lg overflow-hidden dark:bg-[#1a1a1a]"
+      class="mx-4 border border-neutral-200 rounded-2xl bg-white max-w-md w-full shadow-2xl overflow-hidden dark:border-neutral-800 dark:bg-[#1a1a1a]"
     >
       <div
-        class="p-4 border-b border-neutral-800 flex items-center justify-between"
+        class="px-5 py-4 border-b border-neutral-200 flex items-center justify-between dark:border-neutral-800"
       >
-        <h3 class="text-lg text-neutral-800 font-medium dark:text-white">
+        <h2 class="text-base text-neutral-800 font-semibold dark:text-white">
           Select Model
-        </h3>
-        <Btn
-          icon
-          rounded="full"
-          color="white"
-          variant="transparent"
-          hover-variant="light"
+        </h2>
+        <button
+          class="text-neutral-400 rounded-full flex h-8 w-8 transition-colors items-center justify-center hover:text-neutral-700 hover:bg-neutral-200 dark:hover:text-white dark:hover:bg-neutral-800"
           @click="closeModal"
         >
-          <i class="i-tabler-x text-xl" />
-        </Btn>
+          <i class="i-tabler-x" />
+        </button>
       </div>
 
       <!-- Search bar -->
-      <div class="p-4 border-b border-neutral-800">
+      <div class="px-3 pt-3">
         <div class="relative">
           <i
-            class="i-tabler-search text-neutral-400 transform left-3 top-1/2 absolute -translate-y-1/2"
+            class="i-tabler-search text-sm text-neutral-400 transform left-3 top-1/2 absolute -translate-y-1/2"
           />
           <input
             ref="searchInputRef"
             v-model="searchQuery"
             type="text"
-            class="text-neutral-800 p-2 pl-10 pr-8 outline-none rounded-lg bg-neutral-200 w-full transition-colors dark:text-white dark:bg-neutral-800 focus:bg-neutral-300 focus:ring-2 focus:ring-neutral-600 dark:focus:bg-neutral-700 placeholder-neutral-500 dark:placeholder-neutral-500"
+            class="text-sm text-neutral-800 py-2 pl-9 pr-9 outline-none rounded-lg bg-neutral-100 w-full transition-all dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500/40 placeholder-neutral-400 dark:placeholder-neutral-500"
             placeholder="Search models..."
           >
           <button
             v-if="searchQuery"
-            class="text-neutral-400 transform transition-colors right-3 top-1/2 absolute hover:text-neutral-600 -translate-y-1/2 dark:hover:text-white"
+            class="text-neutral-400 transform transition-colors right-3 top-1/2 absolute hover:text-neutral-700 -translate-y-1/2 dark:hover:text-white"
             @click="searchQuery = ''"
           >
             <i class="i-tabler-x text-sm" />
@@ -140,75 +136,59 @@ function closeModal() {
         </div>
       </div>
 
-      <div class="p-2 max-h-96 overflow-y-auto">
+      <div class="p-3 max-h-96 overflow-y-auto">
         <!-- Loading State -->
         <div v-if="isLoading" class="text-neutral-400 p-8 text-center">
           <i class="i-tabler-loader-2 text-2xl animate-spin" />
-          <p class="mt-2">
+          <p class="text-sm mt-2">
             Loading models...
           </p>
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="text-neutral-400 p-4 text-center">
+        <div v-else-if="error" class="p-6 text-center">
           <i class="i-tabler-alert-circle text-xl text-red-400" />
-          <p class="text-red-400 mt-2">
+          <p class="text-sm text-red-400 mt-2">
             {{ error }}
           </p>
-          <p class="text-sm text-neutral-500 mt-2">
+          <p class="text-xs text-neutral-400 mt-2 dark:text-neutral-500">
             Please configure your API key in the header to fetch available
             models.
           </p>
         </div>
 
         <!-- Models List -->
-        <div v-else-if="filteredModels.length > 0">
+        <div v-else-if="filteredModels.length > 0" class="space-y-0.5">
           <div
             v-for="(modelOption, index) in filteredModels"
             :key="index"
-            class="mb-1 p-3 rounded-lg flex gap-3 cursor-pointer transition-colors items-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            class="px-3 py-2.5 rounded-lg flex gap-3 cursor-pointer transition-colors items-center hover:bg-neutral-100 dark:hover:bg-neutral-800"
             :class="{
-              'bg-neutral-200 dark:bg-neutral-800':
-                modelOption === selectedModel || index === highlightedIndex,
+              'bg-neutral-100 dark:bg-neutral-800': index === highlightedIndex,
             }"
             @click="updateModel(modelOption)"
           >
-            <div
-              class="rounded-full bg-neutral-200 flex flex-shrink-0 h-8 w-8 items-center justify-center dark:bg-neutral-800"
-            >
-              <i class="i-tabler-cube text-purple-400" />
-            </div>
-            <div class="flex flex-col">
+            <i class="i-tabler-cube text-neutral-400 flex-shrink-0" />
+            <div class="flex flex-col min-w-0">
               <span
                 class="text-sm text-neutral-800 font-medium truncate dark:text-white"
               >{{ modelOption }}</span>
-              <span class="text-xs text-neutral-400">{{ platform }}</span>
+              <span class="text-xs text-neutral-400 dark:text-neutral-500">{{ platform }}</span>
             </div>
-            <div class="ml-auto flex-shrink-0">
-              <i
-                v-if="modelOption === selectedModel"
-                class="i-tabler-check text-neutral-400"
-              />
-            </div>
+            <i
+              v-if="modelOption === selectedModel"
+              class="i-tabler-check text-blue-500 ml-auto flex-shrink-0"
+            />
           </div>
         </div>
 
         <!-- No Models Found -->
-        <div v-else class="text-neutral-400 p-4 text-center">
+        <div v-else class="text-neutral-400 p-6 text-center">
           <i class="i-tabler-info-circle text-xl" />
-          <p class="mt-2">
+          <p class="text-sm mt-2">
             No Models Found
           </p>
         </div>
-      </div>
-
-      <div class="p-4 border-t border-neutral-800 flex justify-end">
-        <button
-          class="text-sm text-white font-medium px-4 py-2 rounded-lg bg-neutral-600 transition-colors dark:bg-neutral-700 hover:bg-neutral-700 dark:hover:bg-neutral-600"
-          @click="closeModal"
-        >
-          Close
-        </button>
       </div>
     </div>
   </Modal>
