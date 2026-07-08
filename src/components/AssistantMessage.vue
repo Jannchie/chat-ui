@@ -3,7 +3,6 @@ import type { MessageContent } from '../types/message'
 import { ref } from 'vue'
 import {
   bindStreamingMarkdownTrigger,
-  createReasoningMarkdownVNodes,
   createStreamingMarkdownVNodes,
   createVNodeRendererComponent,
 } from '../lib/preferredMarkdownStream'
@@ -15,6 +14,8 @@ const props = withDefaults(
     loading: boolean
     thinking?: boolean
     model?: string
+    reasoningStartAt?: number
+    reasoningEndAt?: number
   }>(),
   {
     reasoning: '',
@@ -59,22 +60,19 @@ const { contentFinal, contentVNodes } = createStreamingMarkdownVNodes(
   textContent,
   loading,
 )
-const reasoning = toRef(props, 'reasoning')
-const reasoningVNodes = createReasoningMarkdownVNodes(reasoning, {
-  returnEmptyWhenBlank: true,
-})
 
 const StreamMarkdownContent = createVNodeRendererComponent(contentVNodes)
-const StreamMarkdownReasoning = createVNodeRendererComponent(reasoningVNodes)
 
 bindStreamingMarkdownTrigger(
   contentVNodes,
   contentFinal,
 )
 
-bindStreamingMarkdownTrigger(
-  reasoningVNodes,
-  reasoning,
+// 等待响应，或推理仍在输出（尚无正文）
+const thinkingActive = computed(
+  () =>
+    (props.thinking && !textContent.value)
+    || (props.loading && !textContent.value && props.reasoning.length > 0),
 )
 
 function openImagePreview(imageUrl: string) {
@@ -109,24 +107,13 @@ function formatToolCall(toolCall: any) {
 <template>
   <div class="relative">
     <div>
-      <!-- Thinking indicator -->
-      <div
-        v-if="props.thinking && !textContent"
-        class="text-xs mb-4 px-4 py-3 rounded-xl bg-neutral-200 flex gap-2 min-w-full w-full items-center dark:bg-neutral-800"
-      >
-        <i class="i-tabler-brain h-4 w-4 dark:text-neutral-200" />
-        <span class="animate-gradient-text">AI is thinking...</span>
-      </div>
-
-      <div
-        v-if="props.reasoning && props.reasoning.length > 0"
-        class="dark:bg-neutral-1 text-xs mb-4 px-4 py-2 rounded-xl bg-neutral-200 min-w-full w-full overflow-auto prose prose-gray dark:bg-neutral-950 dark:prose-invert"
-      >
-        <div class="text-xs text-gray-500 mb-2">
-          Reasoning ({{ props.reasoning.length }} chars):
-        </div>
-        <StreamMarkdownReasoning />
-      </div>
+      <!-- Thinking / reasoning block (collapsed by default) -->
+      <ThinkingBlock
+        :reasoning="props.reasoning"
+        :active="thinkingActive"
+        :started-at="props.reasoningStartAt"
+        :ended-at="props.reasoningEndAt"
+      />
 
       <!-- Render non-text content first -->
       <div v-for="(part, index) in nonTextContent" :key="index" class="mb-3">
@@ -217,59 +204,5 @@ code:not(pre code) {
   background-color: #222 !important; /* 暗色模式：深色背景 */
   border: 1px solid #444;
   color: #e5e7eb !important; /* 暗色模式：浅色文字 */
-}
-
-:root {
-  --thinking-text-fallback-color: #52525b;
-  --thinking-text-gradient: linear-gradient(
-    90deg,
-    #606368 0%,
-    #a6a9af 15%,
-    #ffffff 30%,
-    #ffffff 50%,
-    #a6a9af 70%,
-    #606368 85%,
-    #606368 100%
-  );
-}
-
-:root[data-scheme="dark"] {
-  --thinking-text-fallback-color: #e5e7eb;
-  --thinking-text-gradient: linear-gradient(
-    90deg,
-    #9ca3af 0%,
-    #d1d5db 25%,
-    #f9fafb 50%,
-    #d1d5db 75%,
-    #9ca3af 100%
-  );
-}
-
-/* 灰色到白色的渐变文本动画 */
-.animate-gradient-text {
-  animation: gradient-text 1s linear infinite;
-  color: var(--thinking-text-fallback-color);
-  display: inline-block;
-}
-
-@supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .animate-gradient-text {
-    color: transparent;
-    background: var(--thinking-text-gradient);
-    background-size: 300% 100%;
-    background-position: 0% 50%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-}
-
-@keyframes gradient-text {
-  0% {
-    background-position: 300% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
 }
 </style>

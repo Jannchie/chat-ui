@@ -42,6 +42,8 @@ export class AIStreamHandler {
   private currentMessage: ChatMessage | null = null
   private startTime = 0
   private firstTokenTime = 0
+  private reasoningStartTime = 0
+  private reasoningEndTime = 0
   private abortController: AbortController | null = null
 
   async streamCompletion(options: StreamOptions): Promise<StreamResult> {
@@ -50,6 +52,8 @@ export class AIStreamHandler {
 
     this.startTime = Date.now()
     this.firstTokenTime = 0
+    this.reasoningStartTime = 0
+    this.reasoningEndTime = 0
     this.abortController = new AbortController()
     // reset per-call state
 
@@ -106,6 +110,13 @@ export class AIStreamHandler {
                   this.currentMessage.metadata.firstTokenAt = this.firstTokenTime
                 }
               }
+              // Text output marks the end of the reasoning phase
+              if (this.reasoningStartTime > 0 && this.reasoningEndTime === 0) {
+                this.reasoningEndTime = Date.now()
+                if (this.currentMessage?.metadata) {
+                  this.currentMessage.metadata.reasoningEndAt = this.reasoningEndTime
+                }
+              }
 
               const textDelta
                 = 'text' in event && typeof (event as any).text === 'string'
@@ -126,6 +137,12 @@ export class AIStreamHandler {
                   ? (event as any).text
                   : ''
               if (reasoningText) {
+                if (this.reasoningStartTime === 0) {
+                  this.reasoningStartTime = Date.now()
+                  if (this.currentMessage?.metadata) {
+                    this.currentMessage.metadata.reasoningStartAt = this.reasoningStartTime
+                  }
+                }
                 fullReasoning += reasoningText
                 this.currentMessage = updateChatMessageReasoning(
                   this.currentMessage!,
@@ -233,6 +250,10 @@ export class AIStreamHandler {
 
       // Update final message metadata
       const receivedAt = Date.now()
+      // Close the reasoning phase if the stream ended without any text output
+      if (this.reasoningStartTime > 0 && this.reasoningEndTime === 0) {
+        this.reasoningEndTime = receivedAt
+      }
       // Prefer the SDK-reported speed; fall back to the local estimate
       const tokenSpeed
         = performance?.outputTokensPerSecond
@@ -260,6 +281,8 @@ export class AIStreamHandler {
           : undefined,
         tokenSpeed,
         performance,
+        reasoningStartAt: this.reasoningStartTime > 0 ? this.reasoningStartTime : undefined,
+        reasoningEndAt: this.reasoningEndTime > 0 ? this.reasoningEndTime : undefined,
       })
 
       // Only call finish when there was no streaming error

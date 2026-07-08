@@ -244,6 +244,8 @@ watch(
           :loading="loading"
           :thinking="props.thinking"
           :model="props.message.metadata?.model"
+          :reasoning-start-at="props.message.metadata?.reasoningStartAt"
+          :reasoning-end-at="props.message.metadata?.reasoningEndAt"
         />
         <template v-else>
           <div class="relative">
@@ -396,6 +398,8 @@ watch(
           :loading="loading"
           :thinking="props.thinking"
           :model="message.metadata?.model"
+          :reasoning-start-at="message.metadata?.reasoningStartAt"
+          :reasoning-end-at="message.metadata?.reasoningEndAt"
         />
         <template v-else-if="message.role === 'user'">
           <div class="relative">

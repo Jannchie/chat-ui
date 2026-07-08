@@ -50,6 +50,8 @@ export interface ChatMessageMetadata {
 
   // 执行完毕后的 metadata
   firstTokenAt?: number // 收到第一个 token 的时间
+  reasoningStartAt?: number // 收到第一个推理 token 的时间
+  reasoningEndAt?: number // 推理结束（首个正文 token 或流结束）的时间
   receivedAt?: number // 收到 AI 响应完毕的时间
   tokenSpeed?: number // tokens per second
   usage?: {

@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import {
   bindStreamingMarkdownTrigger,
-  createReasoningMarkdownVNodes,
   createStreamingMarkdownVNodes,
   createVNodeRendererComponent,
 } from '../lib/preferredMarkdownStream'
@@ -29,13 +28,15 @@ const { contentFinal, contentVNodes } = createStreamingMarkdownVNodes(
   content,
   loading,
 )
-const reasoningVNodes = createReasoningMarkdownVNodes(reasoning)
 
 const StreamMarkdownContent = createVNodeRendererComponent(contentVNodes)
-const StreamMarkdownReasoning = createVNodeRendererComponent(reasoningVNodes)
 
 bindStreamingMarkdownTrigger(contentVNodes, content)
-bindStreamingMarkdownTrigger(reasoningVNodes, reasoning)
+
+// 推理仍在输出且正文尚未开始
+const thinkingActive = computed(
+  () => props.loading && props.content.length === 0 && props.reasoning.length > 0,
+)
 
 // Enhanced copy functionality with tooltip feedback
 function copyContentToClipboard() {
@@ -57,12 +58,7 @@ function copyContentToClipboard() {
 <template>
   <div class="relative">
     <div>
-      <div
-        v-if="reasoning && reasoning.length > 0"
-        class="dark:bg-neutral-1 text-xs mb-4 px-4 py-2 rounded-xl bg-neutral-200 min-w-full w-full overflow-auto prose prose-gray dark:bg-neutral-950 dark:prose-invert"
-      >
-        <StreamMarkdownReasoning />
-      </div>
+      <ThinkingBlock :reasoning="reasoning" :active="thinkingActive" />
 
       <div class="mb-2 relative">
         <div class="right-0 top-0 absolute z-10">
