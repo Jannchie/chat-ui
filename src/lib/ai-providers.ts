@@ -37,6 +37,10 @@ export function createAIProvider(
       const anthropic = createAnthropic({
         apiKey: config.apiKey,
         baseURL: config.baseURL,
+        headers: {
+          // Anthropic 拒绝不带此头的浏览器直连（CORS）
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
       })
 
       return {
