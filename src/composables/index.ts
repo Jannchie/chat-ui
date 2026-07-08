@@ -169,10 +169,17 @@ export function useModels() {
 
       // Fetch real models from API
       const response = await fetchModelsFromAPI(platform.value, apiKey.value)
+      // 等待期间平台/密钥已变化，说明有更新的请求在途，丢弃本次响应
+      if (lastRequestKey.value !== currentRequestKey) {
+        return
+      }
       models.value = response
       error.value = null
     }
     catch (error_) {
+      if (lastRequestKey.value !== currentRequestKey) {
+        return
+      }
       console.error(error_)
       error.value = 'Failed to fetch models'
       models.value = []
@@ -180,7 +187,12 @@ export function useModels() {
       lastRequestKey.value = ''
     }
     finally {
-      isLoading.value = false
+      if (
+        lastRequestKey.value === currentRequestKey
+        || lastRequestKey.value === ''
+      ) {
+        isLoading.value = false
+      }
     }
   }
 

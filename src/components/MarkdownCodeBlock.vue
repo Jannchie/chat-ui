@@ -26,15 +26,24 @@ function syncPreAttrs() {
 }
 
 function copyCode() {
+  if (!navigator.clipboard?.writeText) {
+    console.warn('Clipboard API is not available in this context.')
+    return
+  }
   const tempElement = document.createElement('div')
   tempElement.innerHTML = props.content
   const { textContent } = tempElement
-  navigator.clipboard.writeText(textContent ?? '').then(() => {
-    copied.value = true
-    setTimeout(() => {
-      copied.value = false
-    }, 2000)
-  })
+  navigator.clipboard
+    .writeText(textContent ?? '')
+    .then(() => {
+      copied.value = true
+      setTimeout(() => {
+        copied.value = false
+      }, 2000)
+    })
+    .catch((error) => {
+      console.error(`Failed to copy code: ${error}`)
+    })
 }
 
 watch(

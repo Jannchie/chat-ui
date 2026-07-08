@@ -111,7 +111,10 @@ function openFileDialog() {
       multiple
       accept="image/*"
       class="hidden"
-      @change="handleFiles(($event.target as HTMLInputElement).files)"
+      @change="
+        handleFiles(($event.target as HTMLInputElement).files);
+        ($event.target as HTMLInputElement).value = '';
+      "
     >
 
     <!-- Upload button -->

@@ -103,15 +103,33 @@ function clearContent() {
 
 // Copy content to clipboard
 function copyToClipboard(content: string) {
-  navigator.clipboard.writeText(content)
+  // HTTP 等非安全上下文下 clipboard API 不存在
+  if (!navigator.clipboard?.writeText) {
+    console.warn('Clipboard API is not available in this context.')
+    return
+  }
+  navigator.clipboard.writeText(content).catch((error) => {
+    console.error(`Failed to copy content: ${error}`)
+  })
 }
 
 // Watch for typing indicator
+let typingTimer: ReturnType<typeof setTimeout> | undefined
 watch(text, () => {
   isTyping.value = true
-  setTimeout(() => {
+  if (typingTimer !== undefined) {
+    clearTimeout(typingTimer)
+  }
+  typingTimer = setTimeout(() => {
     isTyping.value = false
+    typingTimer = undefined
   }, 1000)
+})
+
+onBeforeUnmount(() => {
+  if (typingTimer !== undefined) {
+    clearTimeout(typingTimer)
+  }
 })
 
 watchEffect(async () => {

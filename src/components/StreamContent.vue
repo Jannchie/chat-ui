@@ -40,6 +40,10 @@ const thinkingActive = computed(
 
 // Enhanced copy functionality with tooltip feedback
 function copyContentToClipboard() {
+  if (!navigator.clipboard?.writeText) {
+    console.warn('Clipboard API is not available in this context.')
+    return
+  }
   const markdownContent = contentFinal.value
   navigator.clipboard
     .writeText(markdownContent)

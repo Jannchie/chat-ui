@@ -24,7 +24,8 @@ const filteredModels = computed(() => {
     model.toLowerCase().includes(query),
   )
 })
-watch([searchQuery], () => {
+// 列表内容变化（搜索、模型加载完成、切换平台）后旧索引不再有效
+watch(filteredModels, () => {
   highlightedIndex.value = -1
 })
 
@@ -34,22 +35,30 @@ function handleKeyDown(event: KeyboardEvent) {
     return
   }
 
+  const count = filteredModels.value.length
+
   switch (event.key) {
     case 'ArrowDown': {
       event.preventDefault()
-      highlightedIndex.value
-        = (highlightedIndex.value + 1) % filteredModels.value.length
+      if (count === 0) {
+        break
+      }
+      highlightedIndex.value = (highlightedIndex.value + 1) % count
       break
     }
     case 'ArrowUp': {
       event.preventDefault()
+      if (count === 0) {
+        break
+      }
       highlightedIndex.value
-        = (highlightedIndex.value - 1 + filteredModels.value.length)
-        % filteredModels.value.length
+        = highlightedIndex.value <= 0
+          ? count - 1
+          : highlightedIndex.value - 1
       break
     }
     case 'Enter': {
-      if (highlightedIndex.value >= 0) {
+      if (highlightedIndex.value >= 0 && highlightedIndex.value < count) {
         event.preventDefault()
         event.stopPropagation()
         updateModel(filteredModels.value[highlightedIndex.value])
@@ -66,13 +75,16 @@ function handleKeyDown(event: KeyboardEvent) {
   }
 }
 
-// Only listen to keyboard events when modal is open
+// Only listen to keyboard events when modal is open.
+// Reset transient state on any close path (select / backdrop / X button).
 watch(modelValue, (isOpen) => {
   if (isOpen) {
     globalThis.addEventListener('keydown', handleKeyDown)
   }
   else {
     globalThis.removeEventListener('keydown', handleKeyDown)
+    searchQuery.value = ''
+    highlightedIndex.value = -1
   }
 })
 
@@ -89,8 +101,6 @@ function updateModel(modelName: string | null | undefined) {
 // Close modal
 function closeModal() {
   modelValue.value = false
-  searchQuery.value = ''
-  highlightedIndex.value = -1
 }
 </script>
 
