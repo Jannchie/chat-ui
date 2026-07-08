@@ -36,25 +36,32 @@ const displayedCost = computed(() => {
   return format(convertedCost, selectedCurrency.value)
 })
 
-const performanceTooltip = computed(() => {
+function formatMs(ms: number) {
+  return ms < 1000 ? `${ms.toFixed(0)}ms` : `${(ms / 1000).toFixed(2)}s`
+}
+
+const performanceStats = computed(() => {
   const perf = props.message.metadata?.performance
   if (!perf) {
-    return
+    return []
   }
-  const lines: string[] = []
+  const stats: { label: string, value: string }[] = []
   if (perf.timeToFirstOutputMs !== undefined) {
-    lines.push(`TTFT: ${(perf.timeToFirstOutputMs / 1000).toFixed(2)}s`)
+    stats.push({ label: 'First output', value: formatMs(perf.timeToFirstOutputMs) })
+  }
+  if (perf.responseTimeMs !== undefined) {
+    stats.push({ label: 'Response time', value: formatMs(perf.responseTimeMs) })
   }
   if (perf.outputTokensPerSecond !== undefined) {
-    lines.push(`Output: ${perf.outputTokensPerSecond.toFixed(1)} t/s`)
+    stats.push({ label: 'Output speed', value: `${perf.outputTokensPerSecond.toFixed(1)} t/s` })
   }
   if (perf.effectiveOutputTokensPerSecond !== undefined) {
-    lines.push(`Effective: ${perf.effectiveOutputTokensPerSecond.toFixed(1)} t/s`)
+    stats.push({ label: 'Effective speed', value: `${perf.effectiveOutputTokensPerSecond.toFixed(1)} t/s` })
   }
   if (perf.chunkGapMs) {
-    lines.push(`Chunk gap: p50 ${perf.chunkGapMs.median.toFixed(0)}ms / p90 ${perf.chunkGapMs.p90.toFixed(0)}ms / max ${perf.chunkGapMs.max.toFixed(0)}ms`)
+    stats.push({ label: 'Chunk gap p50 / p90', value: `${perf.chunkGapMs.median.toFixed(0)} / ${perf.chunkGapMs.p90.toFixed(0)}ms` })
   }
-  return lines.length > 0 ? lines.join('\n') : undefined
+  return stats
 })
 </script>
 
@@ -104,14 +111,30 @@ const performanceTooltip = computed(() => {
     <Tag v-if="displayedCost" size="sm" variant="light" color="surface">
       {{ displayedCost }}
     </Tag>
-    <Tag
+    <div
       v-if="message.metadata?.tokenSpeed"
-      size="sm"
-      variant="light"
-      color="surface"
-      :title="performanceTooltip"
+      class="group relative"
+      :class="{ 'cursor-help': performanceStats.length > 0 }"
     >
-      {{ message.metadata.tokenSpeed.toFixed(1) }} t/s
-    </Tag>
+      <Tag size="sm" variant="light" color="surface">
+        <template #leftSection>
+          <i class="i-tabler-gauge h-3 w-3" />
+        </template>
+        {{ message.metadata.tokenSpeed.toFixed(1) }} t/s
+      </Tag>
+      <div
+        v-if="performanceStats.length > 0"
+        class="mb-1.5 opacity-0 invisible pointer-events-none transition-opacity duration-150 bottom-full left-0 absolute z-10 group-hover:opacity-100 group-hover:visible"
+      >
+        <div
+          class="text-xs px-3 py-2 border border-neutral-200 rounded-lg bg-white gap-x-4 gap-y-1 grid grid-cols-[auto_auto] whitespace-nowrap shadow-lg dark:border-neutral-700 dark:bg-neutral-800"
+        >
+          <template v-for="stat in performanceStats" :key="stat.label">
+            <span class="text-neutral-500 dark:text-neutral-400">{{ stat.label }}</span>
+            <span class="text-neutral-800 font-mono text-right dark:text-neutral-100">{{ stat.value }}</span>
+          </template>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

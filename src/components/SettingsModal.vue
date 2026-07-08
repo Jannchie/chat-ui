@@ -31,6 +31,20 @@ function selectCurrency(currency: string) {
 }
 
 const themes: Array<'auto' | 'light' | 'dark'> = ['auto', 'light', 'dark']
+
+const totalTimeoutOptions = [
+  { label: 'Off', value: 0 },
+  { label: '1 min', value: 60 },
+  { label: '5 min', value: 300 },
+  { label: '10 min', value: 600 },
+]
+
+const chunkTimeoutOptions = [
+  { label: 'Off', value: 0 },
+  { label: '30s', value: 30 },
+  { label: '2 min', value: 120 },
+  { label: '5 min', value: 300 },
+]
 </script>
 
 <template>
@@ -96,25 +110,47 @@ const themes: Array<'auto' | 'light' | 'dark'> = ['auto', 'light', 'dark']
           <h3 class="text-lg text-neutral-800 font-medium mb-2 dark:text-white">
             Request Timeout
           </h3>
-          <div class="space-y-2">
-            <label class="text-sm text-neutral-600 flex gap-2 items-center justify-between dark:text-neutral-400">
-              <span>Total timeout (seconds, 0 = off)</span>
-              <input
-                v-model.number="totalTimeoutSec"
-                type="number"
-                min="0"
-                class="text-sm px-2 py-1 border border-neutral-300 rounded bg-transparent w-24 dark:border-neutral-700"
-              >
-            </label>
-            <label class="text-sm text-neutral-600 flex gap-2 items-center justify-between dark:text-neutral-400">
-              <span>Stream stall timeout (seconds, 0 = off)</span>
-              <input
-                v-model.number="chunkTimeoutSec"
-                type="number"
-                min="0"
-                class="text-sm px-2 py-1 border border-neutral-300 rounded bg-transparent w-24 dark:border-neutral-700"
-              >
-            </label>
+          <div class="space-y-3">
+            <div>
+              <div class="text-sm text-neutral-500 mb-1 dark:text-neutral-400">
+                Total duration
+              </div>
+              <div class="flex gap-2">
+                <button
+                  v-for="option in totalTimeoutOptions"
+                  :key="option.value"
+                  :class="
+                    totalTimeoutSec === option.value
+                      ? 'text-white bg-neutral-500 dark:bg-neutral-600'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'
+                  "
+                  class="text-sm px-3 py-1 rounded transition-colors"
+                  @click="totalTimeoutSec = option.value"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+            <div>
+              <div class="text-sm text-neutral-500 mb-1 dark:text-neutral-400">
+                Stream stall (no new output)
+              </div>
+              <div class="flex gap-2">
+                <button
+                  v-for="option in chunkTimeoutOptions"
+                  :key="option.value"
+                  :class="
+                    chunkTimeoutSec === option.value
+                      ? 'text-white bg-neutral-500 dark:bg-neutral-600'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white'
+                  "
+                  class="text-sm px-3 py-1 rounded transition-colors"
+                  @click="chunkTimeoutSec = option.value"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
