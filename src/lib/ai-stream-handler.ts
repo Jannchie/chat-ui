@@ -17,7 +17,6 @@ export interface StreamOptions {
   messages: ModelMessage[]
   onUpdate?: (message: ChatMessage) => void
   onFinish?: (message: ChatMessage, usage?: UsageInfo) => void
-  onError?: (error: Error) => void
   preset?: string
   providerOptions?: ProviderOptions
   timeout?: TimeoutConfiguration<ToolSet>
@@ -174,11 +173,25 @@ export class AIStreamHandler {
         }
       }
       catch (error) {
+        // A provider-reported stream error or an abort/timeout is a real failure,
+        // not a missing-API situation — never fall back, since textStream would
+        // replay the whole response from the beginning.
+        if (streamError) {
+          throw streamError
+        }
+        if (
+          error instanceof Error
+          && (error.name === 'AbortError' || error.name === 'TimeoutError')
+        ) {
+          throw error
+        }
         console.warn(
           'event stream not available, falling back to textStream:',
           error,
         )
-        // Fallback: consume textStream to at least stream textual content
+        // Fallback: consume textStream to at least stream textual content.
+        // textStream tees from the beginning of the stream, so restart accumulation.
+        fullContent = ''
         try {
           for await (const delta of (result as any).textStream ?? []) {
             if (this.firstTokenTime === 0) {
@@ -361,14 +374,4 @@ export class AIStreamHandler {
       this.abortController.abort()
     }
   }
-}
-
-/**
- * Helper to create and use a streaming handler in one call
- */
-export async function createStreamCompletion(
-  options: StreamOptions,
-): Promise<StreamResult> {
-  const handler = new AIStreamHandler()
-  return handler.streamCompletion(options)
 }

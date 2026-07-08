@@ -15,7 +15,7 @@ import { useRequestCache } from '../composables/useRequestCache'
 import { useScrollToBottom } from '../composables/useScrollToBottom'
 import { useSpeechToText } from '../composables/useSpeechToText'
 import { getProviderFromPlatform } from '../lib/ai-providers'
-import { createStreamCompletion } from '../lib/ai-stream-handler'
+import { AIStreamHandler } from '../lib/ai-stream-handler'
 import {
   addAssistantMessageVersion,
   chatMessagesToModelMessages,
@@ -400,6 +400,23 @@ watch([audioBlob, isRecording], async ([blob, recording]) => {
 const laststartedAtMS = ref(0)
 const lastEndedAtMS = ref(0)
 
+// 正在进行的流式请求；切换到其它会话时中止，避免旧请求继续占用连接
+const activeStreamHandler = shallowRef<AIStreamHandler | null>(null)
+const activeStreamChatId = ref<string | null>(null)
+
+watch(
+  () => currentChat.value?.id,
+  (newId) => {
+    if (activeStreamHandler.value && newId !== activeStreamChatId.value) {
+      activeStreamHandler.value.cancel()
+    }
+  },
+)
+
+onBeforeUnmount(() => {
+  activeStreamHandler.value?.cancel()
+})
+
 interface StreamAssistantParams {
   chat: ChatData | null
   assistantMessage: ChatMessage
@@ -441,27 +458,36 @@ async function streamAssistantResponse({
     }
   }, 500)
 
-  const assistantIndex = conversation.value.findIndex(
-    message => message.id === assistantMessage.id,
-  )
-  const resolvedAssistantIndex
-    = assistantIndex === -1
-      ? Array.from(conversation.value, message => message.id)
-          .lastIndexOf(assistantMessage.id)
-      : assistantIndex
+  // 所有流式写入都作用在本次请求捕获的会话快照上，并按消息 id 定位；
+  // 流式期间切换会话时，既不会写脏当前显示的会话，也不会把别的会话持久化到旧会话
+  const streamChatId = chat?.id ?? null
+  let streamConversation = [...conversation.value]
+
+  function isStreamChatActive() {
+    return streamChatId !== null && currentChat.value?.id === streamChatId
+  }
+
+  function syncStreamConversation() {
+    if (streamChatId === null || isStreamChatActive()) {
+      conversation.value = streamConversation
+    }
+  }
 
   function commitAssistantUpdate(
     updater: (message: ChatMessage) => ChatMessage,
   ) {
-    if (resolvedAssistantIndex === -1) {
+    const index = streamConversation.findIndex(
+      message => message.id === assistantMessage.id,
+    )
+    if (index === -1) {
       return
     }
-    const currentMessage = conversation.value[resolvedAssistantIndex]
     const updated = ensureAssistantMessageStructure(
-      updater(ensureAssistantMessageStructure(currentMessage)),
+      updater(ensureAssistantMessageStructure(streamConversation[index])),
     )
-    conversation.value[resolvedAssistantIndex] = updated
-    conversation.value = [...conversation.value]
+    streamConversation = [...streamConversation]
+    streamConversation[index] = updated
+    syncStreamConversation()
   }
 
   function applyStreamMessage(streamMessage: ChatMessage) {
@@ -475,6 +501,10 @@ async function streamAssistantResponse({
     })
   }
 
+  const handler = new AIStreamHandler()
+  activeStreamHandler.value = handler
+  activeStreamChatId.value = streamChatId
+
   try {
     const provider = getProviderFromPlatform(
       platform.value,
@@ -484,10 +514,10 @@ async function streamAssistantResponse({
     const languageModel = provider.getModel(currentModel)
 
     const messages = chatMessagesToModelMessages(
-      conversation.value.slice(0, -1),
+      streamConversation.slice(0, -1),
     )
 
-    const result = await createStreamCompletion({
+    const result = await handler.streamCompletion({
       model: languageModel,
       messages,
       preset: platform.value,
@@ -533,26 +563,12 @@ async function streamAssistantResponse({
           apiKey: apiKey.value,
         })
       },
-      onError: (error: Error) => {
-        console.error('AI request error:', error)
-        thinking.value = false
-        const lastIndex = conversation.value.length - 1
-        if (lastIndex >= 0) {
-          const errorMessage = createChatMessage('error', error.message, {
-            sentAt: assistantMessage.metadata?.sentAt || Date.now(),
-            receivedAt: Date.now(),
-          })
-          conversation.value = [
-            ...conversation.value.slice(0, lastIndex + 1),
-            errorMessage,
-          ]
-        }
-      },
     })
 
     if (result.error) {
       console.error('Stream completion failed:', result.error)
-      conversation.value = [...conversation.value, result.message]
+      streamConversation = [...streamConversation, result.message]
+      syncStreamConversation()
     }
   }
   catch (error: unknown) {
@@ -563,28 +579,44 @@ async function streamAssistantResponse({
       sentAt: assistantMessage.metadata?.sentAt || Date.now(),
       receivedAt: Date.now(),
     })
-    conversation.value = [...conversation.value, errorMessage]
+    streamConversation = [...streamConversation, errorMessage]
+    syncStreamConversation()
   }
   finally {
     globalThis.clearTimeout(thinkingTimeout)
     streaming.value = false
     thinking.value = false
+    if (activeStreamHandler.value === handler) {
+      activeStreamHandler.value = null
+      activeStreamChatId.value = null
+    }
 
-    const lastAssistantIndex = Array.from(conversation.value, message => message.role)
+    const lastAssistantIndex = Array.from(streamConversation, message => message.role)
       .lastIndexOf('assistant')
     if (lastAssistantIndex !== -1) {
-      const lastAssistant = conversation.value[lastAssistantIndex]
+      const lastAssistant = streamConversation[lastAssistantIndex]
       if (lastAssistant.metadata && !lastAssistant.metadata.receivedAt) {
-        lastAssistant.metadata.receivedAt = Date.now()
-        conversation.value = [...conversation.value]
+        streamConversation = [...streamConversation]
+        streamConversation[lastAssistantIndex] = {
+          ...lastAssistant,
+          metadata: { ...lastAssistant.metadata, receivedAt: Date.now() },
+        }
+        syncStreamConversation()
       }
     }
 
     if (chat) {
-      const updatedChat
-        = updateChatConversation(chat, conversation.value) ?? chat
+      const normalized = normalizeChatMessages(streamConversation)
+      const updatedChat: ChatData = {
+        ...toRaw(chat),
+        conversation: normalized,
+      }
+      setChat(updatedChat)
+      if (isStreamChatActive()) {
+        conversation.value = normalized
+      }
       if (!updatedChat.title) {
-        const aiMessage = conversation.value
+        const aiMessage = normalized
           .filter(message => message.role === 'assistant')
           .map(message => message.content)
           .join('\n')

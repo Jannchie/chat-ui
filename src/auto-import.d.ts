@@ -269,7 +269,6 @@ declare global {
   const useStepper: typeof import('@vueuse/core').useStepper
   const useStorage: typeof import('@vueuse/core').useStorage
   const useStorageAsync: typeof import('@vueuse/core').useStorageAsync
-  const useStreamChat: typeof import('./composables/useStreamChat').useStreamChat
   const useStreamingText: (typeof import("./composables/useStreamingText"))["useStreamingText"]
   const useStyleTag: typeof import('@vueuse/core').useStyleTag
   const useSupported: typeof import('@vueuse/core').useSupported
@@ -345,7 +344,4 @@ declare global {
   // @ts-ignore
   export type { RequestCacheKey } from './composables/useRequestCache'
   import('./composables/useRequestCache')
-  // @ts-ignore
-  export type { StreamChatOptions } from './composables/useStreamChat'
-  import('./composables/useStreamChat')
 }
