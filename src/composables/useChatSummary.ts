@@ -37,6 +37,8 @@ export function useChatSummary() {
             content: `Summarize the following text in less than 4 words: ${text}`,
           },
         ],
+        allowSystemInMessages: true,
+        timeout: 60_000,
       })
 
       let content = ''

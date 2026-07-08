@@ -61,6 +61,24 @@ export interface ChatMessageMetadata {
     cached_input_tokens?: number // 命中缓存的输入 token 数量
   }
   cost?: number // API 提供的实际费用（优先于计算费用）
+  performance?: MessagePerformance // AI SDK 报告的性能指标
+}
+
+// 来自 AI SDK v7 finish-step 事件的性能统计
+export interface MessagePerformance {
+  timeToFirstOutputMs?: number // 首个输出 chunk 的耗时（TTFT）
+  outputTokensPerSecond?: number // 首个 chunk 之后的输出速度
+  effectiveOutputTokensPerSecond?: number // 全程平均输出速度
+  responseTimeMs?: number // 等待模型响应的总耗时
+  chunkGapMs?: {
+    // 相邻输出 chunk 间隔的统计分布
+    min: number
+    p10: number
+    median: number
+    avg: number
+    p90: number
+    max: number
+  }
 }
 
 export interface AssistantMessageVersion {

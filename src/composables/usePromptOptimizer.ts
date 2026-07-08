@@ -67,6 +67,8 @@ Return only the optimized prompt without any explanations or additional text.`
         ],
         temperature: 0.3,
         maxRetries: 1,
+        allowSystemInMessages: true,
+        timeout: 60_000,
       })
 
       let optimizedContent = ''

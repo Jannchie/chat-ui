@@ -8,7 +8,7 @@ import {
   ensureAssistantMessageStructure,
   normalizeChatMessages,
 } from '../lib/message-converter'
-import { apiKey, model, platform, serviceUrl } from '../shared'
+import { apiKey, model, platform, requestTimeout, serviceUrl } from '../shared'
 
 export interface StreamChatOptions {
   onUpdate?: (message: ChatMessage) => void
@@ -121,6 +121,7 @@ export function useStreamChat() {
           model: languageModel,
           messages,
           preset: platform.value,
+          timeout: requestTimeout.value,
           onUpdate: (updatedMessage: ChatMessage) => {
             // Set start time on first response
             if (lastStartedAtMS.value === 0) {

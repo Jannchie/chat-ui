@@ -35,6 +35,20 @@ export const openaiReasoningEffort = useDexieStorage<ReasoningEffort>(
   'medium',
 )
 
+// 请求超时设置（秒），0 表示不限制
+export const totalTimeoutSec = useDexieStorage('totalTimeoutSec', 0)
+// 流式响应中相邻 chunk 的最大间隔（秒），用于检测挂死的连接，0 表示不限制
+export const chunkTimeoutSec = useDexieStorage('chunkTimeoutSec', 120)
+
+export const requestTimeout = computed(() => {
+  const totalMs = totalTimeoutSec.value > 0 ? totalTimeoutSec.value * 1000 : undefined
+  const chunkMs = chunkTimeoutSec.value > 0 ? chunkTimeoutSec.value * 1000 : undefined
+  if (totalMs === undefined && chunkMs === undefined) {
+    return
+  }
+  return { totalMs, chunkMs }
+})
+
 export const serviceUrl = computed(() => {
   if (platform.value === 'custom') {
     return customServiceUrl.value

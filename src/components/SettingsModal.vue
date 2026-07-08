@@ -2,6 +2,7 @@
 import { Modal } from '@roku-ui/vue'
 import { useCurrency } from '../composables/useCurrency'
 import { useTheme } from '../composables/useTheme'
+import { chunkTimeoutSec, totalTimeoutSec } from '../shared'
 
 const props = defineProps<{
   modelValue: boolean
@@ -89,6 +90,31 @@ const themes: Array<'auto' | 'light' | 'dark'> = ['auto', 'light', 'dark']
             >
               {{ currency }}
             </button>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg text-neutral-800 font-medium mb-2 dark:text-white">
+            Request Timeout
+          </h3>
+          <div class="space-y-2">
+            <label class="text-sm text-neutral-600 flex gap-2 items-center justify-between dark:text-neutral-400">
+              <span>Total timeout (seconds, 0 = off)</span>
+              <input
+                v-model.number="totalTimeoutSec"
+                type="number"
+                min="0"
+                class="text-sm px-2 py-1 border border-neutral-300 rounded bg-transparent w-24 dark:border-neutral-700"
+              >
+            </label>
+            <label class="text-sm text-neutral-600 flex gap-2 items-center justify-between dark:text-neutral-400">
+              <span>Stream stall timeout (seconds, 0 = off)</span>
+              <input
+                v-model.number="chunkTimeoutSec"
+                type="number"
+                min="0"
+                class="text-sm px-2 py-1 border border-neutral-300 rounded bg-transparent w-24 dark:border-neutral-700"
+              >
+            </label>
           </div>
         </div>
       </div>

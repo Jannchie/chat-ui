@@ -35,6 +35,27 @@ const displayedCost = computed(() => {
   }
   return format(convertedCost, selectedCurrency.value)
 })
+
+const performanceTooltip = computed(() => {
+  const perf = props.message.metadata?.performance
+  if (!perf) {
+    return
+  }
+  const lines: string[] = []
+  if (perf.timeToFirstOutputMs !== undefined) {
+    lines.push(`TTFT: ${(perf.timeToFirstOutputMs / 1000).toFixed(2)}s`)
+  }
+  if (perf.outputTokensPerSecond !== undefined) {
+    lines.push(`Output: ${perf.outputTokensPerSecond.toFixed(1)} t/s`)
+  }
+  if (perf.effectiveOutputTokensPerSecond !== undefined) {
+    lines.push(`Effective: ${perf.effectiveOutputTokensPerSecond.toFixed(1)} t/s`)
+  }
+  if (perf.chunkGapMs) {
+    lines.push(`Chunk gap: p50 ${perf.chunkGapMs.median.toFixed(0)}ms / p90 ${perf.chunkGapMs.p90.toFixed(0)}ms / max ${perf.chunkGapMs.max.toFixed(0)}ms`)
+  }
+  return lines.length > 0 ? lines.join('\n') : undefined
+})
 </script>
 
 <template>
@@ -58,12 +79,12 @@ const displayedCost = computed(() => {
         <span class="flex gap-0.5 items-center">
           <i class="i-tabler-arrow-up h-3 w-3" />
           <span>{{ message.metadata.usage.input_tokens }}</span>
-          <i class="i-tabler-arrow-down h-3 w-3 ml-0.5" />
+          <i class="i-tabler-arrow-down ml-0.5 h-3 w-3" />
           <span>{{ message.metadata.usage.output_tokens }}</span>
           <template v-if="message.metadata.usage.reasoning_tokens && message.metadata.usage.reasoning_tokens > 0">
-            <i class="i-tabler-message h-3 w-3 ml-1" />
+            <i class="i-tabler-message ml-1 h-3 w-3" />
             <span>{{ message.metadata.usage.text_tokens ?? (message.metadata.usage.output_tokens - message.metadata.usage.reasoning_tokens) }}</span>
-            <i class="i-tabler-brain h-3 w-3 ml-0.5" />
+            <i class="i-tabler-brain ml-0.5 h-3 w-3" />
             <span>{{ message.metadata.usage.reasoning_tokens }}</span>
           </template>
         </span>
@@ -88,6 +109,7 @@ const displayedCost = computed(() => {
       size="sm"
       variant="light"
       color="surface"
+      :title="performanceTooltip"
     >
       {{ message.metadata.tokenSpeed.toFixed(1) }} t/s
     </Tag>

@@ -1,6 +1,6 @@
-import type { LanguageModel, ModelMessage } from 'ai'
+import type { LanguageModel, ModelMessage, TimeoutConfiguration, ToolSet } from 'ai'
 import type { ProviderOptions } from '../types/ai'
-import type { ChatMessage } from '../types/message'
+import type { ChatMessage, MessagePerformance } from '../types/message'
 import { streamText } from 'ai'
 import {
   createChatMessage,
@@ -20,6 +20,7 @@ export interface StreamOptions {
   onError?: (error: Error) => void
   preset?: string
   providerOptions?: ProviderOptions
+  timeout?: TimeoutConfiguration<ToolSet>
 }
 
 export interface UsageInfo {
@@ -44,7 +45,7 @@ export class AIStreamHandler {
   private abortController: AbortController | null = null
 
   async streamCompletion(options: StreamOptions): Promise<StreamResult> {
-    const { model, messages, onUpdate, onFinish, preset, providerOptions }
+    const { model, messages, onUpdate, onFinish, preset, providerOptions, timeout }
       = options
 
     this.startTime = Date.now()
@@ -70,9 +71,12 @@ export class AIStreamHandler {
       const result = streamText({
         model,
         messages,
+        // Chat history may legitimately contain system messages
+        allowSystemInMessages: true,
         // No internal retries
         maxRetries: 0,
         abortSignal: this.abortController?.signal,
+        timeout,
         providerOptions,
         onError: (event) => {
           console.error('Stream internal error:', event.error)
@@ -88,43 +92,63 @@ export class AIStreamHandler {
       let usage: UsageInfo | undefined
 
       let fullReasoning = ''
+      let performance: MessagePerformance | undefined
 
-      // Prefer fullStream to handle all event types, including reasoning
+      // Prefer the full event stream to handle all event types, including reasoning
       try {
-        for await (const event of result.fullStream) {
-          if (event.type === 'text-delta') {
-            if (this.firstTokenTime === 0) {
-              this.firstTokenTime = Date.now()
-              // Update first token timestamp
-              if (this.currentMessage?.metadata) {
-                this.currentMessage.metadata.firstTokenAt = this.firstTokenTime
+        for await (const event of result.stream) {
+          switch (event.type) {
+            case 'text-delta': {
+              if (this.firstTokenTime === 0) {
+                this.firstTokenTime = Date.now()
+                // Update first token timestamp
+                if (this.currentMessage?.metadata) {
+                  this.currentMessage.metadata.firstTokenAt = this.firstTokenTime
+                }
               }
-            }
 
-            const textDelta
-              = 'text' in event && typeof (event as any).text === 'string'
-                ? (event as any).text
-                : ''
-            fullContent += textDelta
-            this.currentMessage = updateChatMessageContent(
-              this.currentMessage!,
-              fullContent,
-            )
-            onUpdate?.(this.currentMessage)
-          }
-          else if (event.type === 'reasoning-delta') {
-            const reasoningText
-              = 'text' in event && typeof (event as any).text === 'string'
-                ? (event as any).text
-                : ''
-            if (reasoningText) {
-              fullReasoning += reasoningText
-              this.currentMessage = updateChatMessageReasoning(
+              const textDelta
+                = 'text' in event && typeof (event as any).text === 'string'
+                  ? (event as any).text
+                  : ''
+              fullContent += textDelta
+              this.currentMessage = updateChatMessageContent(
                 this.currentMessage!,
-                fullReasoning,
+                fullContent,
               )
-              onUpdate?.(this.currentMessage!)
+              onUpdate?.(this.currentMessage)
+
+              break
             }
+            case 'reasoning-delta': {
+              const reasoningText
+                = 'text' in event && typeof (event as any).text === 'string'
+                  ? (event as any).text
+                  : ''
+              if (reasoningText) {
+                fullReasoning += reasoningText
+                this.currentMessage = updateChatMessageReasoning(
+                  this.currentMessage!,
+                  fullReasoning,
+                )
+                onUpdate?.(this.currentMessage!)
+              }
+
+              break
+            }
+            case 'finish-step': {
+              const perf = event.performance
+              performance = {
+                timeToFirstOutputMs: perf.timeToFirstOutputMs,
+                outputTokensPerSecond: perf.outputTokensPerSecond,
+                effectiveOutputTokensPerSecond: perf.effectiveOutputTokensPerSecond,
+                responseTimeMs: perf.responseTimeMs,
+                chunkGapMs: perf.timeBetweenOutputChunksMs,
+              }
+
+              break
+            }
+          // No default
           }
         }
         // If the underlying stream reported an error via onError, treat this attempt as failed
@@ -134,7 +158,7 @@ export class AIStreamHandler {
       }
       catch (error) {
         console.warn(
-          'fullStream not available, falling back to textStream:',
+          'event stream not available, falling back to textStream:',
           error,
         )
         // Fallback: consume textStream to at least stream textual content
@@ -209,10 +233,12 @@ export class AIStreamHandler {
 
       // Update final message metadata
       const receivedAt = Date.now()
+      // Prefer the SDK-reported speed; fall back to the local estimate
       const tokenSpeed
-        = usage && this.firstTokenTime > 0
-          ? usage.outputTokens / ((receivedAt - this.firstTokenTime) / 1000)
-          : undefined
+        = performance?.outputTokensPerSecond
+          ?? (usage && this.firstTokenTime > 0
+            ? usage.outputTokens / ((receivedAt - this.firstTokenTime) / 1000)
+            : undefined)
 
       this.currentMessage = mergeChatMessageMetadata(this.currentMessage!, {
         receivedAt,
@@ -233,6 +259,7 @@ export class AIStreamHandler {
             }
           : undefined,
         tokenSpeed,
+        performance,
       })
 
       // Only call finish when there was no streaming error
@@ -253,6 +280,22 @@ export class AIStreamHandler {
         })
         return {
           message: errorChatMessage,
+          error,
+        }
+      }
+
+      // Timeout: the SDK aborts with a DOMException named TimeoutError
+      if (error instanceof Error && error.name === 'TimeoutError') {
+        const timeoutChatMessage = createChatMessage(
+          'error',
+          `Request timed out (${error.message})`,
+          {
+            sentAt: this.startTime,
+            receivedAt: Date.now(),
+          },
+        )
+        return {
+          message: timeoutChatMessage,
           error,
         }
       }

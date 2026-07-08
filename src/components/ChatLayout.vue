@@ -38,6 +38,7 @@ import {
   model,
   openaiReasoningEffort,
   platform,
+  requestTimeout,
   serviceUrl,
   useCurrentChat,
 } from '../shared'
@@ -216,6 +217,8 @@ async function generateSummary(text: string, lockedModel?: string) {
           content: `Summarize the following text in less than 4 words: ${text}`,
         },
       ],
+      allowSystemInMessages: true,
+      timeout: 60_000,
       providerOptions: reasoningProviderOptions.value,
     })
 
@@ -489,6 +492,7 @@ async function streamAssistantResponse({
       messages,
       preset: platform.value,
       providerOptions: reasoningProviderOptions.value,
+      timeout: requestTimeout.value,
       onUpdate: (updatedMessage: ChatMessage) => {
         if (laststartedAtMS.value === 0) {
           laststartedAtMS.value = Date.now()
@@ -1047,7 +1051,7 @@ watchEffect(() => {
             <div>
               <span class="font-medium mr-1">Current:</span>
               <i class="i-tabler-arrow-up h-3 w-3" />{{ lastUsage.prompt_tokens }}
-              <i class="i-tabler-arrow-down h-3 w-3 ml-0.5" />{{ lastUsage.completion_tokens }}
+              <i class="i-tabler-arrow-down ml-0.5 h-3 w-3" />{{ lastUsage.completion_tokens }}
               <template
                 v-if="
                   lastUsage.reasoning_tokens
@@ -1056,7 +1060,7 @@ watchEffect(() => {
               >
                 <span class="op70">
                   (<i class="i-tabler-message h-3 w-3" />{{ lastUsage.text_tokens ?? (lastUsage.completion_tokens - lastUsage.reasoning_tokens) }}
-                  <i class="i-tabler-brain h-3 w-3 ml-0.5" />{{ lastUsage.reasoning_tokens }})
+                  <i class="i-tabler-brain ml-0.5 h-3 w-3" />{{ lastUsage.reasoning_tokens }})
                 </span>
               </template>
             </div>
