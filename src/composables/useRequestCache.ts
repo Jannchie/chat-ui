@@ -75,30 +75,30 @@ async function cacheSuccessfulRequest(key: RequestCacheKey) {
 
   try {
     await sanitizeLegacyEntries()
-    // Check if entry already exists
-    const existingEntry = await db.requestCache
-      .where('cacheKey')
-      .equals(cacheKey)
-      .first()
+    // cacheKey 不是唯一索引，read-then-write 放进事务里避免并发时重复插入
+    await db.transaction('rw', db.requestCache, async () => {
+      const existingEntry = await db.requestCache
+        .where('cacheKey')
+        .equals(cacheKey)
+        .first()
 
-    existingEntry
-      ? await db.requestCache.update(existingEntry.id!, {
-          timestamp: now,
-          lastAccessed: now,
-          accessCount: existingEntry.accessCount + 1,
-          key: storedKey,
-          success: true,
-        })
-      : await db.requestCache.add({
-          cacheKey,
-          key: storedKey,
-          timestamp: now,
-          success: true,
-          accessCount: 1,
-          lastAccessed: now,
-        })
-
-    await db.requestCache.count()
+      await (existingEntry
+        ? db.requestCache.update(existingEntry.id!, {
+            timestamp: now,
+            lastAccessed: now,
+            accessCount: existingEntry.accessCount + 1,
+            key: storedKey,
+            success: true,
+          })
+        : db.requestCache.add({
+            cacheKey,
+            key: storedKey,
+            timestamp: now,
+            success: true,
+            accessCount: 1,
+            lastAccessed: now,
+          }))
+    })
 
     // Cleanup and maintain cache size
     await cleanupExpiredEntries()
