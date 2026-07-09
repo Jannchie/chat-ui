@@ -271,7 +271,8 @@ export class AIStreamHandler {
       const tokenSpeed
         = performance?.outputTokensPerSecond
           ?? (usage && this.firstTokenTime > 0
-            ? usage.outputTokens / ((receivedAt - this.firstTokenTime) / 1000)
+            // 单 chunk 同毫秒完成时间隔为 0，钳到 1ms 避免 Infinity
+            ? usage.outputTokens / (Math.max(receivedAt - this.firstTokenTime, 1) / 1000)
             : undefined)
 
       this.currentMessage = mergeChatMessageMetadata(this.currentMessage!, {

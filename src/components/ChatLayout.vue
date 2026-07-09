@@ -60,8 +60,7 @@ const conversation = shallowRef<ChatMessage[]>([])
 const currentChat = useCurrentChat()
 
 const lastAssistantMessageId = computed<string | null>(() => {
-  const reversed = [...conversation.value].reverse()
-  const lastAssistant = reversed.find(
+  const lastAssistant = conversation.value.findLast(
     message => message.role === 'assistant',
   )
   return lastAssistant ? lastAssistant.id : null
@@ -502,6 +501,39 @@ async function streamAssistantResponse({
     })
   }
 
+  // 每次 delta 都携带完整累积内容，逐 token 重建会话数组开销大；
+  // 按动画帧合并，一帧内只应用最后一次更新
+  let pendingStreamMessage: ChatMessage | null = null
+  let streamFlushFrame: number | null = null
+
+  function queueStreamMessage(streamMessage: ChatMessage) {
+    pendingStreamMessage = streamMessage
+    streamFlushFrame ??= requestAnimationFrame(() => {
+      streamFlushFrame = null
+      flushPendingStreamMessage()
+    })
+  }
+
+  function flushPendingStreamMessage() {
+    if (streamFlushFrame !== null) {
+      cancelAnimationFrame(streamFlushFrame)
+      streamFlushFrame = null
+    }
+    const pending = pendingStreamMessage
+    pendingStreamMessage = null
+    if (pending) {
+      applyStreamMessage(pending)
+    }
+  }
+
+  function discardPendingStreamMessage() {
+    if (streamFlushFrame !== null) {
+      cancelAnimationFrame(streamFlushFrame)
+      streamFlushFrame = null
+    }
+    pendingStreamMessage = null
+  }
+
   const handler = new AIStreamHandler()
   activeStreamHandler.value = handler
   activeStreamChatId.value = streamChatId
@@ -533,7 +565,7 @@ async function streamAssistantResponse({
           thinking.value = false
         }
 
-        applyStreamMessage(updatedMessage)
+        queueStreamMessage(updatedMessage)
       },
       onFinish: (finalMessage: ChatMessage, usage?: any) => {
         lastEndedAtMS.value = Date.now()
@@ -555,6 +587,8 @@ async function streamAssistantResponse({
           }
         }
 
+        // 最终消息覆盖一切，丢弃可能滞留的中间帧，避免旧内容在其后回写
+        discardPendingStreamMessage()
         applyStreamMessage(finalMessage)
 
         cacheSuccessfulRequest({
@@ -584,6 +618,8 @@ async function streamAssistantResponse({
     syncStreamConversation()
   }
   finally {
+    // 错误/中断路径上把最后一帧未落地的部分内容应用掉（正常完成时是 no-op）
+    flushPendingStreamMessage()
     globalThis.clearTimeout(thinkingTimeout)
     streaming.value = false
     thinking.value = false
@@ -592,8 +628,9 @@ async function streamAssistantResponse({
       activeStreamChatId.value = null
     }
 
-    const lastAssistantIndex = Array.from(streamConversation, message => message.role)
-      .lastIndexOf('assistant')
+    const lastAssistantIndex = streamConversation.findLastIndex(
+      message => message.role === 'assistant',
+    )
     if (lastAssistantIndex !== -1) {
       const lastAssistant = streamConversation[lastAssistantIndex]
       if (lastAssistant.metadata && !lastAssistant.metadata.receivedAt) {
@@ -717,8 +754,9 @@ async function onSubmit() {
   conversation.value = [...conversation.value, userMessage, assistantMessage]
   chat = updateChatConversation(chat, conversation.value) ?? chat
 
-  const normalizedAssistantIndex = Array.from(conversation.value, message => message.role)
-    .lastIndexOf('assistant')
+  const normalizedAssistantIndex = conversation.value.findLastIndex(
+    message => message.role === 'assistant',
+  )
   const normalizedAssistantMessage
     = normalizedAssistantIndex === -1
       ? ensureAssistantMessageStructure(assistantMessage)
@@ -1278,12 +1316,6 @@ watchEffect(() => {
                   :disabled="streaming"
                   size="md"
                   variant="ghost"
-                  @optimized="
-                    (optimizedPrompt: string) => {
-                      // Optional: Show a toast notification or animation
-                      console.log('Prompt optimized:', optimizedPrompt);
-                    }
-                  "
                 />
 
                 <!-- Send button -->

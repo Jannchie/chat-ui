@@ -1,12 +1,10 @@
-import { nextTick, onBeforeUnmount, ref } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 
 export function useScrollToBottom(
   containerRef: Ref<HTMLElement | null>,
   scrollThreshold = 50,
   enable: MaybeRef<boolean> = true,
 ) {
-  // 滚动容器的引用
-
   // 是否自动吸附到底部
   const isStickToBottom = ref(false)
 
@@ -50,22 +48,18 @@ export function useScrollToBottom(
     isStickToBottom.value = isNearBottom()
   }
 
-  /**
-   * 监听内容变化
-   */
-  const observeContentChange = () => {
-    if (!containerRef.value) {
+  // 流式输出时每个 token 都会触发 DOM 变更，读 scrollHeight 会强制 reflow；
+  // 按动画帧合并检查，一帧内的多次变更只读一次布局
+  let scrollCheckFrame: number | null = null
+  const scheduleScrollCheck = () => {
+    if (scrollCheckFrame !== null) {
       return
     }
-
-    // 创建一个 MutationObserver 来监听内容变化
-    const observer = new MutationObserver(async () => {
+    scrollCheckFrame = requestAnimationFrame(() => {
+      scrollCheckFrame = null
       if (!containerRef.value) {
         return
       }
-
-      // 等待 DOM 更新完成
-      await nextTick()
 
       const { scrollHeight } = containerRef.value
 
@@ -77,45 +71,42 @@ export function useScrollToBottom(
       // 更新最后内容高度
       lastContentHeight.value = scrollHeight
     })
-
-    // 开始观察内容变化
-    observer.observe(containerRef.value, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    })
-
-    // 返回 observer 用于清理
-    return observer
   }
 
-  // 存储 observer 引用以便清理
-  let observer = observeContentChange()
-  watch([containerRef], () => {
-    if (containerRef.value) {
-      // 添加滚动事件监听器
-      containerRef.value.addEventListener('scroll', handleScroll)
+  // 单个 observer 复用，容器切换时先 disconnect 再重新 observe，避免泄漏
+  const observer = new MutationObserver(scheduleScrollCheck)
 
-      // 初始化 observer
-      observer = observeContentChange()
+  watch(
+    containerRef,
+    (container, previousContainer) => {
+      observer.disconnect()
+      previousContainer?.removeEventListener('scroll', handleScroll)
+
+      if (!container) {
+        return
+      }
+
+      container.addEventListener('scroll', handleScroll)
+      observer.observe(container, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      })
 
       // 获取初始内容高度
-      lastContentHeight.value = containerRef.value.scrollHeight
+      lastContentHeight.value = container.scrollHeight
 
       // 初始化时滚动到底部
       scrollToBottom()
-    }
-  })
+    },
+    { immediate: true },
+  )
 
   onBeforeUnmount(() => {
-    // 清理事件监听器
-    if (containerRef.value) {
-      containerRef.value.removeEventListener('scroll', handleScroll)
-    }
-
-    // 清理 observer
-    if (observer) {
-      observer.disconnect()
+    observer.disconnect()
+    containerRef.value?.removeEventListener('scroll', handleScroll)
+    if (scrollCheckFrame !== null) {
+      cancelAnimationFrame(scrollCheckFrame)
     }
   })
 }
