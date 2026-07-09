@@ -101,15 +101,3 @@ export interface ChatMessage {
   versions?: AssistantMessageVersion[]
   activeVersionIndex?: number
 }
-
-// Transform 参数类型
-export interface TransformOptions {
-  apiType: 'completion' | 'responses' | 'custom'
-  customTransformer?: MessageTransformer // 自定义转换器
-}
-
-// Transform 函数类型
-export type MessageTransformer<T = any> = (
-  messages: ChatMessage[],
-  options: TransformOptions,
-) => T
