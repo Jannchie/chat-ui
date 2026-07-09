@@ -87,13 +87,25 @@ async function getPricingData(): Promise<Record<string, ModelPricing>> {
 
     // 合并：LiteLLM 作为基础，OpenRouter 覆盖
     const merged = { ...litellmPricing, ...openrouterPricing }
+
+    // 两个数据源都失败时不缓存空结果，网络恢复后下次调用能重新拉取
+    if (Object.keys(merged).length === 0) {
+      return merged
+    }
+
     cachedPricing = merged
 
-    localStorage.setItem(CACHE_KEY, JSON.stringify(merged))
-    localStorage.setItem(
-      CACHE_EXPIRY_KEY,
-      (Date.now() + CACHE_DURATION).toString(),
-    )
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(merged))
+      localStorage.setItem(
+        CACHE_EXPIRY_KEY,
+        (Date.now() + CACHE_DURATION).toString(),
+      )
+    }
+    catch (error) {
+      // 定价数据可达数百 KB，超出配额时降级为仅内存缓存
+      console.warn('Failed to persist pricing cache:', error)
+    }
 
     return merged
   })()
