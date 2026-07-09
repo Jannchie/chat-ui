@@ -22,7 +22,6 @@
     "@roku-ui/preset": "^0.31.0",
     "@roku-ui/vue": "^0.31.0",
     "@vueuse/core": "^14.3.0",
-    "@vueuse/integrations": "^14.3.0",
     "ai": "^7.0.18",
     "dexie": "^4.4.4",
     "idb-keyval": "^6.3.0",

@@ -62,7 +62,7 @@ function manualChunks(id: string) {
   if (id.includes('node_modules/vue/') || id.includes('node_modules/vue-router/')) {
     return 'vendor-vue'
   }
-  if (id.includes('node_modules/@vueuse/core/') || id.includes('node_modules/@vueuse/integrations/')) {
+  if (id.includes('node_modules/@vueuse/core/')) {
     return 'vendor-ui'
   }
   if (id.includes('node_modules/dexie/') || id.includes('node_modules/idb-keyval/')) {

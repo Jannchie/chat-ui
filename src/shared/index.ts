@@ -1,21 +1,14 @@
-import type { ChatData } from '../composables/chat-types'
 import type { ReasoningEffort } from '../types/ai'
-import { useIDBKeyval } from '@vueuse/integrations/useIDBKeyval'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDexieStorage } from '../composables/useDexieStorage'
+import { chatList } from './chat-history'
 
 export type { ReasoningEffort } from '../types/ai'
 
-export const chatHistoryIDB = useIDBKeyval<ChatData[]>('chatHistory', [], {
-  shallow: true,
-})
-export const chatHistory = computed({
-  get: () => chatHistoryIDB.data.value,
-  set: (value: ChatData[]) => {
-    chatHistoryIDB.data.value = value
-  },
-})
+export { chatHistoryLoaded, chatHistoryReady, deleteChat, getChat, setChat } from './chat-history'
+
+export const chatHistory = computed(() => chatList.value)
 
 export interface Preset {
   model: string

@@ -35,7 +35,7 @@ import {
 } from '../lib/reasoning'
 import {
   apiKey,
-  chatHistoryIDB,
+  chatHistoryLoaded,
   model,
   openaiReasoningEffort,
   platform,
@@ -675,8 +675,9 @@ async function onSubmit() {
     return
   }
 
-  // 聊天历史尚未从 IndexedDB 加载完成时创建的新会话，会在加载完成后被存储值覆盖丢失
-  if (!chatHistoryIDB.isFinished.value) {
+  // 聊天历史尚未加载完成时，当前路由对应的会话可能还不在内存里，
+  // 此时发送会被当成新会话分叉出去
+  if (!chatHistoryLoaded.value) {
     console.warn('Chat history is still loading; please retry in a moment.')
     return
   }
