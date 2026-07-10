@@ -1,5 +1,5 @@
 import type { ReasoningEffort } from '../types/ai'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDexieStorage } from '../composables/useDexieStorage'
 import { chatList } from './chat-history'
@@ -107,6 +107,9 @@ export const apiKey = computed({
     }
   },
 })
+
+// 移动端（< lg）侧边栏抽屉的开关状态；桌面端侧边栏常驻，不受影响
+export const asideOpen = ref(false)
 
 export function useCurrentChat() {
   const route = useRoute()

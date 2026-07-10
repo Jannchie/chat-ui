@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref, toRaw } from 'vue'
 import {
   apiKey,
+  asideOpen,
   customServiceUrl,
   model,
   platform,
@@ -101,12 +102,14 @@ onBeforeUnmount(() => {
   <header
     class="text-lg px-4 py-3 flex flex-shrink-0 gap-4 items-center justify-between lg:px-6 lg:h-72px"
   >
-    <!-- New Conversation Button for small screens -->
+    <!-- Chat list drawer toggle for small screens -->
     <button
-      class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex hidden items-center justify-center hover:bg-neutral-100 lg:hidden"
-      @click="$router.push('/')"
+      class="text-lg p-2 rounded-full flex items-center justify-center hover:bg-neutral-100 lg:hidden dark:hover:bg-neutral-800"
+      aria-label="Open chat list"
+      title="Open chat list"
+      @click="asideOpen = true"
     >
-      <i class="i-tabler-plus text-neutral-400" />
+      <i class="i-tabler-menu-2 text-neutral-400" />
     </button>
     <div class="flex gap-2 min-w-0 items-center">
       <!-- Model selection - visible on all devices -->
