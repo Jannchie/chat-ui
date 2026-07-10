@@ -384,6 +384,16 @@ const lastEndedAtMS = ref(0)
 // 正在进行的流式请求；切换到其它会话时中止，避免旧请求继续占用连接
 const activeStreamHandler = shallowRef<AIStreamHandler | null>(null)
 const activeStreamChatId = ref<string | null>(null)
+// 用户主动停止时保留已生成的部分内容，不追加 "Request aborted" 错误消息
+const userStopRequested = ref(false)
+
+function stopStreaming(): void {
+  if (!streaming.value) {
+    return
+  }
+  userStopRequested.value = true
+  activeStreamHandler.value?.cancel()
+}
 
 watch(
   () => currentChat.value?.id,
@@ -429,6 +439,7 @@ async function streamAssistantResponse({
 }: StreamAssistantParams): Promise<void> {
   streaming.value = true
   thinking.value = false
+  userStopRequested.value = false
   lastUsage.value = null
   laststartedAtMS.value = 0
   lastEndedAtMS.value = 0
@@ -581,7 +592,9 @@ async function streamAssistantResponse({
       },
     })
 
-    if (result.error) {
+    const stoppedByUser
+      = userStopRequested.value && result.error?.name === 'AbortError'
+    if (result.error && !stoppedByUser) {
       console.error('Stream completion failed:', result.error)
       streamConversation = [...streamConversation, result.message]
       syncStreamConversation()
@@ -1293,15 +1306,25 @@ watchEffect(() => {
 
                 <!-- Send button -->
                 <button
-                  :disabled="
-                    streaming || (!input.trim() && uploadedImages.length === 0)
-                  "
+                  v-if="streaming"
+                  class="text-white rounded-full bg-neutral-900 flex h-8 w-8 transition-all items-center justify-center dark:text-neutral-900 dark:bg-neutral-100 hover:bg-neutral-700 dark:hover:bg-white"
+                  aria-label="Stop generating"
+                  title="Stop generating"
+                  @click="stopStreaming"
+                >
+                  <i class="i-tabler-player-stop-filled h-4 w-4" />
+                </button>
+                <button
+                  v-else
+                  :disabled="!input.trim() && uploadedImages.length === 0"
                   :class="
-                    !streaming && (input.trim() || uploadedImages.length > 0)
+                    input.trim() || uploadedImages.length > 0
                       ? 'bg-neutral-900 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-white'
                       : 'text-neutral-400 opacity-50 cursor-not-allowed dark:text-neutral-500'
                   "
                   class="rounded-full flex h-8 w-8 transition-all items-center justify-center"
+                  aria-label="Send message"
+                  title="Send message"
                   @click="onSubmit"
                 >
                   <i class="i-tabler-send h-4 w-4" />
