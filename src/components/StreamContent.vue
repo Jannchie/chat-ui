@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import {
   bindStreamingMarkdownTrigger,
   createStreamingMarkdownVNodes,
@@ -22,7 +21,8 @@ const props = withDefaults(
 const content = computed(() => props.content)
 const reasoning = computed(() => props.reasoning)
 const loading = computed(() => props.loading)
-const showCopyTooltip = ref(false)
+const { copy, copied: showCopyTooltip, isSupported: clipboardSupported }
+  = useClipboard({ copiedDuring: 2000 })
 
 const { contentFinal, contentVNodes } = createStreamingMarkdownVNodes(
   content,
@@ -40,22 +40,13 @@ const thinkingActive = computed(
 
 // Enhanced copy functionality with tooltip feedback
 function copyContentToClipboard() {
-  if (!navigator.clipboard?.writeText) {
+  if (!clipboardSupported.value) {
     console.warn('Clipboard API is not available in this context.')
     return
   }
-  const markdownContent = contentFinal.value
-  navigator.clipboard
-    .writeText(markdownContent)
-    .then(() => {
-      showCopyTooltip.value = true
-      setTimeout(() => {
-        showCopyTooltip.value = false
-      }, 2000)
-    })
-    .catch((error) => {
-      console.error(`Failed to copy content: ${error}`)
-    })
+  copy(contentFinal.value).catch((error) => {
+    console.error(`Failed to copy content: ${error}`)
+  })
 }
 </script>
 
@@ -84,10 +75,7 @@ function copyContentToClipboard() {
         </div>
       </div>
 
-      <div
-        key="prose"
-        class="hover text-sm prose prose-neutral md:text-base prose-code:text-sm prose-h1:text-3xl prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-h5:text-base children:mt-0 dark:prose-invert prose-code:after:content-none prose-code:before:content-none"
-      >
+      <div class="chat-prose">
         <StreamMarkdownContent />
       </div>
     </div>

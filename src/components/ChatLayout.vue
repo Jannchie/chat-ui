@@ -243,28 +243,9 @@ async function generateSummary(text: string, lockedModel?: string) {
   }
 }
 
-const groupedConversation = computed(() => {
-  // 处理 conversation，每次轮到 ai 说话后，添加新的组，否则添加到上一组
-  const result: ChatMessage[][] = []
-  let group: ChatMessage[] = []
-  for (const c of conversation.value) {
-    if (c.role === 'system') {
-      continue
-    }
-    if (c.role === 'assistant') {
-      group.push(c)
-      result.push(group)
-      group = []
-    }
-    else {
-      group.push(c)
-    }
-  }
-  if (group.length > 0) {
-    result.push(group)
-  }
-  return result
-})
+const visibleConversation = computed(() =>
+  conversation.value.filter(message => message.role !== 'system'),
+)
 const enableAutoScroll = ref(false)
 function easeInOutQuad(
   time: number,
@@ -1047,7 +1028,7 @@ watchEffect(() => {
       <ChatHeader />
       <div
         v-if="conversation.length <= 1"
-        class="text-3.5rem leading-4rem font-medium m-auto px-4 h-full max-w-830px w-full overflow-x-hidden overflow-y-auto"
+        class="text-3.5rem leading-4rem font-medium m-auto px-4 h-full max-w-chat w-full overflow-x-hidden overflow-y-auto"
       >
         <div class="md:mb-12 md:mt-8">
           <div class="gradient-text text-3xl lg:text-5xl md:text-4xl">
@@ -1089,31 +1070,22 @@ watchEffect(() => {
         ref="scrollArea"
         class="overflow-x-hidden overflow-y-auto last-children:min-h-[calc(100dvh-152px-72px)]"
       >
-        <template
-          v-for="(g, i) in groupedConversation"
-          :key="g[0]?.id ?? `group-${i}`"
-        >
-          <ChatMessage
-            v-for="c in g"
-            :key="c.id"
-            :message="c"
-            :loading="streaming && groupedConversation.length - 1 === i"
-            :thinking="
-              thinking
-                && groupedConversation.length - 1 === i
-                && c.role === 'assistant'
-            "
-            :show-regenerate="
-              c.role === 'assistant'
-                && !streaming
-                && lastAssistantMessageId === c.id
-            "
-            :allow-user-edit="!streaming"
-            @change-version="changeAssistantMessageVersion"
-            @regenerate="regenerateLastAssistantMessage"
-            @edit-message="editUserMessage"
-          />
-        </template>
+        <ChatMessage
+          v-for="c in visibleConversation"
+          :key="c.id"
+          :message="c"
+          :loading="streaming && c.id === lastAssistantMessageId"
+          :thinking="thinking && c.id === lastAssistantMessageId"
+          :show-regenerate="
+            c.role === 'assistant'
+              && !streaming
+              && lastAssistantMessageId === c.id
+          "
+          :allow-user-edit="!streaming"
+          @change-version="changeAssistantMessageVersion"
+          @regenerate="regenerateLastAssistantMessage"
+          @edit-message="editUserMessage"
+        />
       </div>
       <div
         class="input-section px-4 flex shrink-0 flex-col gap-1 min-h-120px items-center justify-end relative"
@@ -1181,7 +1153,7 @@ watchEffect(() => {
             </span>
           </div>
         </div>
-        <div class="leading-0 max-w-830px w-full relative z-10">
+        <div class="leading-0 max-w-chat w-full relative z-10">
           <!-- Image preview area above input panel -->
           <div
             v-if="uploadedImages.length > 0"
@@ -1214,7 +1186,7 @@ watchEffect(() => {
 
           <!-- Unified input panel -->
           <div
-            class="rounded-xl bg-neutral-100 transition-all relative dark:bg-[#1e1e1f] focus-within:bg-neutral-200 hover:bg-neutral-200 dark:focus-within:bg-neutral-800 dark:hover:bg-neutral-800"
+            class="rounded-xl bg-neutral-100 transition-all relative dark:bg-elevated focus-within:bg-neutral-200 hover:bg-neutral-200 dark:focus-within:bg-elevated-hover dark:hover:bg-elevated-hover"
           >
             <!-- Textarea without border -->
             <textarea
@@ -1291,11 +1263,11 @@ watchEffect(() => {
                           ? 'Click to stop recording'
                           : 'Click to start recording'
                   "
-                  class="color-[#c4c7c5] rounded-lg flex h-8 w-8 transition-all items-center justify-center"
+                  class="text-neutral-500 rounded-lg flex h-8 w-8 transition-all items-center justify-center dark:text-neutral-300"
                   :class="{
                     'opacity-50 cursor-not-allowed':
                       streaming || !sttSupported || sttTranscribing,
-                    'hover:bg-neutral-700':
+                    'hover:bg-neutral-200 dark:hover:bg-neutral-700':
                       !streaming && sttSupported && !sttTranscribing,
                     'bg-red-500/20': isRecording,
                   }"
@@ -1324,14 +1296,12 @@ watchEffect(() => {
                   :disabled="
                     streaming || (!input.trim() && uploadedImages.length === 0)
                   "
-                  :class="{
-                    'opacity-50 cursor-not-allowed':
-                      streaming
-                      || (!input.trim() && uploadedImages.length === 0),
-                    'hover:bg-neutral-700':
-                      !streaming && (input.trim() || uploadedImages.length > 0),
-                  }"
-                  class="color-[#c4c7c5] rounded-lg flex h-8 w-8 transition-all items-center justify-center"
+                  :class="
+                    !streaming && (input.trim() || uploadedImages.length > 0)
+                      ? 'bg-neutral-900 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-white'
+                      : 'text-neutral-400 opacity-50 cursor-not-allowed dark:text-neutral-500'
+                  "
+                  class="rounded-full flex h-8 w-8 transition-all items-center justify-center"
                   @click="onSubmit"
                 >
                   <i class="i-tabler-send h-4 w-4" />

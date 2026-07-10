@@ -128,7 +128,7 @@ function toggle() {
     <div
       v-if="hasContent"
       v-show="expanded"
-      class="text-xs px-4 py-3 border-t border-neutral-300/60 max-h-80 overflow-auto prose prose-gray dark:border-neutral-700/60 dark:prose-invert"
+      class="text-xs px-4 py-3 border-t border-neutral-300/60 max-h-80 max-w-none overflow-auto prose prose-gray dark:border-neutral-700/60 dark:prose-invert"
     >
       <ThinkingMarkdown />
     </div>

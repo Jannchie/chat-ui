@@ -41,6 +41,7 @@ declare module 'vue' {
     ThinkingBlock: typeof import('./components/ThinkingBlock.vue')['default']
     Translate: typeof import('./views/Translate.vue')['default']
     UserChatMessage: typeof import('./components/UserChatMessage.vue')['default']
+    UserMessageEditor: typeof import('./components/UserMessageEditor.vue')['default']
     WordExplainPaper: typeof import('./components/WordExplainPaper.vue')['default']
   }
 }
@@ -76,5 +77,6 @@ declare global {
   const ThinkingBlock: typeof import('./components/ThinkingBlock.vue')['default']
   const Translate: typeof import('./views/Translate.vue')['default']
   const UserChatMessage: typeof import('./components/UserChatMessage.vue')['default']
+  const UserMessageEditor: typeof import('./components/UserMessageEditor.vue')['default']
   const WordExplainPaper: typeof import('./components/WordExplainPaper.vue')['default']
 }

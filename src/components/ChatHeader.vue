@@ -162,7 +162,7 @@ onBeforeUnmount(() => {
         <input
           v-model="customServiceUrl"
           placeholder="Service URL"
-          class="text-sm text-neutral-700 px-6 py-2 outline-none rounded-full bg-neutral-200 w-36 transition-all dark:text-[#e3e3e3] focus:border-green-500/50 dark:bg-[#1e1e1f] focus:ring-2 focus:ring-green-500/20"
+          class="text-sm text-neutral-700 px-6 py-2 outline-none rounded-full bg-neutral-200 w-36 transition-all dark:text-[#e3e3e3] focus:border-green-500/50 dark:bg-elevated focus:ring-2 focus:ring-green-500/20"
           type="text"
         >
       </div>
@@ -174,7 +174,7 @@ onBeforeUnmount(() => {
         </div>
         <!-- Replace input with button to show model selection modal -->
         <button
-          class="text-sm text-neutral-700 px-6 py-2 rounded-full bg-neutral-200 flex min-w-36 transition-all items-center justify-between dark:text-[#e3e3e3] focus:border-neutral-500/50 dark:bg-[#1e1e1f] hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-[#252526]"
+          class="text-sm text-neutral-700 px-6 py-2 rounded-full bg-neutral-200 flex min-w-36 transition-all items-center justify-between dark:text-[#e3e3e3] focus:border-neutral-500/50 dark:bg-elevated hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-elevated-hover"
           @click="showSelectModelModal = true"
         >
           <span class="pr-2 truncate">{{ model || "Select Model" }}</span>
@@ -190,7 +190,7 @@ onBeforeUnmount(() => {
         <input
           v-model="apiKey"
           placeholder="API Key"
-          class="text-sm text-neutral-700 px-6 py-2 outline-none rounded-full bg-neutral-200 w-36 transition-all dark:text-[#e3e3e3] focus:border-blue-500/50 dark:bg-[#1e1e1f] focus:ring-2 focus:ring-blue-500/20"
+          class="text-sm text-neutral-700 px-6 py-2 outline-none rounded-full bg-neutral-200 w-36 transition-all dark:text-[#e3e3e3] focus:border-blue-500/50 dark:bg-elevated focus:ring-2 focus:ring-blue-500/20"
           type="password"
         >
       </div>
@@ -254,7 +254,7 @@ onBeforeUnmount(() => {
             <input
               v-model="apiKey"
               placeholder="API Key"
-              class="text-sm text-neutral-700 px-4 py-2 outline-none rounded-lg bg-neutral-200 w-full transition-all dark:text-[#e3e3e3] focus:border-blue-500/50 dark:bg-[#1e1e1f] focus:ring-2 focus:ring-blue-500/20"
+              class="text-sm text-neutral-700 px-4 py-2 outline-none rounded-lg bg-neutral-200 w-full transition-all dark:text-[#e3e3e3] focus:border-blue-500/50 dark:bg-elevated focus:ring-2 focus:ring-blue-500/20"
               type="password"
             >
           </div>
@@ -267,7 +267,7 @@ onBeforeUnmount(() => {
             <input
               v-model="customServiceUrl"
               placeholder="Service URL"
-              class="text-sm text-neutral-700 px-4 py-2 outline-none rounded-lg bg-neutral-200 w-full transition-all dark:text-[#e3e3e3] focus:border-green-500/50 dark:bg-[#1e1e1f] focus:ring-2 focus:ring-green-500/20"
+              class="text-sm text-neutral-700 px-4 py-2 outline-none rounded-lg bg-neutral-200 w-full transition-all dark:text-[#e3e3e3] focus:border-green-500/50 dark:bg-elevated focus:ring-2 focus:ring-green-500/20"
               type="text"
             >
           </div>
@@ -279,7 +279,7 @@ onBeforeUnmount(() => {
             </label>
             <!-- Replace input with button to show model selection modal in mobile menu -->
             <button
-              class="text-sm text-neutral-700 px-4 py-2 rounded-lg bg-neutral-200 flex w-full transition-all items-center justify-between dark:text-[#e3e3e3] focus:border-neutral-500/50 dark:bg-[#1e1e1f] hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-[#252526]"
+              class="text-sm text-neutral-700 px-4 py-2 rounded-lg bg-neutral-200 flex w-full transition-all items-center justify-between dark:text-[#e3e3e3] focus:border-neutral-500/50 dark:bg-elevated hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-elevated-hover"
               @click="
                 showSelectModelModal = true;
                 showMobileMenu = false;

@@ -162,11 +162,7 @@ function formatToolCall(toolCall: any) {
       </div>
 
       <!-- Render text content as markdown -->
-      <div
-        v-if="textContent"
-        key="prose"
-        class="hover text-sm prose prose-neutral md:text-base prose-code:text-sm prose-h1:text-3xl prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-h5:text-base children:mt-0 dark:prose-invert prose-code:after:content-none prose-code:before:content-none"
-      >
+      <div v-if="textContent" class="chat-prose">
         <StreamMarkdownContent />
       </div>
     </div>
