@@ -9,6 +9,7 @@ import type {
 } from '../types/message'
 import { Select } from '@roku-ui/vue'
 import { streamText } from 'ai'
+import { Virtualizer } from 'virtua/vue'
 import { toRaw } from 'vue'
 import { useOpenRouterModels } from '../composables/useOpenRouterModels'
 import { useRequestCache } from '../composables/useRequestCache'
@@ -1097,22 +1098,31 @@ watchEffect(() => {
       <div
         v-else
         ref="scrollArea"
-        class="overflow-x-hidden overflow-y-auto last-children:min-h-[calc(100dvh-152px-72px)]"
+        class="overflow-x-hidden overflow-y-auto"
       >
-        <ChatMessage
-          v-for="c in visibleConversation"
-          :key="c.id"
-          :message="c"
-          :loading="streaming && c.id === lastAssistantMessageId"
-          :thinking="thinking && c.id === lastAssistantMessageId"
-          :show-regenerate="c.role === 'assistant' && !streaming"
-          :allow-user-edit="!streaming"
-          :allow-delete="!streaming"
-          @change-version="changeAssistantMessageVersion"
-          @regenerate="regenerateAssistantMessage"
-          @edit-message="editUserMessage"
-          @delete-message="deleteMessage"
-        />
+        <Virtualizer
+          v-slot="{ item: c, index }"
+          :data="visibleConversation"
+        >
+          <ChatMessage
+            :key="c.id"
+            :message="c"
+            :class="
+              index === visibleConversation.length - 1
+                ? 'min-h-[calc(100dvh-152px-72px)]'
+                : ''
+            "
+            :loading="streaming && c.id === lastAssistantMessageId"
+            :thinking="thinking && c.id === lastAssistantMessageId"
+            :show-regenerate="c.role === 'assistant' && !streaming"
+            :allow-user-edit="!streaming"
+            :allow-delete="!streaming"
+            @change-version="changeAssistantMessageVersion"
+            @regenerate="regenerateAssistantMessage"
+            @edit-message="editUserMessage"
+            @delete-message="deleteMessage"
+          />
+        </Virtualizer>
       </div>
       <div
         class="input-section px-4 flex shrink-0 flex-col gap-1 min-h-120px items-center justify-end relative"
