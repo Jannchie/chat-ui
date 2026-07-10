@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { BtnGroup, ScrollArea, Select } from '@roku-ui/vue'
 import StreamContent from '../components/StreamContent.vue'
 import WordExplainPaper from '../components/WordExplainPaper.vue'
 import { useDexieStorage } from '../composables/useDexieStorage'
@@ -35,6 +34,14 @@ const SUPPORTED_LANGUAGES = [
   { code: 'th', name: 'ไทย', flag: '🇹🇭' },
   { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
 ]
+
+const TONE_OPTIONS = [
+  { label: 'Neutral', value: 'neutral' },
+  { label: 'Formal', value: 'formal' },
+  { label: 'Professional', value: 'professional' },
+  { label: 'Informal', value: 'informal' },
+  { label: 'Friendly', value: 'friendly' },
+] as const
 
 const text = ref('')
 const sourceLang = useDexieStorage('translate.sourceLang', {
@@ -101,16 +108,30 @@ function clearContent() {
   translateContent.value = ''
 }
 
-// Copy content to clipboard
+// Copy content to clipboard, with transient feedback on the button
+const copied = ref(false)
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
 function copyToClipboard(content: string) {
   // HTTP 等非安全上下文下 clipboard API 不存在
   if (!navigator.clipboard?.writeText) {
     console.warn('Clipboard API is not available in this context.')
     return
   }
-  navigator.clipboard.writeText(content).catch((error) => {
-    console.error(`Failed to copy content: ${error}`)
-  })
+  navigator.clipboard
+    .writeText(content)
+    .then(() => {
+      copied.value = true
+      if (copiedTimer !== undefined) {
+        clearTimeout(copiedTimer)
+      }
+      copiedTimer = setTimeout(() => {
+        copied.value = false
+        copiedTimer = undefined
+      }, 2000)
+    })
+    .catch((error) => {
+      console.error(`Failed to copy content: ${error}`)
+    })
 }
 
 // Watch for typing indicator
@@ -129,6 +150,9 @@ watch(text, () => {
 onBeforeUnmount(() => {
   if (typingTimer !== undefined) {
     clearTimeout(typingTimer)
+  }
+  if (copiedTimer !== undefined) {
+    clearTimeout(copiedTimer)
   }
 })
 
@@ -168,347 +192,197 @@ watchEffect(async () => {
     <AsideContainer>
       <div class="mt-104px pb-4">
         <button
-          class="dark:hover:bg-neutral-7 leading-0 px-4 py-3 rounded-full bg-neutral-300 flex gap-4 min-w-130px items-center dark:bg-neutral-800 hover:bg-neutral-400 disabled:op-50 disabled:pointer-events-none"
+          class="min-w-130px flex items-center gap-4 rounded-full bg-neutral-300 px-4 py-3 leading-0 disabled:pointer-events-none dark:bg-neutral-800 hover:bg-neutral-400 disabled:op-50 dark:hover:bg-neutral-7"
           @click="onHomeClick"
         >
           <i class="i-tabler-home h-5 w-5" />
-          <span class="text-sm flex-grow-1">Home</span>
+          <span class="flex-grow-1 text-sm">Home</span>
         </button>
       </div>
 
       <!-- Translation History Sidebar -->
-      <div v-if="translationHistory.length > 0" class="mt-6 px-4">
-        <div
-          class="text-sm text-neutral-400 font-medium mb-3 flex gap-2 items-center"
-        >
-          <i class="i-tabler-history h-4 w-4" />
-          Recent
+      <template v-if="translationHistory.length > 0">
+        <div class="my-2 px-4">
+          <span class="text-sm">Recent</span>
         </div>
-      </div>
-      <div
-        v-if="translationHistory.length > 0"
-        class="px-4 flex-grow basis-0 overflow-x-hidden overflow-y-auto"
-      >
-        <div class="space-y-2">
-          <div
+        <div class="flex-grow basis-0 overflow-x-hidden overflow-y-auto">
+          <button
             v-for="item in translationHistory.slice(0, 8)"
             :key="item.id"
-            class="group p-3 border border-neutral-300/30 rounded-xl bg-neutral-200/30 cursor-pointer transition-all dark:border-neutral-700/30 dark:bg-neutral-800/30 hover:bg-neutral-300/60 dark:hover:bg-neutral-800/60"
+            class="w-full rounded-lg px-3 py-2 text-left transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
             @click="
               text = item.source;
               translateContent = item.target;
             "
           >
-            <div
-              class="text-sm text-neutral-600 leading-relaxed truncate dark:text-neutral-300 group-hover:text-neutral-800 dark:group-hover:text-white"
-            >
+            <div class="truncate text-sm text-neutral-700 dark:text-neutral-300">
               {{ item.source }}
             </div>
-            <div
-              class="text-xs text-neutral-400 mt-2 truncate dark:text-neutral-500 group-hover:text-neutral-600 dark:group-hover:text-neutral-400"
-            >
+            <div class="mt-0.5 truncate text-xs text-neutral-400 dark:text-neutral-500">
               {{ item.target }}
             </div>
-          </div>
+          </button>
         </div>
-      </div>
+      </template>
     </AsideContainer>
 
     <MainContainer>
       <ChatHeader />
-      <ScrollArea
-        is="main"
-        class="flex flex-col h-full overflow-x-hidden overflow-y-auto"
-      >
-        <div class="mx-auto px-6 py-8 flex flex-col gap-8 max-w-7xl w-full">
-          <!-- Header -->
-          <div class="text-center">
-            <div class="text-4xl font-bold mb-4">
-              <div class="gradient-text flex gap-3 items-center justify-center">
-                <i class="i-tabler-world h-12 w-12" />
-                Translate
-              </div>
+      <main class="h-full flex flex-col overflow-x-hidden overflow-y-auto">
+        <div class="mx-auto max-w-chat w-full flex flex-col gap-6 px-4 py-6">
+          <!-- Page heading, same voice as the chat home screen -->
+          <div class="md:mt-4">
+            <div class="gradient-text text-2xl font-medium md:text-3xl">
+              Translate
             </div>
-            <p class="text-sm text-neutral-400">
-              AI-powered translation with natural language understanding
-            </p>
+            <div class="animate-fade-delay mt-1 text-sm op-50">
+              Type below and the translation follows as you pause.
+            </div>
           </div>
 
-          <!-- Tone Controls -->
-          <div class="animate-fade-delay">
-            <div
-              class="p-8 border border-neutral-300/50 rounded-2xl bg-neutral-200/40 backdrop-blur-sm dark:border-neutral-700/50 dark:bg-neutral-800/40"
+          <!-- Language & tone toolbar -->
+          <!-- 注意：这里不能加 opacity/transform 类动画，否则会形成 stacking context，语言下拉会被后面的输入面板盖住 -->
+          <div class="relative z-10 flex flex-wrap items-center gap-2">
+            <LanguageSelect
+              v-model="sourceLang"
+              :options="[
+                { id: 'auto', name: 'Auto Detect', flag: '🔍' },
+                ...SUPPORTED_LANGUAGES.map((lang) => ({
+                  id: lang.code,
+                  name: lang.name,
+                  flag: lang.flag,
+                })),
+              ]"
+            />
+
+            <button
+              :disabled="sourceLang.id === 'auto'"
+              class="h-8 w-8 flex items-center justify-center rounded-lg text-neutral-500 transition-colors disabled:cursor-not-allowed hover:bg-neutral-200 dark:text-neutral-400 disabled:opacity-50 dark:hover:bg-neutral-800"
+              title="Swap languages"
+              aria-label="Swap languages"
+              @click="swapLanguages"
             >
-              <!-- Tone Selection -->
-              <div class="flex justify-center">
-                <div
-                  class="text-sm text-neutral-400 font-medium mb-3 flex gap-2 items-center"
-                >
-                  <i class="i-tabler-mood-smile h-4 w-4" />
-                  Tone
-                </div>
+              <i class="i-tabler-arrows-exchange h-4 w-4" />
+            </button>
+
+            <LanguageSelect
+              v-model="targetLang"
+              :options="
+                SUPPORTED_LANGUAGES.map((lang) => ({
+                  id: lang.code,
+                  name: lang.name,
+                  flag: lang.flag,
+                }))
+              "
+            />
+
+            <SegmentedControl
+              v-model="tone"
+              :options="TONE_OPTIONS"
+              class="ml-auto"
+            />
+          </div>
+
+          <!-- Input panel, same surface as the chat input -->
+          <div
+            class="rounded-xl bg-neutral-100 transition-all dark:bg-elevated focus-within:bg-neutral-200 hover:bg-neutral-200 dark:focus-within:bg-elevated-hover dark:hover:bg-elevated-hover"
+          >
+            <textarea
+              v-model="text"
+              placeholder="Enter text to translate"
+              style="resize: none; scrollbar-width: none"
+              class="min-h-140px w-full border-none bg-transparent px-4 py-4 text-lg text-neutral-800 leading-relaxed outline-none dark:text-[#e3e3e3]"
+            />
+            <div class="flex items-center justify-between px-4 pb-3">
+              <div class="flex items-center gap-3 text-xs text-neutral-400 dark:text-neutral-500">
+                <span v-if="text.length > 0">{{ text.length }} chars</span>
+                <span v-if="isTyping" class="flex items-center gap-1">
+                  <i class="i-tabler-pencil h-3.5 w-3.5 animate-pulse" />
+                  Typing…
+                </span>
               </div>
-              <div class="flex justify-center">
-                <BtnGroup
-                  v-model="tone"
-                  color="primary"
-                  class="shadow-md children:text-sm children:py-3 children:border-neutral-700! first-children:rounded-xl last-children:rounded-xl children:h-full! children:min-w-90px!"
-                  :unselectable="false"
-                  :selections="[
-                    { label: 'Neutral', value: 'neutral' },
-                    { label: 'Formal', value: 'formal' },
-                    { label: 'Professional', value: 'professional' },
-                    { label: 'Informal', value: 'informal' },
-                    { label: 'Friendly', value: 'friendly' },
-                  ]"
+              <button
+                :disabled="!text && !translateContent"
+                class="h-8 w-8 flex items-center justify-center rounded-lg text-neutral-500 transition-colors disabled:cursor-not-allowed hover:bg-neutral-200 dark:text-neutral-400 disabled:opacity-50 dark:hover:bg-neutral-700"
+                title="Clear text"
+                aria-label="Clear text"
+                @click="clearContent"
+              >
+                <i class="i-tabler-eraser h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Translation output, rendered like an assistant message -->
+          <div class="flex flex-col gap-2">
+            <div class="h-8 flex items-center gap-2 text-sm text-neutral-400 font-medium">
+              <i class="i-tabler-language h-4 w-4" />
+              <span>{{ targetLanguage.name }}</span>
+              <span
+                v-if="loading"
+                class="flex items-center gap-1 text-xs font-normal"
+              >
+                <i class="i-tabler-loader-2 h-3.5 w-3.5 animate-spin" />
+                Translating…
+              </span>
+              <button
+                v-if="translateContent && !loading"
+                class="ml-auto h-8 w-8 flex items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                :title="copied ? 'Copied' : 'Copy translation'"
+                aria-label="Copy translation"
+                @click="copyToClipboard(translateContent)"
+              >
+                <i
+                  :class="copied ? 'i-tabler-check text-green-500' : 'i-tabler-copy'"
+                  class="h-4 w-4"
                 />
-              </div>
+              </button>
             </div>
+
+            <div
+              v-if="!translateContent && !loading"
+              class="py-4 text-sm text-neutral-400 dark:text-neutral-500"
+            >
+              {{
+                text.length > 0
+                  ? "Waiting for you to pause…"
+                  : "The translation appears here."
+              }}
+            </div>
+            <StreamContent
+              v-else-if="translateContent"
+              class="max-w-full text-lg leading-relaxed"
+              :content="translateContent"
+              :loading="false"
+            />
           </div>
 
-          <!-- Main Translation Interface -->
-          <div class="animate-fade-delay">
-            <div
-              class="border border-neutral-300/50 rounded-2xl bg-neutral-200/40 backdrop-blur-sm dark:border-neutral-700/50 dark:bg-neutral-800/40"
-            >
-              <div class="grid grid-cols-1 min-h-600px lg:grid-cols-2">
-                <!-- Input Panel -->
-                <div
-                  class="p-8 border-b border-neutral-700/50 lg:border-b-0 lg:border-r"
-                >
-                  <!-- Language Selection -->
-                  <div class="mb-4 flex items-center justify-between">
-                    <div class="flex gap-3 items-center">
-                      <div
-                        class="text-sm text-neutral-400 font-medium flex gap-2 items-center"
-                      >
-                        <i class="i-tabler-arrow-right h-4 w-4" />
-                        From
-                      </div>
-                      <Select
-                        v-model="sourceLang"
-                        :options="[
-                          { id: 'auto', name: 'Auto Detect', flag: '🔍' },
-                          ...SUPPORTED_LANGUAGES.map((lang) => ({
-                            id: lang.code,
-                            name: lang.name,
-                            flag: lang.flag,
-                          })),
-                        ]"
-                        size="lg"
-                        color="primary"
-                        placeholder="Select source language"
-                        searchable
-                        class="h-10 w-200px"
-                      >
-                        <template #item="{ data }">
-                          <div class="flex gap-2 items-center">
-                            <span>{{ data.flag }}</span>
-                            <span>{{ data.name }}</span>
-                          </div>
-                        </template>
-                      </Select>
-
-                      <button
-                        :disabled="sourceLang.id === 'auto'"
-                        class="p-2 rounded-full bg-neutral-300/60 transition-all dark:bg-neutral-800/60 hover:bg-neutral-400 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 hover:scale-110 dark:hover:bg-neutral-700"
-                        @click="swapLanguages"
-                      >
-                        <i class="i-tabler-switch-3 h-4 w-4" />
-                      </button>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                      <div
-                        v-if="text.length > 0"
-                        class="text-xs text-neutral-500"
-                      >
-                        {{ text.length }} chars
-                      </div>
-                      <div
-                        v-if="isTyping"
-                        class="text-primary-400 text-xs flex gap-1 items-center"
-                      >
-                        <i class="i-tabler-pencil h-4 w-4 animate-pulse" />
-                        <span>Typing...</span>
-                      </div>
-                      <button
-                        class="p-2 rounded-lg bg-neutral-200/50 transition-all dark:bg-neutral-900/50 hover:bg-neutral-300/50 hover:scale-105 dark:hover:bg-neutral-800/50"
-                        @click="clearContent"
-                      >
-                        <i class="i-tabler-eraser h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="relative">
-                    <textarea
-                      v-model="text"
-                      placeholder="Enter text to translate..."
-                      style="
-                        resize: none;
-                        scrollbar-width: none;
-                        min-height: 520px;
-                      "
-                      class="text-xl text-neutral-200 leading-relaxed outline-none border-none bg-transparent w-full placeholder-neutral-500"
-                    />
-                  </div>
-                </div>
-
-                <!-- Output Panel -->
-                <div class="p-8 bg-neutral-200/30 dark:bg-neutral-900/30">
-                  <!-- Language Selection -->
-                  <div class="mb-4 flex items-center justify-between">
-                    <div class="flex gap-3 items-center">
-                      <div
-                        class="text-sm text-neutral-400 font-medium flex gap-2 items-center"
-                      >
-                        To
-                        <i class="i-tabler-arrow-right h-4 w-4" />
-                      </div>
-                      <Select
-                        v-model="targetLang"
-                        :options="
-                          SUPPORTED_LANGUAGES.map((lang) => ({
-                            id: lang.code,
-                            name: lang.name,
-                            flag: lang.flag,
-                          }))
-                        "
-                        size="lg"
-                        color="primary"
-                        placeholder="Select target language"
-                        searchable
-                        class="h-10 w-200px"
-                      >
-                        <template #item="{ data }">
-                          <div class="flex gap-2 items-center">
-                            <span>{{ data.flag }}</span>
-                            <span>{{ data.name }}</span>
-                          </div>
-                        </template>
-                      </Select>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                      <div
-                        v-if="loading"
-                        class="text-primary-400 text-xs flex gap-1 items-center"
-                      >
-                        <i class="i-tabler-brain h-4 w-4 animate-pulse" />
-                        <span>Translating...</span>
-                      </div>
-                      <button
-                        v-if="translateContent"
-                        class="p-2 rounded-lg bg-neutral-200/50 transition-all dark:bg-neutral-900/50 hover:bg-neutral-300/50 hover:scale-105 dark:hover:bg-neutral-800/50"
-                        @click="copyToClipboard(translateContent)"
-                      >
-                        <i class="i-tabler-clipboard h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="min-h-520px relative">
-                    <div
-                      v-if="loading"
-                      class="flex items-center inset-0 justify-center absolute"
-                    >
-                      <div class="text-neutral-400 flex gap-3 items-center">
-                        <div
-                          class="border-primary-400 border-2 border-t-transparent rounded-full h-6 w-6 animate-spin"
-                        />
-                        <span>Translating...</span>
-                      </div>
-                    </div>
-                    <div
-                      v-else-if="!translateContent && text.length === 0"
-                      class="text-neutral-500 flex items-center inset-0 justify-center absolute"
-                    >
-                      <div class="text-center">
-                        <i
-                          class="i-tabler-language mb-3 opacity-50 h-12 w-12"
-                        />
-                        <p class="text-sm">
-                          Translation will appear here
-                        </p>
-                      </div>
-                    </div>
-                    <div
-                      v-else-if="!translateContent && text.length > 0"
-                      class="text-neutral-500 flex items-center inset-0 justify-center absolute"
-                    >
-                      <div class="text-center">
-                        <i class="i-tabler-dots mb-2 h-8 w-8 animate-pulse" />
-                        <p class="text-sm">
-                          Preparing translation...
-                        </p>
-                      </div>
-                    </div>
-                    <StreamContent
-                      v-else
-                      class="text-xl leading-relaxed max-w-full"
-                      :content="translateContent"
-                      :loading="false"
-                    />
-                  </div>
-                </div>
-              </div>
+          <!-- Word explanations -->
+          <div v-if="translateContent" class="flex flex-col gap-2">
+            <div class="h-8 flex items-center gap-2 text-sm text-neutral-400 font-medium">
+              <i class="i-tabler-vocabulary h-4 w-4" />
+              <span>Word explanations</span>
+              <button
+                class="ml-auto h-8 w-8 flex items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                :title="showWordExplain ? 'Hide explanations' : 'Show explanations'"
+                :aria-label="showWordExplain ? 'Hide explanations' : 'Show explanations'"
+                @click="showWordExplain = !showWordExplain"
+              >
+                <i
+                  :class="showWordExplain ? 'i-tabler-eye-off' : 'i-tabler-eye'"
+                  class="h-4 w-4"
+                />
+              </button>
             </div>
-          </div>
-
-          <!-- Word Explanation Panel -->
-          <div v-if="translateContent" class="animate-fade-delay">
-            <div
-              class="p-8 border border-neutral-300/50 rounded-2xl bg-neutral-200/40 backdrop-blur-sm dark:border-neutral-700/50 dark:bg-neutral-800/40"
-            >
-              <div class="mb-4 flex items-center justify-between">
-                <div class="flex gap-2 items-center">
-                  <i class="text-primary-400 i-tabler-vocabulary h-5 w-5" />
-                  <span class="text-lg font-medium">Word Explanations</span>
-                </div>
-                <button
-                  class="p-2 rounded-lg bg-neutral-200/50 transition-all dark:bg-neutral-900/50 hover:bg-neutral-300/50 hover:scale-105 dark:hover:bg-neutral-800/50"
-                  @click="showWordExplain = !showWordExplain"
-                >
-                  <i
-                    :class="
-                      showWordExplain ? 'i-tabler-eye-off' : 'i-tabler-eye'
-                    "
-                    class="h-4 w-4"
-                  />
-                </button>
-              </div>
-
-              <div class="min-h-160px">
-                <div
-                  v-if="showWordExplain"
-                  class="transition-all duration-300 ease-in-out"
-                  :class="showWordExplain ? 'opacity-100' : 'opacity-0'"
-                >
-                  <WordExplainPaper
-                    :content="translateContent"
-                    :target-lang="targetLanguage.name"
-                    :translation-loading="loading"
-                  />
-                </div>
-
-                <div
-                  v-else
-                  class="text-neutral-500 pt-8 text-center flex transition-all duration-300 ease-in-out items-start justify-center"
-                >
-                  <div>
-                    <i class="i-tabler-eye-off mb-2 opacity-50 h-8 w-8" />
-                    <p class="text-sm">
-                      Word explanations are hidden
-                    </p>
-                    <p class="text-xs text-neutral-600 mt-1">
-                      Click the eye icon to show detailed explanations
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <WordExplainPaper
+              v-if="showWordExplain"
+              :content="translateContent"
+              :target-lang="targetLanguage.name"
+              :translation-loading="loading"
+            />
           </div>
         </div>
-      </ScrollArea>
+      </main>
     </MainContainer>
   </BaseContainer>
 </template>
