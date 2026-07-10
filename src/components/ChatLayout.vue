@@ -778,20 +778,23 @@ async function onSubmit() {
   })
 }
 
-async function regenerateLastAssistantMessage(): Promise<void> {
+// 重新生成任意一条助手消息：截断其后的对话，在原消息上叠加新版本
+async function regenerateAssistantMessage({
+  messageId,
+}: {
+  messageId: string
+}): Promise<void> {
   if (streaming.value) {
     return
   }
 
-  const targetAssistantId = lastAssistantMessageId.value
-  if (!targetAssistantId) {
-    return
-  }
-
   const assistantIndex = conversation.value.findIndex(
-    message => message.id === targetAssistantId,
+    message => message.id === messageId,
   )
-  if (assistantIndex === -1) {
+  if (
+    assistantIndex === -1
+    || conversation.value[assistantIndex].role !== 'assistant'
+  ) {
     return
   }
 
@@ -843,6 +846,19 @@ async function regenerateLastAssistantMessage(): Promise<void> {
     assistantMessage,
     currentModel,
   })
+}
+
+function deleteMessage({ messageId }: { messageId: string }): void {
+  if (streaming.value) {
+    return
+  }
+  const next = conversation.value.filter(
+    message => message.id !== messageId,
+  )
+  if (next.length === conversation.value.length) {
+    return
+  }
+  updateChatConversation(currentChat.value, next)
 }
 
 async function editUserMessage({
@@ -1089,15 +1105,13 @@ watchEffect(() => {
           :message="c"
           :loading="streaming && c.id === lastAssistantMessageId"
           :thinking="thinking && c.id === lastAssistantMessageId"
-          :show-regenerate="
-            c.role === 'assistant'
-              && !streaming
-              && lastAssistantMessageId === c.id
-          "
+          :show-regenerate="c.role === 'assistant' && !streaming"
           :allow-user-edit="!streaming"
+          :allow-delete="!streaming"
           @change-version="changeAssistantMessageVersion"
-          @regenerate="regenerateLastAssistantMessage"
+          @regenerate="regenerateAssistantMessage"
           @edit-message="editUserMessage"
+          @delete-message="deleteMessage"
         />
       </div>
       <div

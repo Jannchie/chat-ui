@@ -4,17 +4,20 @@ import { messageContentToString } from '../utils/messageTransform'
 import MessageMetadataBottom from './MessageMetadataBottom.vue'
 import MessageMetadataTop from './MessageMetadataTop.vue'
 
-const { message, loading, thinking, showRegenerate, allowUserEdit } = defineProps<{
-  message: ChatMessage
-  loading: boolean
-  thinking?: boolean
-  showRegenerate?: boolean
-  allowUserEdit?: boolean
-}>()
+const { message, loading, thinking, showRegenerate, allowUserEdit, allowDelete }
+  = defineProps<{
+    message: ChatMessage
+    loading: boolean
+    thinking?: boolean
+    showRegenerate?: boolean
+    allowUserEdit?: boolean
+    allowDelete?: boolean
+  }>()
 const emit = defineEmits<{
-  (event: 'regenerate'): void
+  (event: 'regenerate', payload: { messageId: string }): void
   (event: 'changeVersion', payload: { messageId: string, index: number }): void
   (event: 'editMessage', payload: { messageId: string, content: string }): void
+  (event: 'deleteMessage', payload: { messageId: string }): void
 }>()
 
 // For user messages, convert to string for UserChatMessage component
@@ -52,8 +55,8 @@ const versionLabel = computed(() => {
   return `${activeVersionIndex.value + 1}/${versionCount.value}`
 })
 
-async function copyAssistantContent(): Promise<void> {
-  if (message.role !== 'assistant' || !clipboardSupported.value) {
+async function copyMessageContent(): Promise<void> {
+  if (!clipboardSupported.value) {
     return
   }
 
@@ -153,16 +156,47 @@ watch(
         @cancel="isEditing = false"
       />
       <div v-else class="group flex gap-1 max-w-[85%] items-start">
-        <button
-          v-if="allowEditing"
-          type="button"
-          class="text-neutral-500 mt-1.5 rounded-md opacity-0 flex shrink-0 h-8 w-8 transition-opacity items-center justify-center dark:text-neutral-400 hover:bg-neutral-200 group-hover:opacity-100 dark:hover:bg-neutral-800"
-          aria-label="Edit message"
-          title="Edit message"
-          @click="startEditing"
+        <div
+          class="mt-1.5 opacity-0 flex shrink-0 transition-opacity group-hover:opacity-100"
         >
-          <i class="i-tabler-edit h-4 w-4" />
-        </button>
+          <button
+            v-if="allowDelete"
+            type="button"
+            class="text-neutral-500 rounded-md flex h-8 w-8 items-center justify-center dark:text-neutral-400 hover:text-red-500 hover:bg-neutral-200 dark:hover:text-red-400 dark:hover:bg-neutral-800"
+            aria-label="Delete message"
+            title="Delete message"
+            @click="emit('deleteMessage', { messageId: message.id })"
+          >
+            <i class="i-tabler-trash h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            class="text-neutral-500 rounded-md flex h-8 w-8 items-center justify-center relative dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            :class="{ 'opacity-50 cursor-not-allowed': !clipboardSupported }"
+            :disabled="!clipboardSupported"
+            aria-label="Copy message"
+            title="Copy message"
+            @click="copyMessageContent"
+          >
+            <i class="i-tabler-copy h-4 w-4" />
+            <span
+              v-if="showCopyTooltip"
+              class="text-xs text-white mt-1 px-2 py-1 rounded bg-black/70 pointer-events-none whitespace-nowrap top-full absolute dark:text-black dark:bg-white/70"
+            >
+              Copied!
+            </span>
+          </button>
+          <button
+            v-if="allowEditing"
+            type="button"
+            class="text-neutral-500 rounded-md flex h-8 w-8 items-center justify-center dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            aria-label="Edit message"
+            title="Edit message"
+            @click="startEditing"
+          >
+            <i class="i-tabler-edit h-4 w-4" />
+          </button>
+        </div>
         <div
           class="px-4 py-3 rounded-2xl bg-neutral-200/70 flex gap-1 min-w-0 items-start dark:bg-elevated"
         >
@@ -195,11 +229,14 @@ watch(
 
     <!-- 底部元数据 - 显示执行完毕后的性能指标 -->
     <div
-      v-if="message.role === 'assistant'"
+      v-if="message.role !== 'user'"
       class="mt-3 flex gap-2 min-h-6 items-center"
     >
       <Transition name="fade">
-        <MessageMetadataBottom v-if="!loading" :message="message" />
+        <MessageMetadataBottom
+          v-if="message.role === 'assistant' && !loading"
+          :message="message"
+        />
       </Transition>
       <div class="ml-auto flex gap-1 items-center">
         <div
@@ -238,13 +275,14 @@ watch(
           </button>
         </div>
         <button
+          v-if="message.role === 'assistant'"
           type="button"
           class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center relative dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
           :class="{ 'opacity-50 cursor-not-allowed': !clipboardSupported }"
           :disabled="!clipboardSupported"
           aria-label="Copy response"
           title="Copy response"
-          @click="copyAssistantContent"
+          @click="copyMessageContent"
         >
           <i class="i-tabler-copy h-4 w-4" />
           <span
@@ -259,10 +297,20 @@ watch(
           type="button"
           class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
           aria-label="Regenerate response"
-          title="Regenerate response"
-          @click="emit('regenerate')"
+          title="Regenerate response (discards following messages)"
+          @click="emit('regenerate', { messageId: message.id })"
         >
           <i class="i-tabler-refresh h-4 w-4" />
+        </button>
+        <button
+          v-if="allowDelete && !loading"
+          type="button"
+          class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center dark:text-neutral-300 hover:text-red-500 hover:bg-neutral-200 dark:hover:text-red-400 dark:hover:bg-neutral-800"
+          aria-label="Delete message"
+          title="Delete message"
+          @click="emit('deleteMessage', { messageId: message.id })"
+        >
+          <i class="i-tabler-trash h-4 w-4" />
         </button>
       </div>
     </div>
