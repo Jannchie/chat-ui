@@ -142,11 +142,11 @@ watch(
 </script>
 
 <template>
-  <div class="m-auto px-3 py-3 max-w-chat w-full md:px-4 md:py-4">
+  <div class="m-auto max-w-chat w-full px-3 py-3 md:px-4 md:py-4">
     <!-- 用户消息：右对齐气泡 -->
     <div
       v-if="message.role === 'user'"
-      class="flex flex-col gap-2 items-end"
+      class="flex flex-col items-end gap-2"
     >
       <MessageMetadataTop :message="message" />
       <UserMessageEditor
@@ -155,14 +155,14 @@ watch(
         @confirm="onEditorConfirm"
         @cancel="isEditing = false"
       />
-      <div v-else class="group flex gap-1 max-w-[85%] items-start">
+      <div v-else class="group max-w-[85%] flex items-start gap-1">
         <div
-          class="mt-1.5 opacity-0 flex shrink-0 transition-opacity group-hover:opacity-100"
+          class="mt-1.5 flex shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
         >
           <button
             v-if="allowDelete"
             type="button"
-            class="text-neutral-500 rounded-md flex h-8 w-8 items-center justify-center dark:text-neutral-400 hover:text-red-500 hover:bg-neutral-200 dark:hover:text-red-400 dark:hover:bg-neutral-800"
+            class="h-8 w-8 flex items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-200 dark:text-neutral-400 hover:text-red-500 dark:hover:bg-neutral-800 dark:hover:text-red-400"
             aria-label="Delete message"
             title="Delete message"
             @click="emit('deleteMessage', { messageId: message.id })"
@@ -171,7 +171,7 @@ watch(
           </button>
           <button
             type="button"
-            class="text-neutral-500 rounded-md flex h-8 w-8 items-center justify-center relative dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            class="relative h-8 w-8 flex items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-800"
             :class="{ 'opacity-50 cursor-not-allowed': !clipboardSupported }"
             :disabled="!clipboardSupported"
             aria-label="Copy message"
@@ -181,7 +181,7 @@ watch(
             <i class="i-tabler-copy h-4 w-4" />
             <span
               v-if="showCopyTooltip"
-              class="text-xs text-white mt-1 px-2 py-1 rounded bg-black/70 pointer-events-none whitespace-nowrap top-full absolute dark:text-black dark:bg-white/70"
+              class="pointer-events-none absolute top-full mt-1 whitespace-nowrap rounded bg-black/70 px-2 py-1 text-xs text-white dark:bg-white/70 dark:text-black"
             >
               Copied!
             </span>
@@ -189,7 +189,7 @@ watch(
           <button
             v-if="allowEditing"
             type="button"
-            class="text-neutral-500 rounded-md flex h-8 w-8 items-center justify-center dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            class="h-8 w-8 flex items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-800"
             aria-label="Edit message"
             title="Edit message"
             @click="startEditing"
@@ -198,7 +198,7 @@ watch(
           </button>
         </div>
         <div
-          class="px-4 py-3 rounded-2xl bg-neutral-200/70 flex gap-1 min-w-0 items-start dark:bg-elevated"
+          class="min-w-0 flex items-start gap-1 rounded-2xl bg-neutral-200/70 px-4 py-3 dark:bg-elevated"
         >
           <UserChatMessage :content="message.content" />
         </div>
@@ -230,7 +230,7 @@ watch(
     <!-- 底部元数据 - 显示执行完毕后的性能指标 -->
     <div
       v-if="message.role !== 'user'"
-      class="mt-3 flex gap-2 min-h-6 items-center"
+      class="mt-3 min-h-6 flex items-center gap-2"
     >
       <Transition name="fade">
         <MessageMetadataBottom
@@ -238,14 +238,14 @@ watch(
           :message="message"
         />
       </Transition>
-      <div class="ml-auto flex gap-1 items-center">
+      <div class="ml-auto flex items-center gap-1">
         <div
           v-if="hasMultipleVersions"
-          class="text-xs text-neutral-500 flex gap-1 items-center dark:text-neutral-300"
+          class="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-300"
         >
           <button
             type="button"
-            class="rounded-md flex h-6 w-6 transition-colors items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            class="h-6 w-6 flex items-center justify-center rounded-md transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
             :class="{
               'opacity-50 cursor-not-allowed': activeVersionIndex === 0,
             }"
@@ -256,12 +256,12 @@ watch(
           >
             <i class="i-tabler-chevron-left h-4 w-4" />
           </button>
-          <span class="text-xs font-mono px-1 text-center">{{
+          <span class="px-1 text-center text-xs font-mono">{{
             versionLabel
           }}</span>
           <button
             type="button"
-            class="rounded-md flex h-6 w-6 transition-colors items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-800"
+            class="h-6 w-6 flex items-center justify-center rounded-md transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
             :class="{
               'opacity-50 cursor-not-allowed':
                 activeVersionIndex >= versionCount - 1,
@@ -277,7 +277,7 @@ watch(
         <button
           v-if="message.role === 'assistant'"
           type="button"
-          class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center relative dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+          class="relative h-8 w-8 flex items-center justify-center rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-800"
           :class="{ 'opacity-50 cursor-not-allowed': !clipboardSupported }"
           :disabled="!clipboardSupported"
           aria-label="Copy response"
@@ -287,7 +287,7 @@ watch(
           <i class="i-tabler-copy h-4 w-4" />
           <span
             v-if="showCopyTooltip"
-            class="text-xs text-white mt-1 px-2 py-1 rounded bg-black/70 pointer-events-none whitespace-nowrap top-full absolute dark:text-black dark:bg-white/70"
+            class="pointer-events-none absolute top-full mt-1 whitespace-nowrap rounded bg-black/70 px-2 py-1 text-xs text-white dark:bg-white/70 dark:text-black"
           >
             Copied!
           </span>
@@ -295,7 +295,7 @@ watch(
         <button
           v-if="showRegenerate"
           type="button"
-          class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+          class="h-8 w-8 flex items-center justify-center rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-800"
           aria-label="Regenerate response"
           title="Regenerate response (discards following messages)"
           @click="emit('regenerate', { messageId: message.id })"
@@ -305,7 +305,7 @@ watch(
         <button
           v-if="allowDelete && !loading"
           type="button"
-          class="text-neutral-500 p-1.5 rounded-md flex h-8 w-8 transition-colors items-center justify-center dark:text-neutral-300 hover:text-red-500 hover:bg-neutral-200 dark:hover:text-red-400 dark:hover:bg-neutral-800"
+          class="h-8 w-8 flex items-center justify-center rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-200 dark:text-neutral-300 hover:text-red-500 dark:hover:bg-neutral-800 dark:hover:text-red-400"
           aria-label="Delete message"
           title="Delete message"
           @click="emit('deleteMessage', { messageId: message.id })"

@@ -69,7 +69,7 @@ onMounted(() => {
           alt="Uploaded image"
           loading="lazy"
           decoding="async"
-          class="dark:border-neutral-6 border border-neutral-300 rounded-lg max-h-48 max-w-xs cursor-pointer object-cover"
+          class="max-h-48 max-w-xs cursor-pointer border border-neutral-300 rounded-lg object-cover dark:border-neutral-6"
           @click="openImagePreview(item.image_url.url)"
         >
       </div>
@@ -79,18 +79,18 @@ onMounted(() => {
     <pre
       v-if="textContent"
       ref="contentRef"
-      class="font-inherit bg-transparent grow whitespace-pre-wrap overflow-hidden"
+      class="grow overflow-hidden whitespace-pre-wrap bg-transparent font-inherit"
       :class="collapsed ? 'line-clamp-3' : 'line-clamp-none'"
       v-text="textContent"
     />
   </div>
   <div
     v-if="needsCollapse && textContent"
-    class="shrink-0 w-10"
+    class="w-10 shrink-0"
     @click="collapsed = !collapsed"
   >
     <button
-      class="dark:hover:bg-neutral-5/10 rounded-full flex h-10 w-10 items-center justify-center hover:bg-neutral-200/50"
+      class="h-10 w-10 flex items-center justify-center rounded-full hover:bg-neutral-200/50 dark:hover:bg-neutral-5/10"
     >
       <i :class="collapsed ? 'i-tabler-chevron-down' : 'i-tabler-chevron-up'" />
     </button>

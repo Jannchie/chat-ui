@@ -100,28 +100,28 @@ onBeforeUnmount(() => {
 
 <template>
   <header
-    class="text-lg px-4 py-3 flex flex-shrink-0 gap-4 items-center justify-between lg:px-6 lg:h-72px"
+    class="flex flex-shrink-0 items-center justify-between gap-4 px-4 py-3 text-lg lg:h-72px lg:px-6"
   >
     <!-- Chat list drawer toggle for small screens -->
     <button
-      class="text-lg p-2 rounded-full flex items-center justify-center hover:bg-neutral-100 lg:hidden dark:hover:bg-neutral-800"
+      class="flex items-center justify-center rounded-full p-2 text-lg lg:hidden hover:bg-neutral-100 dark:hover:bg-neutral-800"
       aria-label="Open chat list"
       title="Open chat list"
       @click="asideOpen = true"
     >
       <i class="i-tabler-menu-2 text-neutral-400" />
     </button>
-    <div class="flex gap-2 min-w-0 items-center">
+    <div class="min-w-0 flex items-center gap-2">
       <!-- Model selection - visible on all devices -->
       <button
-        class="text-sm font-medium px-3 py-2 rounded-full flex gap-2 cursor-pointer transition-colors items-center lg:px-4 lg:py-2.5 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+        class="flex cursor-pointer items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors hover:bg-neutral-200 lg:px-4 lg:py-2.5 dark:hover:bg-neutral-800"
         @click="showSelectPresetModal = true"
       >
         <div class="text-lg leading-0">
           <component :is="() => getPlatformIcon(platform)" />
         </div>
         {{ getPlatformName(platform) }}
-        <i class="i-tabler-chevron-down text-xs ml-1 opacity-60" />
+        <i class="i-tabler-chevron-down ml-1 text-xs opacity-60" />
       </button>
 
       <button
@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
         }"
         :disabled="!canCopyChatJson"
         :title="copyButtonTitle"
-        class="text-sm font-medium px-3 py-2 rounded-full gap-2 hidden transition-colors items-center hover:bg-neutral-200 lg:flex dark:hover:bg-neutral-800"
+        class="hidden items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors lg:flex hover:bg-neutral-200 dark:hover:bg-neutral-800"
         @click="copyChatJson"
       >
         <i :class="copyButtonIcon" class="text-base" />
@@ -157,43 +157,43 @@ onBeforeUnmount(() => {
 
     <!-- Desktop view - row of inputs -->
     <div class="hidden lg:flex lg:gap-3">
-      <div v-if="platform === 'custom'" class="flex gap-2 items-center">
-        <div class="text-lg pr-2 flex items-center">
+      <div v-if="platform === 'custom'" class="flex items-center gap-2">
+        <div class="flex items-center pr-2 text-lg">
           <i class="i-tabler-link text-green-400" />
-          <span class="text-sm font-medium pl-2">Service URL</span>
+          <span class="pl-2 text-sm font-medium">Service URL</span>
         </div>
         <input
           v-model="customServiceUrl"
           placeholder="Service URL"
-          class="text-sm text-neutral-700 px-6 py-2 outline-none rounded-full bg-neutral-200 w-36 transition-all dark:text-[#e3e3e3] focus:border-green-500/50 dark:bg-elevated focus:ring-2 focus:ring-green-500/20"
+          class="w-36 rounded-full bg-neutral-200 px-6 py-2 text-sm text-neutral-700 outline-none transition-all focus:border-green-500/50 dark:bg-elevated dark:text-[#e3e3e3] focus:ring-2 focus:ring-green-500/20"
           type="text"
         >
       </div>
 
-      <div class="flex gap-2 items-center">
-        <div class="text-lg pr-2 flex items-center">
+      <div class="flex items-center gap-2">
+        <div class="flex items-center pr-2 text-lg">
           <i class="i-tabler-cube text-purple-400" />
-          <span class="text-sm font-medium pl-2">Model</span>
+          <span class="pl-2 text-sm font-medium">Model</span>
         </div>
         <!-- Replace input with button to show model selection modal -->
         <button
-          class="text-sm text-neutral-700 px-6 py-2 rounded-full bg-neutral-200 flex min-w-36 transition-all items-center justify-between dark:text-[#e3e3e3] focus:border-neutral-500/50 dark:bg-elevated hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-elevated-hover"
+          class="min-w-36 flex items-center justify-between rounded-full bg-neutral-200 px-6 py-2 text-sm text-neutral-700 transition-all focus:border-neutral-500/50 dark:bg-elevated hover:bg-neutral-300 dark:text-[#e3e3e3] focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-elevated-hover"
           @click="showSelectModelModal = true"
         >
-          <span class="pr-2 truncate">{{ model || "Select Model" }}</span>
+          <span class="truncate pr-2">{{ model || "Select Model" }}</span>
           <i class="i-tabler-chevron-down text-xs opacity-60" />
         </button>
       </div>
 
-      <div class="flex gap-2 items-center">
-        <div class="text-lg pr-2 flex items-center">
+      <div class="flex items-center gap-2">
+        <div class="flex items-center pr-2 text-lg">
           <i class="i-tabler-key text-blue-400" />
-          <span class="text-sm font-medium pl-2">API Key</span>
+          <span class="pl-2 text-sm font-medium">API Key</span>
         </div>
         <input
           v-model="apiKey"
           placeholder="API Key"
-          class="text-sm text-neutral-700 px-6 py-2 outline-none rounded-full bg-neutral-200 w-36 transition-all dark:text-[#e3e3e3] focus:border-blue-500/50 dark:bg-elevated focus:ring-2 focus:ring-blue-500/20"
+          class="w-36 rounded-full bg-neutral-200 px-6 py-2 text-sm text-neutral-700 outline-none transition-all focus:border-blue-500/50 dark:bg-elevated dark:text-[#e3e3e3] focus:ring-2 focus:ring-blue-500/20"
           type="password"
         >
       </div>
@@ -201,14 +201,14 @@ onBeforeUnmount(() => {
       <!-- Header actions -->
       <div class="flex items-center">
         <button
-          class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-700"
+          class="flex items-center justify-center rounded-full p-2 text-lg transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 dark:hover:bg-neutral-8"
           title="Cache History"
           @click="showCacheHistoryModal = true"
         >
           <i class="i-tabler-history text-neutral-400" />
         </button>
         <button
-          class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex transition-colors items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-700"
+          class="flex items-center justify-center rounded-full p-2 text-lg transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700 dark:hover:bg-neutral-8"
           title="Settings"
           @click="showSettingsModal = true"
         >
@@ -218,9 +218,9 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Mobile view - menu toggle -->
-    <div class="flex gap-1 items-center lg:hidden">
+    <div class="flex items-center gap-1 lg:hidden">
       <button
-        class="dark:hover:bg-neutral-8 text-lg p-2 rounded-full flex items-center justify-center hover:bg-neutral-100"
+        class="flex items-center justify-center rounded-full p-2 text-lg hover:bg-neutral-100 dark:hover:bg-neutral-8"
         @click="showMobileMenu = !showMobileMenu"
       >
         <i class="i-tabler-settings text-neutral-400" />
@@ -230,18 +230,18 @@ onBeforeUnmount(() => {
     <!-- Mobile menu drawer -->
     <div
       v-if="showMobileMenu"
-      class="bg-black/50 inset-0 fixed z-50 lg:hidden"
+      class="fixed inset-0 z-50 bg-black/50 lg:hidden"
       @click.self="showMobileMenu = false"
     >
       <div
-        class="p-4 bg-[#121212] h-full w-64 shadow-lg right-0 top-0 absolute"
+        class="absolute right-0 top-0 h-full w-64 bg-[#121212] p-4 shadow-lg"
       >
         <div class="mb-6 flex items-center justify-between">
           <h3 class="text-lg font-medium">
             Settings
           </h3>
           <button
-            class="hover:bg-neutral-8 p-1 rounded-full"
+            class="rounded-full p-1 hover:bg-neutral-8"
             @click="showMobileMenu = false"
           >
             <i class="i-tabler-x text-lg" />
@@ -250,39 +250,39 @@ onBeforeUnmount(() => {
 
         <div class="flex flex-col gap-6">
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium flex gap-2 items-center">
+            <label class="flex items-center gap-2 text-sm font-medium">
               <i class="i-tabler-key text-blue-400" />
               API Key
             </label>
             <input
               v-model="apiKey"
               placeholder="API Key"
-              class="text-sm text-neutral-700 px-4 py-2 outline-none rounded-lg bg-neutral-200 w-full transition-all dark:text-[#e3e3e3] focus:border-blue-500/50 dark:bg-elevated focus:ring-2 focus:ring-blue-500/20"
+              class="w-full rounded-lg bg-neutral-200 px-4 py-2 text-sm text-neutral-700 outline-none transition-all focus:border-blue-500/50 dark:bg-elevated dark:text-[#e3e3e3] focus:ring-2 focus:ring-blue-500/20"
               type="password"
             >
           </div>
 
           <div v-if="platform === 'custom'" class="flex flex-col gap-2">
-            <label class="text-sm font-medium flex gap-2 items-center">
+            <label class="flex items-center gap-2 text-sm font-medium">
               <i class="i-tabler-link text-green-400" />
               Service URL
             </label>
             <input
               v-model="customServiceUrl"
               placeholder="Service URL"
-              class="text-sm text-neutral-700 px-4 py-2 outline-none rounded-lg bg-neutral-200 w-full transition-all dark:text-[#e3e3e3] focus:border-green-500/50 dark:bg-elevated focus:ring-2 focus:ring-green-500/20"
+              class="w-full rounded-lg bg-neutral-200 px-4 py-2 text-sm text-neutral-700 outline-none transition-all focus:border-green-500/50 dark:bg-elevated dark:text-[#e3e3e3] focus:ring-2 focus:ring-green-500/20"
               type="text"
             >
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium flex gap-2 items-center">
+            <label class="flex items-center gap-2 text-sm font-medium">
               <i class="i-tabler-cube text-purple-400" />
               Model
             </label>
             <!-- Replace input with button to show model selection modal in mobile menu -->
             <button
-              class="text-sm text-neutral-700 px-4 py-2 rounded-lg bg-neutral-200 flex w-full transition-all items-center justify-between dark:text-[#e3e3e3] focus:border-neutral-500/50 dark:bg-elevated hover:bg-neutral-300 focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-elevated-hover"
+              class="w-full flex items-center justify-between rounded-lg bg-neutral-200 px-4 py-2 text-sm text-neutral-700 transition-all focus:border-neutral-500/50 dark:bg-elevated hover:bg-neutral-300 dark:text-[#e3e3e3] focus:ring-2 focus:ring-neutral-500/20 dark:hover:bg-elevated-hover"
               @click="
                 showSelectModelModal = true;
                 showMobileMenu = false;
@@ -296,7 +296,7 @@ onBeforeUnmount(() => {
           <!-- Cache History Button -->
           <div class="flex justify-center">
             <button
-              class="hover:bg-neutral-7 text-sm font-medium px-4 py-2 rounded-lg flex gap-2 transition-colors items-center justify-center"
+              class="flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:bg-neutral-7"
               @click="
                 showCacheHistoryModal = true;
                 showMobileMenu = false;
@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
                 'opacity-50 cursor-not-allowed': !canCopyChatJson,
               }"
               :disabled="!canCopyChatJson"
-              class="hover:bg-neutral-7 text-sm font-medium px-4 py-2 rounded-lg flex gap-2 transition-colors items-center justify-center"
+              class="flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:bg-neutral-7"
               @click="
                 copyChatJson();
                 showMobileMenu = false;

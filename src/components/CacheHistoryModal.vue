@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { RequestCacheEntry } from '../composables/useDatabase'
-import { Modal } from '@roku-ui/vue'
 import { useRequestCache } from '../composables/useRequestCache'
 import { currentPreset, customServiceUrl, model, platform } from '../shared'
 
@@ -89,18 +88,18 @@ watch(displayMode, () => {
 <template>
   <Modal v-model="showModal">
     <div
-      class="mx-4 border border-neutral-200 rounded-2xl bg-white max-h-[80vh] max-w-2xl w-full shadow-2xl overflow-hidden dark:border-neutral-800 dark:bg-[#1a1a1a]"
+      class="mx-4 max-h-[80vh] max-w-2xl w-full overflow-hidden border border-neutral-200 rounded-2xl bg-white shadow-2xl dark:border-neutral-800 dark:bg-[#1a1a1a]"
     >
       <div
-        class="px-5 py-4 border-b border-neutral-200 flex items-center justify-between dark:border-neutral-800"
+        class="flex items-center justify-between border-b border-neutral-200 px-5 py-4 dark:border-neutral-800"
       >
         <h2 class="text-base text-neutral-800 font-semibold dark:text-white">
           Cache History
         </h2>
-        <div class="flex gap-3 items-center">
+        <div class="flex items-center gap-3">
           <SegmentedControl v-model="displayMode" :options="displayModeOptions" />
           <button
-            class="text-neutral-400 rounded-full flex h-8 w-8 transition-colors items-center justify-center hover:text-neutral-700 hover:bg-neutral-200 dark:hover:text-white dark:hover:bg-neutral-800"
+            class="h-8 w-8 flex items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white"
             @click="showModal = false"
           >
             <i class="i-tabler-x" />
@@ -108,8 +107,8 @@ watch(displayMode, () => {
         </div>
       </div>
 
-      <div class="p-3 max-h-[60vh] overflow-y-auto">
-        <div v-if="loading" class="text-sm text-neutral-400 p-8 text-center">
+      <div class="max-h-[60vh] overflow-y-auto p-3">
+        <div v-if="loading" class="p-8 text-center text-sm text-neutral-400">
           Loading...
         </div>
         <div
@@ -117,7 +116,7 @@ watch(displayMode, () => {
           class="p-8 text-center"
         >
           <i class="i-tabler-database-off text-xl text-neutral-300 dark:text-neutral-600" />
-          <p class="text-sm text-neutral-400 mt-2">
+          <p class="mt-2 text-sm text-neutral-400">
             No cache entries found
           </p>
         </div>
@@ -125,28 +124,28 @@ watch(displayMode, () => {
           <div
             v-for="entry in cacheEntries"
             :key="entry.id"
-            class="group px-3 py-2.5 rounded-lg flex gap-3 cursor-pointer transition-colors items-center hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            class="group flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
             @click="applyConfiguration(entry)"
           >
-            <div class="flex-1 min-w-0">
-              <div class="flex gap-2 items-center">
-                <div class="text-sm text-neutral-800 font-medium truncate dark:text-white">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <div class="truncate text-sm text-neutral-800 font-medium dark:text-white">
                   {{ getDisplayName(entry) }}
                 </div>
                 <div
-                  class="text-xs text-neutral-400 px-1.5 py-0.5 rounded bg-neutral-100 flex flex-shrink-0 gap-1 items-center dark:text-neutral-500 dark:bg-neutral-800"
+                  class="flex flex-shrink-0 items-center gap-1 rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500"
                 >
                   <i class="i-tabler-mouse" />
                   {{ entry.accessCount }}
                 </div>
               </div>
-              <div class="text-xs text-neutral-400 mt-1 flex gap-3 dark:text-neutral-500">
+              <div class="mt-1 flex gap-3 text-xs text-neutral-400 dark:text-neutral-500">
                 <span>{{ getMaskedApiKey(entry.key.apiKey) }}</span>
                 <span>{{ formatDate(entry.timestamp) }}</span>
               </div>
             </div>
             <i
-              class="i-tabler-arrow-right text-neutral-400 opacity-0 flex-shrink-0 transition-opacity group-hover:opacity-100"
+              class="i-tabler-arrow-right flex-shrink-0 text-neutral-400 opacity-0 transition-opacity group-hover:opacity-100"
             />
           </div>
         </div>

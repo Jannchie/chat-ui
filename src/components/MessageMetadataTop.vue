@@ -48,13 +48,13 @@ const messagePlatform = computed(() => {
 </script>
 
 <template>
-  <div class="text-xs font-condensed flex gap-2 items-center">
+  <div class="flex items-center gap-2 text-xs font-condensed">
     <span class="op-75">
       {{ formatDate(message.timestamp) }}
     </span>
     <span
       v-if="message.role === 'assistant' && message.metadata?.model"
-      class="op-75 flex gap-1 items-center"
+      class="flex items-center gap-1 op-75"
     >
       <span>·</span>
       <component :is="() => getPlatformIcon(messagePlatform)" class="text-xs" />

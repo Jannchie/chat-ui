@@ -14,11 +14,11 @@ watch(
 <template>
   <div
     v-if="asideOpen"
-    class="bg-black/50 inset-0 fixed z-40 lg:hidden"
+    class="fixed inset-0 z-40 bg-black/50 lg:hidden"
     @click="asideOpen = false"
   />
   <aside
-    class="px-3 bg-neutral-200 flex flex-shrink-0 flex-col h-100dvh w-284px transition-transform inset-y-0 left-0 fixed z-50 dark:bg-neutral-900 lg:translate-x-0 lg:static"
+    class="fixed inset-y-0 left-0 z-50 h-100dvh w-284px flex flex-shrink-0 flex-col bg-neutral-200 px-3 transition-transform lg:static lg:translate-x-0 dark:bg-neutral-900"
     :class="asideOpen ? 'translate-x-0' : '-translate-x-full'"
   >
     <slot />

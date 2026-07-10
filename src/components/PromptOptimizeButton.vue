@@ -96,7 +96,7 @@ async function handleOptimizeWithOptions() {
     <!-- Main optimize button -->
     <button
       :disabled="disabled || isOptimizing || !modelValue.trim()"
-      class="rounded-lg flex transition-all items-center justify-center"
+      class="flex items-center justify-center rounded-lg transition-all"
       :class="[
         sizeClasses[size],
         variantClasses[variant],
@@ -127,14 +127,14 @@ async function handleOptimizeWithOptions() {
     <Teleport to="body">
       <div
         v-if="showOptionsModal"
-        class="bg-black/50 flex items-center inset-0 justify-center fixed z-50"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
         @click.self="showOptionsModal = false"
       >
         <div
-          class="dark:border-neutral-6 p-6 border border-neutral-300 rounded-xl bg-neutral-100 max-w-[90vw] w-96 dark:bg-neutral-800"
+          class="max-w-[90vw] w-96 border border-neutral-300 rounded-xl bg-neutral-100 p-6 dark:border-neutral-6 dark:bg-neutral-800"
         >
           <h3
-            class="dark:text-neutral-1 text-lg text-neutral-800 font-medium mb-4"
+            class="mb-4 text-lg text-neutral-800 font-medium dark:text-neutral-1"
           >
             Optimization Options
           </h3>
@@ -142,12 +142,12 @@ async function handleOptimizeWithOptions() {
           <div class="space-y-4">
             <!-- Style Selection -->
             <div>
-              <label class="text-neutral-3 text-sm font-medium mb-2 block">
+              <label class="mb-2 block text-sm text-neutral-3 font-medium">
                 Style
               </label>
               <select
                 v-model="optimizationOptions.style"
-                class="dark:text-neutral-1 dark:bg-neutral-7 dark:border-neutral-6 text-neutral-800 px-3 py-2 border border-neutral-400 rounded-lg bg-neutral-200 w-full"
+                class="w-full border border-neutral-400 rounded-lg bg-neutral-200 px-3 py-2 text-neutral-800 dark:border-neutral-6 dark:bg-neutral-7 dark:text-neutral-1"
               >
                 <option value="professional">
                   Professional
@@ -166,12 +166,12 @@ async function handleOptimizeWithOptions() {
 
             <!-- Purpose Selection -->
             <div>
-              <label class="text-neutral-3 text-sm font-medium mb-2 block">
+              <label class="mb-2 block text-sm text-neutral-3 font-medium">
                 Purpose
               </label>
               <select
                 v-model="optimizationOptions.purpose"
-                class="dark:text-neutral-1 dark:bg-neutral-7 dark:border-neutral-6 text-neutral-800 px-3 py-2 border border-neutral-400 rounded-lg bg-neutral-200 w-full"
+                class="w-full border border-neutral-400 rounded-lg bg-neutral-200 px-3 py-2 text-neutral-800 dark:border-neutral-6 dark:bg-neutral-7 dark:text-neutral-1"
               >
                 <option value="general">
                   General
@@ -190,12 +190,12 @@ async function handleOptimizeWithOptions() {
 
             <!-- Language Selection -->
             <div>
-              <label class="text-neutral-3 text-sm font-medium mb-2 block">
+              <label class="mb-2 block text-sm text-neutral-3 font-medium">
                 Language
               </label>
               <select
                 v-model="optimizationOptions.language"
-                class="dark:text-neutral-1 dark:bg-neutral-7 dark:border-neutral-6 text-neutral-800 px-3 py-2 border border-neutral-400 rounded-lg bg-neutral-200 w-full"
+                class="w-full border border-neutral-400 rounded-lg bg-neutral-200 px-3 py-2 text-neutral-800 dark:border-neutral-6 dark:bg-neutral-7 dark:text-neutral-1"
               >
                 <option value="auto-detect">
                   Auto-detect
@@ -219,7 +219,7 @@ async function handleOptimizeWithOptions() {
           <!-- Error Display -->
           <div
             v-if="optimizationError"
-            class="text-sm text-red-400 mt-4 p-3 border border-red-500/30 rounded-lg bg-red-500/20"
+            class="mt-4 border border-red-500/30 rounded-lg bg-red-500/20 p-3 text-sm text-red-400"
           >
             {{ optimizationError }}
           </div>
@@ -227,18 +227,18 @@ async function handleOptimizeWithOptions() {
           <!-- Action Buttons -->
           <div class="mt-6 flex gap-3">
             <button
-              class="dark:text-neutral-1 dark:bg-neutral-7 dark:hover:bg-neutral-6 text-neutral-800 px-4 py-2 rounded-lg bg-neutral-300 flex-1 transition-colors hover:bg-neutral-400"
+              class="flex-1 rounded-lg bg-neutral-300 px-4 py-2 text-neutral-800 transition-colors dark:bg-neutral-7 hover:bg-neutral-400 dark:text-neutral-1 dark:hover:bg-neutral-6"
               @click="showOptionsModal = false"
             >
               Cancel
             </button>
             <button
               :disabled="isOptimizing || !modelValue.trim()"
-              class="text-white px-4 py-2 rounded-lg bg-blue-500 flex-1 transition-colors hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex-1 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors disabled:cursor-not-allowed hover:bg-blue-600 disabled:opacity-50"
               @click="handleOptimizeWithOptions"
             >
               <span v-if="!isOptimizing">Optimize</span>
-              <span v-else class="flex gap-2 items-center justify-center">
+              <span v-else class="flex items-center justify-center gap-2">
                 <i class="i-tabler-loader-2 h-4 w-4 animate-spin" />
                 Optimizing...
               </span>

@@ -124,7 +124,7 @@ function formatToolCall(toolCall: any) {
             alt="Image"
             loading="lazy"
             decoding="async"
-            class="border-neutral-6 border rounded-lg max-h-48 max-w-xs cursor-pointer object-cover"
+            class="max-h-48 max-w-xs cursor-pointer border border-neutral-6 rounded-lg object-cover"
             @click="openImagePreview(part.image_url.url)"
           >
         </div>
@@ -132,9 +132,9 @@ function formatToolCall(toolCall: any) {
         <!-- Function Call Content -->
         <div
           v-else-if="part.type === 'function_call'"
-          class="function-call-content p-3 border border-blue-200 rounded-lg bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20"
+          class="function-call-content border border-blue-200 rounded-lg bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20"
         >
-          <div class="mb-2 flex gap-2 items-center">
+          <div class="mb-2 flex items-center gap-2">
             <i class="i-tabler-function text-blue-600 dark:text-blue-400" />
             <span class="text-sm text-blue-700 font-medium dark:text-blue-300">Function Call</span>
           </div>
@@ -146,9 +146,9 @@ function formatToolCall(toolCall: any) {
         <!-- Tool Call Content -->
         <div
           v-else-if="part.type === 'tool_call'"
-          class="tool-call-content p-3 border border-green-200 rounded-lg bg-green-50 dark:border-green-800 dark:bg-green-900/20"
+          class="tool-call-content border border-green-200 rounded-lg bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20"
         >
-          <div class="mb-2 flex gap-2 items-center">
+          <div class="mb-2 flex items-center gap-2">
             <i class="i-tabler-tool text-green-600 dark:text-green-400" />
             <span class="text-sm text-green-700 font-medium dark:text-green-300">Tool Call</span>
             <span

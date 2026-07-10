@@ -55,19 +55,19 @@ function copyContentToClipboard() {
     <div>
       <ThinkingBlock :reasoning="reasoning" :active="thinkingActive" />
 
-      <div class="mb-2 relative">
-        <div class="right-0 top-0 absolute z-10">
+      <div class="relative mb-2">
+        <div class="absolute right-0 top-0 z-10">
           <button
-            class="p-1.5 rounded bg-transparent opacity-50 flex h-8 w-8 transition-all duration-200 items-center justify-center hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
+            class="h-8 w-8 flex items-center justify-center rounded bg-transparent p-1.5 opacity-50 transition-all duration-200 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
             aria-label="Copy markdown content"
             @click="copyContentToClipboard"
           >
             <i
-              class="i-tabler-copy dark:text-neutral-4 text-neutral-500 h-5 w-5"
+              class="i-tabler-copy h-5 w-5 text-neutral-500 dark:text-neutral-4"
             />
             <div
               v-if="showCopyTooltip"
-              class="text-xs text-white px-2 py-1 rounded bg-black/70 pointer-events-none whitespace-nowrap right-0 absolute dark:text-black dark:bg-white/70 -bottom-7"
+              class="pointer-events-none absolute right-0 whitespace-nowrap rounded bg-black/70 px-2 py-1 text-xs text-white -bottom-7 dark:bg-white/70 dark:text-black"
             >
               Copied!
             </div>

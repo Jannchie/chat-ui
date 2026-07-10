@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Modal } from '@roku-ui/vue'
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useModels } from '../composables'
 import { platform } from '../shared'
@@ -107,16 +106,16 @@ function closeModal() {
 <template>
   <Modal v-model="modelValue">
     <div
-      class="mx-4 border border-neutral-200 rounded-2xl bg-white max-w-md w-full shadow-2xl overflow-hidden dark:border-neutral-800 dark:bg-[#1a1a1a]"
+      class="mx-4 max-w-md w-full overflow-hidden border border-neutral-200 rounded-2xl bg-white shadow-2xl dark:border-neutral-800 dark:bg-[#1a1a1a]"
     >
       <div
-        class="px-5 py-4 border-b border-neutral-200 flex items-center justify-between dark:border-neutral-800"
+        class="flex items-center justify-between border-b border-neutral-200 px-5 py-4 dark:border-neutral-800"
       >
         <h2 class="text-base text-neutral-800 font-semibold dark:text-white">
           Select Model
         </h2>
         <button
-          class="text-neutral-400 rounded-full flex h-8 w-8 transition-colors items-center justify-center hover:text-neutral-700 hover:bg-neutral-200 dark:hover:text-white dark:hover:bg-neutral-800"
+          class="h-8 w-8 flex items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white"
           @click="closeModal"
         >
           <i class="i-tabler-x" />
@@ -127,18 +126,18 @@ function closeModal() {
       <div class="px-3 pt-3">
         <div class="relative">
           <i
-            class="i-tabler-search text-sm text-neutral-400 transform left-3 top-1/2 absolute -translate-y-1/2"
+            class="i-tabler-search absolute left-3 top-1/2 transform text-sm text-neutral-400 -translate-y-1/2"
           />
           <input
             ref="searchInputRef"
             v-model="searchQuery"
             type="text"
-            class="text-sm text-neutral-800 py-2 pl-9 pr-9 outline-none rounded-lg bg-neutral-100 w-full transition-all dark:text-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500/40 placeholder-neutral-400 dark:placeholder-neutral-500"
+            class="w-full rounded-lg bg-neutral-100 py-2 pl-9 pr-9 text-sm text-neutral-800 outline-none transition-all dark:bg-neutral-800 dark:text-white focus:ring-2 focus:ring-blue-500/40 placeholder-neutral-400 dark:placeholder-neutral-500"
             placeholder="Search models..."
           >
           <button
             v-if="searchQuery"
-            class="text-neutral-400 transform transition-colors right-3 top-1/2 absolute hover:text-neutral-700 -translate-y-1/2 dark:hover:text-white"
+            class="absolute right-3 top-1/2 transform text-neutral-400 transition-colors -translate-y-1/2 hover:text-neutral-700 dark:hover:text-white"
             @click="searchQuery = ''"
           >
             <i class="i-tabler-x text-sm" />
@@ -146,11 +145,11 @@ function closeModal() {
         </div>
       </div>
 
-      <div class="p-3 max-h-96 overflow-y-auto">
+      <div class="max-h-96 overflow-y-auto p-3">
         <!-- Loading State -->
-        <div v-if="isLoading" class="text-neutral-400 p-8 text-center">
-          <i class="i-tabler-loader-2 text-2xl animate-spin" />
-          <p class="text-sm mt-2">
+        <div v-if="isLoading" class="p-8 text-center text-neutral-400">
+          <i class="i-tabler-loader-2 animate-spin text-2xl" />
+          <p class="mt-2 text-sm">
             Loading models...
           </p>
         </div>
@@ -158,10 +157,10 @@ function closeModal() {
         <!-- Error State -->
         <div v-else-if="error" class="p-6 text-center">
           <i class="i-tabler-alert-circle text-xl text-red-400" />
-          <p class="text-sm text-red-400 mt-2">
+          <p class="mt-2 text-sm text-red-400">
             {{ error }}
           </p>
-          <p class="text-xs text-neutral-400 mt-2 dark:text-neutral-500">
+          <p class="mt-2 text-xs text-neutral-400 dark:text-neutral-500">
             Please configure your API key in the header to fetch available
             models.
           </p>
@@ -172,30 +171,30 @@ function closeModal() {
           <div
             v-for="(modelOption, index) in filteredModels"
             :key="index"
-            class="px-3 py-2.5 rounded-lg flex gap-3 cursor-pointer transition-colors items-center hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            class="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
             :class="{
               'bg-neutral-100 dark:bg-neutral-800': index === highlightedIndex,
             }"
             @click="updateModel(modelOption)"
           >
-            <i class="i-tabler-cube text-neutral-400 flex-shrink-0" />
-            <div class="flex flex-col min-w-0">
+            <i class="i-tabler-cube flex-shrink-0 text-neutral-400" />
+            <div class="min-w-0 flex flex-col">
               <span
-                class="text-sm text-neutral-800 font-medium truncate dark:text-white"
+                class="truncate text-sm text-neutral-800 font-medium dark:text-white"
               >{{ modelOption }}</span>
               <span class="text-xs text-neutral-400 dark:text-neutral-500">{{ platform }}</span>
             </div>
             <i
               v-if="modelOption === selectedModel"
-              class="i-tabler-check text-blue-500 ml-auto flex-shrink-0"
+              class="i-tabler-check ml-auto flex-shrink-0 text-blue-500"
             />
           </div>
         </div>
 
         <!-- No Models Found -->
-        <div v-else class="text-neutral-400 p-6 text-center">
+        <div v-else class="p-6 text-center text-neutral-400">
           <i class="i-tabler-info-circle text-xl" />
-          <p class="text-sm mt-2">
+          <p class="mt-2 text-sm">
             No Models Found
           </p>
         </div>

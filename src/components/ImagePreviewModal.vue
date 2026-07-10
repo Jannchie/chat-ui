@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Modal } from '@roku-ui/vue'
-
 defineProps<{
   visible: boolean
   imageUrl: string
@@ -17,11 +15,11 @@ function close() {
 
 <template>
   <Modal :model-value="visible" @update:model-value="close">
-    <div class="p-4 flex h-full w-full items-center justify-center relative">
+    <div class="relative h-full w-full flex items-center justify-center p-4">
       <img
         :src="imageUrl"
         alt="Preview"
-        class="rounded-lg max-h-[85vh] max-w-[85vw] object-contain"
+        class="max-h-[85vh] max-w-[85vw] rounded-lg object-contain"
         @click.stop
       >
     </div>

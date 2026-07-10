@@ -30,17 +30,17 @@ function onClick() {
 </script>
 
 <template>
-  <button ref="buttonRef" class="text-sm w-full relative" @click="onClick">
+  <button ref="buttonRef" class="relative w-full text-sm" @click="onClick">
     <div
       :class="{
         'bg-blue-500/30 dark:text-blue-200 text-blue-500': active,
         'hover:bg-neutral-200 dark:hover:bg-neutral-800': !active,
       }"
-      class="py-1 pl-2 pr-1 rounded-full flex gap-2 items-center"
+      class="flex items-center gap-2 rounded-full py-1 pl-2 pr-1"
     >
       <i class="i-tabler-message m-2 flex-shrink-0" />
       <span
-        class="text-left flex-grow text-nowrap text-ellipsis overflow-x-hidden"
+        class="flex-grow overflow-x-hidden text-ellipsis text-left text-nowrap"
       >
         {{ chatData.title ?? "Untitled Chat" }}
       </span>
@@ -52,12 +52,12 @@ function onClick() {
           'bg-neutral-300/25 dark:bg-neutral-900/25': showMenu && active,
           'bg-neutral-300/25 dark:bg-neutral-700/25': showMenu && !active,
         }"
-        class="leading-0 p-2 rounded-full"
+        class="rounded-full p-2 leading-0"
         @click="onActionClick"
       >
         <i v-if="hover || showMenu" class="i-tabler-dots-vertical" />
       </button>
     </div>
-    <div v-if="showMenu" class="inset-0 fixed z-9" />
+    <div v-if="showMenu" class="fixed inset-0 z-9" />
   </button>
 </template>

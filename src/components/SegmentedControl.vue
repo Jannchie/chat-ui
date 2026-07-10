@@ -8,12 +8,12 @@ const model = defineModel<T>()
 
 <template>
   <div
-    class="p-0.5 rounded-lg bg-neutral-200/70 inline-flex gap-0.5 dark:bg-neutral-800"
+    class="inline-flex gap-0.5 rounded-lg bg-neutral-200/70 p-0.5 dark:bg-neutral-800"
   >
     <button
       v-for="option in options"
       :key="String(option.value)"
-      class="text-sm px-2.5 py-1 rounded-md flex gap-1.5 transition-all items-center"
+      class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-all"
       :class="
         model === option.value
           ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-600 dark:text-white'

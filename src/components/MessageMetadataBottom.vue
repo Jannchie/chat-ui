@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
-import { Tag } from '@roku-ui/vue'
 import { asyncComputed } from '@vueuse/core'
 import { computed } from 'vue'
 import { useCurrency } from '../composables/useCurrency'
@@ -73,7 +72,7 @@ const performanceStats = computed(() => {
           || message.metadata?.usage
           || message.metadata?.tokenSpeed)
     "
-    class="font-condensed flex gap-2 items-center"
+    class="flex items-center gap-2 font-condensed"
   >
     <MessageTimer :message="message" mode="detailed" />
     <Tag
@@ -83,7 +82,7 @@ const performanceStats = computed(() => {
       color="surface"
     >
       <template #leftSection>
-        <span class="flex gap-0.5 items-center">
+        <span class="flex items-center gap-0.5">
           <i class="i-tabler-arrow-up h-3 w-3" />
           <span>{{ message.metadata.usage.input_tokens }}</span>
           <i class="i-tabler-arrow-down ml-0.5 h-3 w-3" />
@@ -124,14 +123,14 @@ const performanceStats = computed(() => {
       </Tag>
       <div
         v-if="performanceStats.length > 0"
-        class="mb-1.5 opacity-0 invisible pointer-events-none transition-opacity duration-150 bottom-full left-0 absolute z-10 group-hover:opacity-100 group-hover:visible"
+        class="pointer-events-none invisible absolute bottom-full left-0 z-10 mb-1.5 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100"
       >
         <div
-          class="text-xs px-3 py-2 border border-neutral-200 rounded-lg bg-white gap-x-4 gap-y-1 grid grid-cols-[auto_auto] whitespace-nowrap shadow-lg dark:border-neutral-700 dark:bg-neutral-800"
+          class="grid grid-cols-[auto_auto] gap-x-4 gap-y-1 whitespace-nowrap border border-neutral-200 rounded-lg bg-white px-3 py-2 text-xs shadow-lg dark:border-neutral-700 dark:bg-neutral-800"
         >
           <template v-for="stat in performanceStats" :key="stat.label">
             <span class="text-neutral-500 dark:text-neutral-400">{{ stat.label }}</span>
-            <span class="text-neutral-800 font-mono text-right dark:text-neutral-100">{{ stat.value }}</span>
+            <span class="text-right text-neutral-800 font-mono dark:text-neutral-100">{{ stat.value }}</span>
           </template>
         </div>
       </div>

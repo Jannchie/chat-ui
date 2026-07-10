@@ -19,8 +19,6 @@
     "@ai-sdk/vue": "^4.0.18",
     "@jannchie/shiki-theme": "^3.2.0",
     "@preferred-markdown-stream/vue": "0.3.0",
-    "@roku-ui/preset": "^0.31.0",
-    "@roku-ui/vue": "^0.31.0",
     "@vueuse/core": "^14.3.0",
     "ai": "^7.0.18",
     "dexie": "^4.4.4",

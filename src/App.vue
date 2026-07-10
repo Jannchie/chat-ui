@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { RokuProvider } from '@roku-ui/vue'
+// 应用启动即把 data-scheme 写到 <html>/<body>，所有 dark: 样式依赖它
+useTheme()
 </script>
 
 <template>
-  <RokuProvider>
-    <RouterView />
-  </RokuProvider>
+  <RouterView />
 </template>
 
 <style>

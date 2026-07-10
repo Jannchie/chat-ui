@@ -100,17 +100,17 @@ function toggle() {
 <template>
   <div
     v-if="active || hasContent"
-    class="mb-4 border border-neutral-300/60 rounded-xl overflow-hidden dark:border-neutral-700/60"
+    class="mb-4 overflow-hidden border border-neutral-300/60 rounded-xl dark:border-neutral-700/60"
   >
     <button
       type="button"
-      class="text-xs px-4 py-2.5 bg-neutral-200/50 flex gap-2 w-full items-center dark:bg-neutral-800/50"
+      class="w-full flex items-center gap-2 bg-neutral-200/50 px-4 py-2.5 text-xs dark:bg-neutral-800/50"
       :class="hasContent ? 'cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-800' : 'cursor-default'"
       :aria-expanded="expanded"
       @click="toggle"
     >
       <i
-        class="i-tabler-brain text-neutral-500 shrink-0 h-4 w-4 dark:text-neutral-400"
+        class="i-tabler-brain h-4 w-4 shrink-0 text-neutral-500 dark:text-neutral-400"
         :class="{ 'animate-pulse': active }"
       />
       <span v-if="active" class="animate-gradient-text">
@@ -121,14 +121,14 @@ function toggle() {
       </span>
       <i
         v-if="hasContent"
-        class="i-tabler-chevron-down text-neutral-400 ml-auto shrink-0 h-3.5 w-3.5 transition-transform duration-200"
+        class="i-tabler-chevron-down ml-auto h-3.5 w-3.5 shrink-0 text-neutral-400 transition-transform duration-200"
         :class="{ 'rotate-180': expanded }"
       />
     </button>
     <div
       v-if="hasContent"
       v-show="expanded"
-      class="text-xs px-4 py-3 border-t border-neutral-300/60 max-h-80 max-w-none overflow-auto prose prose-gray dark:border-neutral-700/60 dark:prose-invert"
+      class="max-h-80 max-w-none overflow-auto border-t border-neutral-300/60 px-4 py-3 text-xs prose prose-gray dark:border-neutral-700/60 dark:prose-invert"
     >
       <ThinkingMarkdown />
     </div>

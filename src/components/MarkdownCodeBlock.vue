@@ -58,17 +58,17 @@ watch(
 
 <template>
   <div
-    class="code-block-wrapper border rounded-xl max-w-[calc(100vw-24px)] overflow-hidden"
+    class="code-block-wrapper max-w-[calc(100vw-24px)] overflow-hidden border rounded-xl"
   >
     <div
-      class="code-block-toolbar text-neutral-4 px-4 py-2 border-b bg-neutral-100 flex items-center justify-between dark:border-neutral-700 dark:bg-neutral-800"
+      class="code-block-toolbar flex items-center justify-between border-b bg-neutral-100 px-4 py-2 text-neutral-4 dark:border-neutral-700 dark:bg-neutral-800"
     >
       <span class="code-language text-sm font-mono uppercase">
         {{ language || 'text' }}
       </span>
       <button
         type="button"
-        class="copy-button hover:bg-neutral-7 text-sm leading-0 rounded h-6 w-6"
+        class="copy-button h-6 w-6 rounded text-sm leading-0 hover:bg-neutral-7"
         @click="copyCode"
       >
         <i v-if="copied" class="i-tabler-check" />

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../types/message'
-import { Tag } from '@roku-ui/vue'
 
 const props = defineProps<{
   message: ChatMessage
@@ -135,7 +134,7 @@ function getTimings(message: ChatMessage) {
 </script>
 
 <template>
-  <div v-if="message.role === 'assistant'" class="flex gap-1 items-center">
+  <div v-if="message.role === 'assistant'" class="flex items-center gap-1">
     <!-- 紧凑模式：显示单个时间 -->
     <template v-if="!mode || mode === 'compact'">
       <!-- 动态时间显示 (消息进行中) -->
@@ -169,7 +168,7 @@ function getTimings(message: ChatMessage) {
     <template
       v-else-if="mode === 'detailed' && getTimings(message)?.isCompleted"
     >
-      <div class="flex gap-2 items-center">
+      <div class="flex items-center gap-2">
         <!-- 延迟时间 -->
         <Tag
           v-if="getTimings(message)?.latency"

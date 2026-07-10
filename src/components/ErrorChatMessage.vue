@@ -32,7 +32,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="error-message p-3 border border-red-200 rounded-md bg-red-50 dark:border-red-700 dark:bg-red-900"
+    class="error-message border border-red-200 rounded-md bg-red-50 p-3 dark:border-red-700 dark:bg-red-900"
   >
     <div class="flex items-start">
       <!-- Content container -->
@@ -40,7 +40,7 @@ onMounted(() => {
         <!-- Error title (if provided) -->
         <h3
           v-if="title"
-          class="text-sm text-red-800 font-medium mb-1 dark:text-red-300"
+          class="mb-1 text-sm text-red-800 font-medium dark:text-red-300"
         >
           {{ title }}
         </h3>
@@ -49,7 +49,7 @@ onMounted(() => {
         <div class="text-sm text-red-700 dark:text-red-200">
           <pre
             ref="contentRef"
-            class="font-inherit bg-transparent whitespace-pre-wrap"
+            class="whitespace-pre-wrap bg-transparent font-inherit"
             :class="collapsed ? 'line-clamp-3' : 'line-clamp-none'"
             v-text="content"
           />
@@ -63,7 +63,7 @@ onMounted(() => {
         @click="collapsed = !collapsed"
       >
         <button
-          class="text-red-500 rounded-full flex h-8 w-8 items-center justify-center hover:bg-red-100 dark:hover:bg-red-800"
+          class="h-8 w-8 flex items-center justify-center rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-800"
         >
           <i
             :class="collapsed ? 'i-tabler-chevron-down' : 'i-tabler-chevron-up'"

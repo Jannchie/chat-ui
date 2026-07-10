@@ -77,10 +77,10 @@ async function onDelete(e: MouseEvent) {
         class="fixed z-10"
       >
         <div
-          class="border border-neutral-300 rounded-md bg-white w-32 shadow-lg overflow-hidden dark:border-neutral-700 dark:bg-neutral-800"
+          class="w-32 overflow-hidden border border-neutral-300 rounded-md bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-800"
         >
           <button
-            class="text-sm text-red-600 px-4 py-2 text-left w-full dark:text-red-400 hover:bg-red-500/10"
+            class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-500/10 dark:text-red-400"
             @click="onDelete"
           >
             Delete
@@ -89,14 +89,14 @@ async function onDelete(e: MouseEvent) {
       </menu>
       <button
         :disabled="currentChat === null"
-        class="dark:hover:bg-neutral-7 leading-0 px-4 py-3 rounded-full bg-neutral-300 flex gap-4 min-w-130px items-center dark:bg-neutral-800 hover:bg-neutral-400 disabled:op-50 disabled:pointer-events-none"
+        class="min-w-130px flex items-center gap-4 rounded-full bg-neutral-300 px-4 py-3 leading-0 disabled:pointer-events-none dark:bg-neutral-800 hover:bg-neutral-400 disabled:op-50 dark:hover:bg-neutral-7"
         @click="onNewChatClick"
       >
         <i class="i-tabler-plus h-5 w-5" />
-        <span class="text-sm flex-grow-1"> New Chat </span>
+        <span class="flex-grow-1 text-sm"> New Chat </span>
       </button>
     </div>
-    <div class="my-2 px-4 flex items-center justify-between">
+    <div class="my-2 flex items-center justify-between px-4">
       <span class="text-sm">Recent Chat</span>
       <button
         v-if="hasMoreChats"

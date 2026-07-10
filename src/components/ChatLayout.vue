@@ -7,7 +7,6 @@ import type {
   MessageContent,
   TextContent,
 } from '../types/message'
-import { Select } from '@roku-ui/vue'
 import { streamText } from 'ai'
 import { Virtualizer } from 'virtua/vue'
 import { toRaw } from 'vue'
@@ -1058,7 +1057,7 @@ watchEffect(() => {
       <ChatHeader />
       <div
         v-if="conversation.length <= 1"
-        class="text-3.5rem leading-4rem font-medium m-auto px-4 h-full max-w-chat w-full overflow-x-hidden overflow-y-auto"
+        class="m-auto h-full max-w-chat w-full overflow-x-hidden overflow-y-auto px-4 text-3.5rem font-medium leading-4rem"
       >
         <div class="md:mb-12 md:mt-8">
           <div class="gradient-text text-3xl lg:text-5xl md:text-4xl">
@@ -1073,21 +1072,21 @@ watchEffect(() => {
         <div class="mb-10 mt-20 flex gap-4">
           <div class="animate-fade-delay">
             <button
-              class="dark:hover:bg-neutral-7 leading-0 p-4 rounded-xl bg-neutral-200 flex flex-row w-full shadow-sm transition-colors justify-between md:p-5 dark:bg-neutral-800 hover:bg-neutral-300 md:flex-col md:h-200px md:w-200px dark:hover:bg-neutral-700"
+              class="w-full flex flex-row justify-between rounded-xl bg-neutral-200 p-4 leading-0 shadow-sm transition-colors md:h-200px md:w-200px md:flex-col dark:bg-neutral-800 hover:bg-neutral-300 md:p-5 dark:hover:bg-neutral-7 dark:hover:bg-neutral-700"
               @click="router.push({ name: 'translate' })"
             >
-              <div class="flex gap-2 items-center">
+              <div class="flex items-center gap-2">
                 <div
-                  class="rounded-lg bg-blue-500/20 flex h-8 w-8 items-center justify-center"
+                  class="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-500/20"
                 >
-                  <i class="i-tabler-language text-blue-400 h-5 w-5" />
+                  <i class="i-tabler-language h-5 w-5 text-blue-400" />
                 </div>
                 <div class="text-base font-medium">
                   Translate
                 </div>
               </div>
               <div
-                class="text-neutral-5 text-xs ml-auto hidden items-center md:ml-0 md:mt-4 md:flex"
+                class="ml-auto hidden items-center text-xs text-neutral-5 md:ml-0 md:mt-4 md:flex"
               >
                 Easily translate between multiple languages
               </div>
@@ -1125,18 +1124,18 @@ watchEffect(() => {
         </Virtualizer>
       </div>
       <div
-        class="input-section px-4 flex shrink-0 flex-col gap-1 min-h-120px items-center justify-end relative"
+        class="input-section relative min-h-120px flex shrink-0 flex-col items-center justify-end gap-1 px-4"
       >
         <div
-          class="text-sm rounded-md op50 flex flex-col h-20px shadow-sm items-center z-10"
+          class="z-10 h-20px flex flex-col items-center rounded-md text-sm op50 shadow-sm"
         >
           <!-- 性能指标 -->
           <div
             v-if="lastUsage && lastTimeUsageMS > 0"
-            class="flex gap-1 items-center"
+            class="flex items-center gap-1"
           >
             <div>
-              <span class="font-medium mr-1">Current:</span>
+              <span class="mr-1 font-medium">Current:</span>
               <i class="i-tabler-arrow-up h-3 w-3" />{{ lastUsage.prompt_tokens }}
               <i class="i-tabler-arrow-down ml-0.5 h-3 w-3" />{{ lastUsage.completion_tokens }}
               <template
@@ -1164,7 +1163,7 @@ watchEffect(() => {
             </template>
             ·
             <div>
-              <span class="font-medium mr-1">Speed:</span>
+              <span class="mr-1 font-medium">Speed:</span>
               <span>{{
                 (
                   (lastUsage.completion_tokens / lastTimeUsageMS)
@@ -1183,18 +1182,18 @@ watchEffect(() => {
             "
             class="mr-6 flex items-center"
           >
-            <span class="font-medium mr-1">Total Input/Output:</span>
+            <span class="mr-1 font-medium">Total Input/Output:</span>
             <span>
               {{ currentChat.token.inTokens }} /
               {{ currentChat.token.outTokens }} Token
             </span>
           </div>
         </div>
-        <div class="leading-0 max-w-chat w-full relative z-10">
+        <div class="relative z-10 max-w-chat w-full leading-0">
           <!-- Image preview area above input panel -->
           <div
             v-if="uploadedImages.length > 0"
-            class="mb-3 pt-3 flex flex-wrap gap-3"
+            class="mb-3 flex flex-wrap gap-3 pt-3"
           >
             <div
               v-for="image in uploadedImages"
@@ -1206,24 +1205,24 @@ watchEffect(() => {
                 :alt="image.file.name"
                 loading="lazy"
                 decoding="async"
-                class="dark:border-neutral-6 border border-neutral-300 rounded-lg h-16 w-16 object-cover"
+                class="h-16 w-16 border border-neutral-300 rounded-lg object-cover dark:border-neutral-6"
               >
               <button
-                class="dark:hover:bg-neutral-7 rounded-full bg-neutral-300 opacity-0 flex h-6 w-6 transition-opacity items-center justify-center absolute dark:bg-neutral-800 hover:bg-neutral-400 group-hover:opacity-100 -right-2 -top-2"
+                class="absolute h-6 w-6 flex items-center justify-center rounded-full bg-neutral-300 opacity-0 transition-opacity -right-2 -top-2 dark:bg-neutral-800 hover:bg-neutral-400 group-hover:opacity-100 dark:hover:bg-neutral-7"
                 @click="
                   uploadedImages = uploadedImages.filter(
                     (img: ImageFile) => img.id !== image.id,
                   )
                 "
               >
-                <i class="i-tabler-x text-neutral-3 h-4 w-4" />
+                <i class="i-tabler-x h-4 w-4 text-neutral-3" />
               </button>
             </div>
           </div>
 
           <!-- Unified input panel -->
           <div
-            class="rounded-xl bg-neutral-100 transition-all relative dark:bg-elevated focus-within:bg-neutral-200 hover:bg-neutral-200 dark:focus-within:bg-elevated-hover dark:hover:bg-elevated-hover"
+            class="relative rounded-xl bg-neutral-100 transition-all dark:bg-elevated focus-within:bg-neutral-200 hover:bg-neutral-200 dark:focus-within:bg-elevated-hover dark:hover:bg-elevated-hover"
           >
             <!-- Textarea without border -->
             <textarea
@@ -1237,7 +1236,7 @@ watchEffect(() => {
                 height: auto;
               "
               :rows="rows"
-              class="text-lg text-neutral-800 px-4 py-4 outline-none border-none bg-transparent flex-grow-0 w-full dark:text-[#e3e3e3]"
+              class="w-full flex-grow-0 border-none bg-transparent px-4 py-4 text-lg text-neutral-800 outline-none dark:text-[#e3e3e3]"
               placeholder="Input your question here"
               @keydown.stop.up="
                 async (e) => {
@@ -1263,28 +1262,26 @@ watchEffect(() => {
             />
 
             <!-- Bottom buttons (stacked below textarea) -->
-            <div class="px-4 pb-3 flex items-center justify-between">
+            <div class="flex items-center justify-between px-4 pb-3">
               <!-- Image upload button - bottom left -->
               <div>
                 <ImageUpload v-model="uploadedImages" />
               </div>
 
               <!-- Prompt optimize and send buttons - bottom right -->
-              <div class="flex gap-2 items-center">
+              <div class="flex items-center gap-2">
                 <div
                   v-if="showReasoningEffortSelector"
-                  class="text-xs text-neutral-500 flex gap-2 items-center dark:text-neutral-400"
+                  class="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400"
                 >
                   <span> Effort </span>
-                  <Select
+                  <DropdownSelect
                     v-model="selectedReasoningEffort"
                     :options="reasoningEffortOptions"
                     label-key="label"
-                    color="surface"
-                    rounded="sm"
-                    size="sm"
-                    none-text="Select effort"
-                    class="effort-select w-24"
+                    placeholder="Select effort"
+                    direction="up"
+                    class="w-24"
                   />
                 </div>
                 <!-- Speech-to-Text (OpenAI Whisper) button -->
@@ -1300,7 +1297,7 @@ watchEffect(() => {
                           ? 'Click to stop recording'
                           : 'Click to start recording'
                   "
-                  class="text-neutral-500 rounded-lg flex h-8 w-8 transition-all items-center justify-center dark:text-neutral-300"
+                  class="h-8 w-8 flex items-center justify-center rounded-lg text-neutral-500 transition-all dark:text-neutral-300"
                   :class="{
                     'opacity-50 cursor-not-allowed':
                       streaming || !sttSupported || sttTranscribing,
@@ -1331,7 +1328,7 @@ watchEffect(() => {
                 <!-- Send button -->
                 <button
                   v-if="streaming"
-                  class="text-white rounded-full bg-neutral-900 flex h-8 w-8 transition-all items-center justify-center dark:text-neutral-900 dark:bg-neutral-100 hover:bg-neutral-700 dark:hover:bg-white"
+                  class="h-8 w-8 flex items-center justify-center rounded-full bg-neutral-900 text-white transition-all dark:bg-neutral-100 hover:bg-neutral-700 dark:text-neutral-900 dark:hover:bg-white"
                   aria-label="Stop generating"
                   title="Stop generating"
                   @click="stopStreaming"
@@ -1346,7 +1343,7 @@ watchEffect(() => {
                       ? 'bg-neutral-900 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-white'
                       : 'text-neutral-400 opacity-50 cursor-not-allowed dark:text-neutral-500'
                   "
-                  class="rounded-full flex h-8 w-8 transition-all items-center justify-center"
+                  class="h-8 w-8 flex items-center justify-center rounded-full transition-all"
                   aria-label="Send message"
                   title="Send message"
                   @click="onSubmit"
@@ -1358,7 +1355,7 @@ watchEffect(() => {
           </div>
         </div>
         <div
-          class="animate-fade-delay text-xs color-[#6d6d6d] pb-3 pt-1 flex gap-2 animate-delay-500 dark:color-[#c4c7c5]"
+          class="animate-fade-delay flex animate-delay-500 gap-2 pb-3 pt-1 text-xs color-[#6d6d6d] dark:color-[#c4c7c5]"
         >
           <span> Jannchie's Web UI for Chat Services </span>
           <a

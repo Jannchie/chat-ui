@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Modal } from '@roku-ui/vue'
 import { useCurrency } from '../composables/useCurrency'
 import { useTheme } from '../composables/useTheme'
 import { chunkTimeoutSec, totalTimeoutSec } from '../shared'
@@ -59,16 +58,16 @@ const chunkTimeoutOptions = [
 <template>
   <Modal v-model="showModal">
     <div
-      class="mx-4 border border-neutral-200 rounded-2xl bg-white max-w-md w-full shadow-2xl overflow-hidden dark:border-neutral-800 dark:bg-[#1a1a1a]"
+      class="mx-4 max-w-md w-full overflow-hidden border border-neutral-200 rounded-2xl bg-white shadow-2xl dark:border-neutral-800 dark:bg-[#1a1a1a]"
     >
       <div
-        class="px-5 py-4 border-b border-neutral-200 flex items-center justify-between dark:border-neutral-800"
+        class="flex items-center justify-between border-b border-neutral-200 px-5 py-4 dark:border-neutral-800"
       >
         <h2 class="text-base text-neutral-800 font-semibold dark:text-white">
           Settings
         </h2>
         <button
-          class="text-neutral-400 rounded-full flex h-8 w-8 transition-colors items-center justify-center hover:text-neutral-700 hover:bg-neutral-200 dark:hover:text-white dark:hover:bg-neutral-800"
+          class="h-8 w-8 flex items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white"
           @click="showModal = false"
         >
           <i class="i-tabler-x" />
@@ -76,43 +75,43 @@ const chunkTimeoutOptions = [
       </div>
 
       <div class="px-5 py-4 space-y-5">
-        <div class="flex gap-4 items-center justify-between">
+        <div class="flex items-center justify-between gap-4">
           <div class="text-sm text-neutral-800 font-medium dark:text-neutral-200">
             Theme
           </div>
           <SegmentedControl v-model="themeModel" :options="themeOptions" />
         </div>
 
-        <div class="flex gap-4 items-center justify-between">
+        <div class="flex items-center justify-between gap-4">
           <div class="text-sm text-neutral-800 font-medium dark:text-neutral-200">
             Currency
           </div>
           <SegmentedControl v-model="selectedCurrency" :options="currencyOptions" />
         </div>
 
-        <div class="pt-4 border-t border-neutral-200 space-y-4 dark:border-neutral-800">
+        <div class="border-t border-neutral-200 pt-4 space-y-4 dark:border-neutral-800">
           <div
-            class="text-xs text-neutral-400 tracking-wider font-medium uppercase dark:text-neutral-500"
+            class="text-xs text-neutral-400 font-medium tracking-wider uppercase dark:text-neutral-500"
           >
             Request Timeout
           </div>
-          <div class="flex gap-4 items-center justify-between">
+          <div class="flex items-center justify-between gap-4">
             <div>
               <div class="text-sm text-neutral-800 font-medium dark:text-neutral-200">
                 Total duration
               </div>
-              <div class="text-xs text-neutral-400 mt-0.5 dark:text-neutral-500">
+              <div class="mt-0.5 text-xs text-neutral-400 dark:text-neutral-500">
                 Abort the whole request
               </div>
             </div>
             <SegmentedControl v-model="totalTimeoutSec" :options="totalTimeoutOptions" />
           </div>
-          <div class="flex gap-4 items-center justify-between">
+          <div class="flex items-center justify-between gap-4">
             <div>
               <div class="text-sm text-neutral-800 font-medium dark:text-neutral-200">
                 Stream stall
               </div>
-              <div class="text-xs text-neutral-400 mt-0.5 dark:text-neutral-500">
+              <div class="mt-0.5 text-xs text-neutral-400 dark:text-neutral-500">
                 No new output received
               </div>
             </div>
