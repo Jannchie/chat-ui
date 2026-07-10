@@ -77,10 +77,10 @@ async function onDelete(e: MouseEvent) {
         class="fixed z-10"
       >
         <div
-          class="dark:bg-neutral-8 rounded-md bg-neutral-200 w-32 overflow-hidden"
+          class="border border-neutral-300 rounded-md bg-white w-32 shadow-lg overflow-hidden dark:border-neutral-700 dark:bg-neutral-800"
         >
           <button
-            class="dark:hover:bg-neutral-7 px-4 py-2 w-full hover:bg-neutral-300"
+            class="text-sm text-red-600 px-4 py-2 text-left w-full dark:text-red-400 hover:bg-red-500/10"
             @click="onDelete"
           >
             Delete
